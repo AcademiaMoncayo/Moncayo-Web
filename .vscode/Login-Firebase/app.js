@@ -41,3 +41,20 @@ window.login = function() {
             msg.textContent = "Error: " + error.message;
         });
 }
+
+// Función Registro
+window.register = function() {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("password").value;
+
+    createUserWithEmailAndPassword(auth, email, pass)
+        .then(userCredential => {
+            msg.style.color = "green";
+            msg.textContent = "Usuario registrado correctamente";
+            console.log("Usuario:", userCredential.user);
+        })
+        .catch(error => {
+            msg.style.color = "red";
+            msg.textContent = "Error: " + error.message;
+        });
+}
