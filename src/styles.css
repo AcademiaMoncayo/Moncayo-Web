@@ -1,0 +1,66 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #1E394A;
+    margin: 0;
+    padding: 0;
+}
+
+/* Contenedor general */
+.Carga {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+}
+
+/* Logo */
+.img-Logo {
+    display: block;
+    margin: 0 auto 20px auto;
+    width: 150px;
+    height: auto;
+}
+
+/* Caja del login */
+.container {
+    width: 320px;
+    margin: 15px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+/* Inputs */
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Botones */
+button {
+    width: 95%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+/* Mensaje */
+#message {
+    margin-top: 12px;
+    font-size: 14px;
+    color: red;
+}

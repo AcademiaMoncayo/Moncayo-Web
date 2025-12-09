@@ -4,22 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Firebase</title>
-    <link rel="stylesheet" href="styles.css">
+
+    <!-- Ruta correcta del CSS -->
+    <link rel="stylesheet" href="/src/styles.css">
 </head>
+
 <body>
 
-<div class="container">
-    <h2>Login Firebase</h2>
+    <div class="Carga">
 
-    <input type="email" id="email" placeholder="Correo">
-    <input type="password" id="password" placeholder="Contraseña">
+        <!-- Logo -->
+        <div>
+            <img class="img-Logo" src="src/imagenes/Logo.png" alt="Logo de Academia Moncayo">
+        </div>
 
-    <button onclick="login()">Iniciar Sesión</button>
-    <button onclick="register()">Registrarse</button>
+        <!-- Caja del login -->
+        <div class="container">
+            <h2>Academia Moncayo</h2>
 
-    <p id="message"></p>
-</div>
+            <input type="email" id="email" placeholder="Correo">
+            <input type="password" id="password" placeholder="Contraseña">
 
-<script type="module" src="app.js"></script>
+            <button onclick="login()">Iniciar Sesión</button>
+            <button onclick="register()">Registrarse</button>
+
+            <p id="message"></p>
+        </div>
+
+    </div>
+
+    <!-- Script -->
+    <script type="module" src="app.js"></script>
+
 </body>
 </html>
