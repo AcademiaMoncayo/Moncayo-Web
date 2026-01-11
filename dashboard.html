@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Academia Moncayo</title>
+
+    <link rel="stylesheet" href="src/css/variables.css">
+    <link rel="stylesheet" href="src/css/dashboard.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-left">
+            <h3>Academia Moncayo</h3>
+        </div>
+
+        <nav class="nav-center">
+            <button class="nav-btn active">Inicio</button>
+            <button class="nav-btn">Alumnos</button>
+            <button class="nav-btn">Maestros</button>
+            <button class="nav-btn">Calendario</button>
+            <button class="nav-btn">Finanzas</button>
+            <button class="nav-btn">Control De Alumnos</button>
+        </nav>
+
+        <div class="nav-right">
+            <span id="userDisplay">Cargando...</span>
+            <button id="btnLogout" class="btn-logout">Salir</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        
+        <h1>Panel de Inicio</h1>
+        <p class="date-display" id="dateDisplay">--/--/----</p>
+
+        <div class="panel-notes">
+            <div class="notes-header">
+                <h3>📝 Pendientes del Día</h3>
+                <button class="btn-add-note">+ Nueva Nota</button>
+            </div>
+            
+            <div class="notes-list" id="notesList">
+                <div class="note-card">
+                    <p>Revisar pagos de la semana.</p>
+                </div>
+                <div class="note-card">
+                    <p>Llamar a prospectos pendientes.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module" src="src/js/dashboard.js"></script>
+
+</body>
+</html>

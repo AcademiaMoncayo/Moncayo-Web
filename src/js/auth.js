@@ -37,7 +37,7 @@ async function handleLogin(e) {
         showMessage(`¡Bienvenido, ${username}!`, false);
         
         // REDIRECCIÓN (Pendiente para el siguiente paso)
-        // window.location.href = "dashboard.html";
+        window.location.href = "dashboard.html";
 
     } catch (error) {
         console.error("Error Login:", error.code);

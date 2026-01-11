@@ -1,0 +1,116 @@
+/* Navbar Superior */
+.navbar {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 60px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.nav-left h3 {
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Menú Central */
+.nav-center {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: #b0c4d1; /* Un tono más claro que el fondo */
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s;
+    width: auto; /* Sobrescribe el width:100% del styles.css general */
+}
+
+.nav-btn:hover, .nav-btn.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-white);
+}
+
+/* Perfil Derecha */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
+}
+
+.btn-logout {
+    background-color: var(--color-error);
+    padding: 5px 10px;
+    width: auto;
+    font-size: 12px;
+}
+
+.btn-logout:hover {
+    background-color: #c82333;
+}
+
+/* Contenido Principal */
+.main-content {
+    padding: 20px 40px;
+    background-color: var(--color-bg-light);
+    min-height: calc(100vh - 60px); /* Altura total menos navbar */
+}
+
+.date-display {
+    color: #666;
+    margin-top: -10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+/* Panel de Notas */
+.panel-notes {
+    background: var(--color-white);
+    padding: 20px;
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--shadow-card);
+    max-width: 600px;
+}
+
+.notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.notes-header h3 {
+    margin: 0;
+    color: var(--color-primary);
+}
+
+.btn-add-note {
+    width: auto;
+    background-color: var(--color-success);
+    padding: 5px 15px;
+    font-size: 13px;
+}
+
+/* Lista de Notas */
+.note-card {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-left: 4px solid var(--color-accent);
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.note-card p {
+    margin: 0;
+    color: var(--color-text-main);
+}
