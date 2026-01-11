@@ -6,7 +6,8 @@
     <title>Alumnos - Academia Moncayo</title>
     <link rel="stylesheet" href="src/css/variables.css">
     <link rel="stylesheet" href="src/css/dashboard.css">
-    <link rel="stylesheet" href="src/css/students.css"> </head>
+    <link rel="stylesheet" href="src/css/students.css">
+</head>
 <body>
 
     <header class="navbar">
@@ -23,63 +24,162 @@
         </div>
     </header>
 
-    <main class="main-content">
+<main class="main-content">
         
         <div class="page-header">
             <h1>Gestión de Alumnos</h1>
-            <button id="btnOpenModal" class="btn-primary">+ Nuevo Prospecto</button>
+            <button id="btnOpenModal" class="btn-primary" style="padding: 10px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">+ Nuevo Prospecto</button>
         </div>
 
-        <div class="toolbar">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Buscar por nombre...">
-            </div>
+        <div class="content-card">
             
-            <div class="filter-box">
-                <label>Ver:</label>
-                <select id="filterStatus">
-                    <option value="inscrito">✅ Inscritos</option>
-                    <option value="prospecto">⏳ Prospectos</option>
-                    <option value="todos">📋 Todos</option>
-                </select>
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar alumno...">
+                </div>
+                
+                <div class="filter-box">
+                    <label>Filtrar por:</label>
+                    <select id="filterStatus">
+                        <option value="todos">Todos los Activos</option>
+                        <option value="prospecto">Prospectos</option>
+                        <option value="inscrito">Alumnos Inscritos</option>
+                        <option value="inactivo">Alumnos Inactivos</option>
+                        <option value="sin_interes">Sin Interés</option>
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Instrumento</th>
-                        <th>Tutor / Contacto</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    </tbody>
-            </table>
-            <p id="noResults" class="hidden">No se encontraron alumnos.</p>
-        </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Instrumento</th>
+                            <th>Tutor / Contacto</th>
+                            <th>Correo</th>
+                            <th>Día Pago</th>
+                            <th style="text-align: center;">Factura</th>
+                            <th>Estado</th>
+                            <th>Acciones</th> </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        </tbody>
+                </table>
+                <p id="noResults" class="hidden" style="text-align:center; padding: 20px; color:#666;">No se encontraron alumnos.</p>
+            </div>
 
-    </main>
+            <div class="pagination-controls">
+                <button id="btnPrevPage" disabled>❮ Anterior</button>
+                <span id="pageIndicator" style="font-size: 14px; color: #666;">Página 1</span>
+                <button id="btnNextPage">Siguiente ❯</button>
+            </div>
 
-    <div id="modalContainer" class="modal-overlay hidden">
+        </div> </main>
+
+<div id="modalContainer" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Nuevo Prospecto</h3>
                 <span id="btnCloseModal" class="close-btn">&times;</span>
             </div>
             <form id="formStudent">
+                <label>Nombre del Alumno Completo:</label>
                 <input type="text" id="newNombre" placeholder="Nombre completo del alumno" required>
+                <label>Edad del Alumno:</label>
                 <input type="number" id="newEdad" placeholder="Edad" required>
+                <label>Nota o Instrumento de interes:</label>
                 <input type="text" id="newInstrumento" placeholder="Instrumento de interés">
                 
-                <hr> <p class="section-title">Datos del Tutor</p>
+                <hr> 
+                <p class="section-title">Datos del Tutor</p>
+                <label>Nombre:</label>
                 <input type="text" id="newTutor" placeholder="Nombre del Tutor" required>
+                <label>Telefono:</label>
                 <input type="tel" id="newTelefono" placeholder="Teléfono de contacto" required>
                 
                 <button type="submit" class="btn-save">Guardar Prospecto</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalInscripcion" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Formalizar Inscripción</h3>
+                <span id="btnCloseInscripcion" class="close-btn">&times;</span>
+            </div>
+            <form id="formInscripcion">
+                <input type="hidden" id="inscripcionId"> 
+                
+                <label>Nombre del Alumno:</label>
+                <input type="text" id="inscripcionNombre" disabled style="background:#eee; margin-bottom:10px;">
+
+                <label>Costo Mensualidad ($):</label>
+                <input type="number" id="costoMensual" placeholder="Ej. 1500" required>
+
+                <label>Correo del Tutor (Para recibos):</label>
+                <input type="email" id="correoTutor" placeholder="nombre@correo.com" required>
+
+                <div style="margin: 15px 0; display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="requiereFactura" style="width: auto; margin: 0;">
+                    <label for="requiereFactura" style="margin: 0; cursor:pointer;">¿Requiere Factura?</label>
+                </div>
+                
+                <label>Fecha de Inicio:</label>
+                <input type="date" id="fechaInicio" required>
+                <small style="color:#666; display:block; margin-top:5px;">* El día de corte será el mismo día de inicio.</small>
+
+                <button type="submit" class="btn-save" style="background-color: #28a745; margin-top:15px;">Confirmar Inscripción</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalEditar" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Información</h3>
+                <span id="btnCloseEditar" class="close-btn">&times;</span>
+            </div>
+            <form id="formEditar">
+                <input type="hidden" id="editId">
+                <input type="hidden" id="editStatus"> <p class="section-title">Datos Personales</p>
+                <label>Nombre y Edad:</label>
+                <div class="form-row"> 
+                    <input type="text" id="editNombre" placeholder="Nombre" required>
+                    <input type="number" id="editEdad" placeholder="Edad" style="width: 80px;">
+                </div>
+                <label>Instrumento Registrado:</label>
+                <input type="text" id="editInstrumento" placeholder="Instrumento">
+                
+                <p class="section-title">Contacto Tutor</p>
+                <label>Nombre:</label>
+                <input type="text" id="editTutor" placeholder="Nombre Tutor" required>
+                <label>Telefono:</label>
+                <input type="tel" id="editTelefono" placeholder="Teléfono" required>
+                <label>Correo:</label>
+                <input type="email" id="editCorreo" placeholder="Correo (Opcional para prospectos)">
+
+                <div id="editFinanzasContainer" class="hidden">
+                    <hr>
+                    <p class="section-title">Datos de Inscripción</p>
+                    <div class="form-row">
+                        <div>
+                            <label>Mensualidad ($)</label>
+                            <input type="number" id="editCosto">
+                        </div>
+                        <div>
+                            <label>Día Corte</label>
+                            <input type="number" id="editDiaCorte" max="31">
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="editFactura" style="width: auto; margin: 0;">
+                        <label for="editFactura" style="margin: 0; cursor:pointer;">Requiere Factura</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save" style="background-color: #ffc107; color: #333; margin-top:20px;">Guardar Cambios</button>
             </form>
         </div>
     </div>

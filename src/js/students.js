@@ -1,135 +1,329 @@
 import { db, auth } from './firebase-config.js';
-import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// --- REFERENCIAS AL DOM ---
+// --- REFERENCIAS DOM ---
 const tableBody = document.getElementById('tableBody');
 const searchInput = document.getElementById('searchInput');
 const filterStatus = document.getElementById('filterStatus');
 
-// Modal y Formulario
-const modalContainer = document.getElementById('modalContainer');
-const btnOpenModal = document.getElementById('btnOpenModal');
-const btnCloseModal = document.getElementById('btnCloseModal');
-const formStudent = document.getElementById('formStudent');
+// Modales
+const modalContainer = document.getElementById('modalContainer'); // Nuevo
+const modalInscripcion = document.getElementById('modalInscripcion'); // Inscribir
+const modalEditar = document.getElementById('modalEditar'); // Editar
 
-// Estado Global (Para búsqueda rápida sin recargar Firebase)
+// Paginación
+const btnPrevPage = document.getElementById('btnPrevPage');
+const btnNextPage = document.getElementById('btnNextPage');
+const pageIndicator = document.getElementById('pageIndicator');
+
 let allStudents = []; 
+let currentPage = 1;
+const rowsPerPage = 25;
 
 // 1. SEGURIDAD
 onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = "index.html";
-    else loadStudents(); // Si hay usuario, cargamos la tabla
+    else loadStudents();
 });
 
-// 2. CARGAR ALUMNOS DE FIREBASE
+// 2. CARGAR
 async function loadStudents() {
-    tableBody.innerHTML = '<tr><td colspan="5">Cargando...</td></tr>';
-    
+    tableBody.innerHTML = '<tr><td colspan="8">Cargando...</td></tr>';
     try {
         const q = query(collection(db, "students"), orderBy("nombre"));
         const querySnapshot = await getDocs(q);
         
-        allStudents = []; // Limpiamos array
+        allStudents = [];
         querySnapshot.forEach((doc) => {
             allStudents.push({ id: doc.id, ...doc.data() });
         });
-
-        renderTable(); // Dibujamos la tabla inicial
+        renderTable();
     } catch (error) {
-        console.error("Error al cargar:", error);
-        tableBody.innerHTML = '<tr><td colspan="5" style="color:red">Error al cargar datos.</td></tr>';
+        console.error("Error:", error);
     }
 }
 
-// 3. RENDERIZAR TABLA (Con Filtros de Buscador y Select)
+// 3. RENDERIZAR TABLA
 function renderTable() {
     const textoBusqueda = searchInput.value.toLowerCase();
-    const filtroEstado = filterStatus.value; // 'todos', 'inscrito', 'prospecto'
+    const filtroEstado = filterStatus.value;
 
-    // Filtramos el array global
     const listaFiltrada = allStudents.filter(alumno => {
-        // 1. Coincide con el Select?
-        const coincideEstado = (filtroEstado === 'todos') || (alumno.status === filtroEstado);
-        
-        // 2. Coincide con el Buscador?
+        // Lógica de Filtro Inteligente
+        let coincideEstado = false;
+
+        if (filtroEstado === 'todos') {
+            // 'Todos' muestra prospectos e inscritos (oculta inactivos)
+            coincideEstado = (alumno.status === 'prospecto' || alumno.status === 'inscrito');
+        } else {
+            // Muestra exactamente lo que pides (incluso inactivos)
+            coincideEstado = (alumno.status === filtroEstado);
+        }
+
         const coincideNombre = alumno.nombre.toLowerCase().includes(textoBusqueda);
-        
         return coincideEstado && coincideNombre;
     });
 
-    // Limpiamos tabla
-    tableBody.innerHTML = '';
+    // Paginación
+    const totalPages = Math.ceil(listaFiltrada.length / rowsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const alumnosPagina = listaFiltrada.slice(startIndex, startIndex + rowsPerPage);
 
-    if (listaFiltrada.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center">No se encontraron resultados.</td></tr>';
+    // Dibujar
+    tableBody.innerHTML = '';
+    if (alumnosPagina.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">No se encontraron resultados.</td></tr>';
+        pageIndicator.textContent = "0 de 0";
         return;
     }
 
-    // Dibujamos filas
-    listaFiltrada.forEach(alumno => {
+    alumnosPagina.forEach(alumno => {
         const fila = document.createElement('tr');
         
-        // Etiqueta de color
-        const claseStatus = alumno.status === 'inscrito' ? 'tag-inscrito' : 'tag-prospecto';
-        
+        // Colores de estado
+        let claseStatus = 'tag-prospecto';
+        if (alumno.status === 'inscrito') claseStatus = 'tag-inscrito';
+        if (alumno.status === 'inactivo' || alumno.status === 'sin_interes') claseStatus = 'tag-inactivo'; // Definir estilo gris en CSS si gustas
+
+        // Botón Inscribir (Solo si es prospecto)
+        let accionBtn = '';
+        if (alumno.status === 'prospecto') {
+            accionBtn = `<button class="btn-action inscribir-btn" data-id="${alumno.id}" data-nombre="${alumno.nombre}">Inscribir</button>`;
+        } else if (alumno.status === 'inscrito') {
+            accionBtn = '<span style="color:green; font-weight:bold; font-size:12px;">✔ Alumno</span>';
+        } else {
+            accionBtn = '<span style="color:#999; font-size:12px;">Archivado</span>';
+        }
+
+        // Datos
+        const emailDisplay = alumno.emailTutor ? `<div style="display:flex; gap:5px;"><span>${alumno.emailTutor}</span><button class="btn-mini-email" data-email="${alumno.emailTutor}">✉</button></div>` : '-';
+        const diaPago = alumno.diaCorte ? `Día ${alumno.diaCorte}` : '-';
+        const factura = alumno.requiereFactura ? '✅ Sí' : '-';
+
+        // Botones de Gestión (Editar y Borrar)
+        const btnEditar = `<button class="btn-edit" data-id="${alumno.id}" title="Editar">✏️</button>`;
+        const btnBaja = `<button class="btn-archive" data-id="${alumno.id}" data-status="${alumno.status}" title="Dar de baja / Archivar">🗑️</button>`;
+
         fila.innerHTML = `
-            <td>${alumno.nombre}</td>
+            <td><strong>${alumno.nombre}</strong></td>
             <td>${alumno.instrumentoInteres || 'N/A'}</td>
-            <td>
-                ${alumno.nombreTutor}<br>
-                <small style="color:#666">${alumno.telefonoTutor}</small>
-            </td>
+            <td>${alumno.nombreTutor}<br><small>${alumno.telefonoTutor}</small></td>
+            <td>${emailDisplay}</td>
+            <td style="text-align:center;">${diaPago}</td>
+            <td style="text-align:center;">${factura}</td>
             <td><span class="tag ${claseStatus}">${alumno.status.toUpperCase()}</span></td>
             <td>
-                ${alumno.status === 'prospecto' 
-                    ? `<button class="btn-action" onclick="alert('Inscribir a ${alumno.nombre} (Pendiente)')">Inscribir</button>` 
-                    : '<span style="color:green">✔ Activo</span>'}
+                <div class="actions-cell">
+                    ${btnEditar}
+                    ${btnBaja}
+                    ${accionBtn}
+                </div>
             </td>
         `;
         tableBody.appendChild(fila);
     });
+
+    pageIndicator.textContent = `Página ${currentPage} de ${totalPages}`;
+    btnPrevPage.disabled = currentPage === 1;
+    btnNextPage.disabled = currentPage === totalPages;
+
+    asignarEventos();
 }
 
-// 4. GUARDAR NUEVO PROSPECTO
-formStudent.addEventListener('submit', async (e) => {
-    e.preventDefault();
+// 4. EVENTOS DE BOTONES
+function asignarEventos() {
+    // Editar
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const alumno = allStudents.find(a => a.id === e.currentTarget.dataset.id);
+            abrirModalEditar(alumno);
+        });
+    });
+
+    // Dar de Baja / Archivar
+    document.querySelectorAll('.btn-archive').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.dataset.id;
+            const statusActual = e.currentTarget.dataset.status;
+            confirmarBaja(id, statusActual);
+        });
+    });
+
+    // Inscribir
+    document.querySelectorAll('.inscribir-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            abrirModalInscripcion(e.currentTarget.dataset.id, e.currentTarget.dataset.nombre);
+        });
+    });
+}
+
+// --- FUNCIONES DE ACCIÓN ---
+
+// A) Lógica de Baja / Archivo
+async function confirmarBaja(id, statusActual) {
+    let nuevoStatus = '';
+    let mensajeConfirmacion = '';
+
+    if (statusActual === 'prospecto') {
+        nuevoStatus = 'sin_interes';
+        mensajeConfirmacion = '¿Mover a la lista de "Sin Interés"?';
+    } else if (statusActual === 'inscrito') {
+        nuevoStatus = 'inactivo';
+        mensajeConfirmacion = '¿Dar de baja al alumno (Pasar a Inactivo)?';
+    } else {
+        // Si ya está inactivo, quizás queramos reactivarlo o borrarlo definitivo
+        if(confirm("¿Este registro ya está archivado. ¿Deseas REACTIVARLO como Prospecto?")) {
+            actualizarStatus(id, 'prospecto');
+        }
+        return;
+    }
+
+    if (confirm(mensajeConfirmacion)) {
+        await actualizarStatus(id, nuevoStatus);
+    }
+}
+
+async function actualizarStatus(id, nuevoStatus) {
+    try {
+        await updateDoc(doc(db, "students", id), { status: nuevoStatus });
+        alert("Estado actualizado.");
+        loadStudents();
+    } catch (error) {
+        alert("Error al actualizar: " + error.message);
+    }
+}
+
+// B) Lógica de Editar (Cargar datos en el modal)
+function abrirModalEditar(alumno) {
+    document.getElementById('editId').value = alumno.id;
+    document.getElementById('editStatus').value = alumno.status;
+
+    // Llenar campos
+    document.getElementById('editNombre').value = alumno.nombre;
+    document.getElementById('editEdad').value = alumno.edad;
+    document.getElementById('editInstrumento').value = alumno.instrumentoInteres || '';
+    document.getElementById('editTutor').value = alumno.nombreTutor;
+    document.getElementById('editTelefono').value = alumno.telefonoTutor;
+    document.getElementById('editCorreo').value = alumno.emailTutor || '';
+
+    // Mostrar finanzas solo si es inscrito
+    const finanzasDiv = document.getElementById('editFinanzasContainer');
+    if (alumno.status === 'inscrito') {
+        finanzasDiv.classList.remove('hidden');
+        document.getElementById('editCosto').value = alumno.costoMensual || '';
+        // Si tienes campo de diaCorte en el modal de editar, ponlo, si no, quítalo
+        if(document.getElementById('editDiaCorte')) document.getElementById('editDiaCorte').value = alumno.diaCorte || '';
+        document.getElementById('editFactura').checked = alumno.requiereFactura || false;
+    } else {
+        finanzasDiv.classList.add('hidden');
+    }
     
-    const nuevoAlumno = {
-        nombre: document.getElementById('newNombre').value.trim(),
-        edad: document.getElementById('newEdad').value,
-        instrumentoInteres: document.getElementById('newInstrumento').value.trim(),
-        nombreTutor: document.getElementById('newTutor').value.trim(),
-        telefonoTutor: document.getElementById('newTelefono').value.trim(),
-        status: "prospecto", // Por defecto entran como prospectos
-        fechaRegistro: new Date()
+    modalEditar.classList.remove('hidden');
+}
+
+// Guardar Edición
+document.getElementById('formEditar').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('editId').value;
+    const status = document.getElementById('editStatus').value;
+
+    const datos = {
+        nombre: document.getElementById('editNombre').value.trim(),
+        edad: document.getElementById('editEdad').value,
+        instrumentoInteres: document.getElementById('editInstrumento').value.trim(),
+        nombreTutor: document.getElementById('editTutor').value.trim(),
+        telefonoTutor: document.getElementById('editTelefono').value.trim(),
+        emailTutor: document.getElementById('editCorreo').value.trim()
     };
 
+    if (status === 'inscrito') {
+        datos.costoMensual = Number(document.getElementById('editCosto').value);
+        datos.requiereFactura = document.getElementById('editFactura').checked;
+        // Si permitimos editar el día de corte manual:
+        if(document.getElementById('editDiaCorte')) datos.diaCorte = Number(document.getElementById('editDiaCorte').value);
+    }
+
     try {
-        await addDoc(collection(db, "students"), nuevoAlumno);
-        alert("Prospecto guardado correctamente");
-        toggleModal();      // Cerrar modal
-        formStudent.reset(); // Limpiar campos
-        loadStudents();      // Recargar tabla
+        await updateDoc(doc(db, "students", id), datos);
+        alert("Cambios guardados.");
+        modalEditar.classList.add('hidden');
+        loadStudents();
     } catch (error) {
-        console.error("Error al guardar:", error);
-        alert("Hubo un error al guardar");
+        alert("Error al editar: " + error.message);
     }
 });
 
-// 5. CONTROL DEL MODAL (Abrir/Cerrar)
-function toggleModal() {
-    modalContainer.classList.toggle('hidden');
-}
+// --- EL RESTO DE LISTENERS (Modal nuevo, paginación, etc.) ---
+document.getElementById('btnCloseEditar').addEventListener('click', () => modalEditar.classList.add('hidden'));
 
-btnOpenModal.addEventListener('click', toggleModal);
-btnCloseModal.addEventListener('click', toggleModal);
-
-// Cerrar si clic fuera del modal
-modalContainer.addEventListener('click', (e) => {
-    if (e.target === modalContainer) toggleModal();
+// (Mantén aquí el resto de tus listeners de Inscribir y Nuevo Prospecto como estaban)
+// ... Paginación ...
+btnPrevPage.addEventListener('click', () => { if(currentPage>1) { currentPage--; renderTable(); } });
+btnNextPage.addEventListener('click', () => { 
+    // Recalcular total pages simple
+    const filtrados = allStudents.filter(a => filterStatus.value==='todos' ? (a.status==='prospecto'||a.status==='inscrito') : a.status===filterStatus.value);
+    if(currentPage < Math.ceil(filtrados.length/rowsPerPage)) { currentPage++; renderTable(); } 
 });
 
-// 6. LISTENERS PARA BÚSQUEDA
-searchInput.addEventListener('input', renderTable);
-filterStatus.addEventListener('change', renderTable);
+// Listener del Filtro para resetear página
+filterStatus.addEventListener('change', () => { currentPage = 1; renderTable(); });
+searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
+
+// Funciones de Modal Nuevo y Modal Inscribir (Copiadas del paso anterior)
+// ... (Asegúrate de tener aquí el formStudent y formInscripcion listeners) ...
+const formStudent = document.getElementById('formStudent');
+const formInscripcion = document.getElementById('formInscripcion');
+
+// GUARDAR NUEVO
+if(formStudent) {
+    formStudent.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nuevo = {
+            nombre: document.getElementById('newNombre').value.trim(),
+            edad: document.getElementById('newEdad').value,
+            instrumentoInteres: document.getElementById('newInstrumento').value.trim(),
+            nombreTutor: document.getElementById('newTutor').value.trim(),
+            telefonoTutor: document.getElementById('newTelefono').value.trim(),
+            status: "prospecto", fechaRegistro: new Date()
+        };
+        try { await addDoc(collection(db, "students"), nuevo); modalContainer.classList.add('hidden'); formStudent.reset(); loadStudents(); } catch (e) { alert("Error"); }
+    });
+}
+// INSCRIBIR
+if(formInscripcion) {
+    formInscripcion.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('inscripcionId').value;
+        const mensualidad = document.getElementById('costoMensual').value;
+        const fechaInicio = document.getElementById('fechaInicio').value;
+        const correo = document.getElementById('correoTutor').value;
+        const factura = document.getElementById('requiereFactura').checked;
+        const diaCorte = parseInt(fechaInicio.split('-')[2]);
+
+        try {
+            await updateDoc(doc(db, "students", id), {
+                status: "inscrito", costoMensual: Number(mensualidad), diaCorte: diaCorte,
+                fechaInicioClases: fechaInicio, fechaInscripcion: new Date(),
+                emailTutor: correo, requiereFactura: factura
+            });
+            alert(`Inscrito. Corte día ${diaCorte}`);
+            modalInscripcion.classList.add('hidden'); formInscripcion.reset(); loadStudents();
+        } catch (e) { alert("Error al inscribir"); }
+    });
+}
+// Botones de abrir modales generales
+document.getElementById('btnOpenModal').addEventListener('click', () => modalContainer.classList.remove('hidden'));
+document.getElementById('btnCloseModal').addEventListener('click', () => modalContainer.classList.add('hidden'));
+document.getElementById('btnCloseInscripcion').addEventListener('click', () => modalInscripcion.classList.add('hidden'));
+
+// FUNCION DE INSCRIPCION (Para que el botón de la tabla la llame)
+function abrirModalInscripcion(id, nombre) {
+    document.getElementById('inscripcionId').value = id;
+    document.getElementById('inscripcionNombre').value = nombre;
+    document.getElementById('fechaInicio').valueAsDate = new Date();
+    modalInscripcion.classList.remove('hidden');
+}

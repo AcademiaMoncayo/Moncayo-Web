@@ -3,18 +3,20 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDM73xowdCFndhKpkYQcLlTeYTtF3u8sf0",
-    authDomain: "moncayo-8c3a6.firebaseapp.com",
-    projectId: "moncayo-8c3a6",
-    storageBucket: "moncayo-8c3a6.firebasestorage.app",
-    messagingSenderId: "377849198690",
-    appId: "1:377849198690:web:693ef3793343a8c974393b",
-    measurementId: "G-56G3G0F2ED"
+  apiKey: "AIzaSyDlqBqnhEbdiDa8g0INjE3cQiic5HSVbrE",
+  authDomain: "moncayo-sistem.firebaseapp.com",
+  projectId: "moncayo-sistem",
+  storageBucket: "moncayo-sistem.firebasestorage.app",
+  messagingSenderId: "984728076608",
+  appId: "1:984728076608:web:6cea81269adc7e215e3aa5",
+  measurementId: "G-1BGPGGLXCX"
 };
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+
+// CAMBIO: Quitamos el "default" extra. Dejamos que Firebase la encuentre solo.
+const db = getFirestore(app); 
 
 export { auth, db };
