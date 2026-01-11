@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumnos - Academia Moncayo</title>
+    <link rel="stylesheet" href="src/css/variables.css">
+    <link rel="stylesheet" href="src/css/dashboard.css">
+    <link rel="stylesheet" href="src/css/students.css"> </head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-left"><h3>Academia Moncayo</h3></div>
+        <nav class="nav-center">
+            <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
+            <button class="nav-btn active">Alumnos</button>
+            <button class="nav-btn">Maestros</button>
+            <button class="nav-btn">Calendario</button>
+            <button class="nav-btn">Finanzas</button>
+        </nav>
+        <div class="nav-right">
+            <span id="userDisplay">Admin</span>
+        </div>
+    </header>
+
+    <main class="main-content">
+        
+        <div class="page-header">
+            <h1>Gestión de Alumnos</h1>
+            <button id="btnOpenModal" class="btn-primary">+ Nuevo Prospecto</button>
+        </div>
+
+        <div class="toolbar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Buscar por nombre...">
+            </div>
+            
+            <div class="filter-box">
+                <label>Ver:</label>
+                <select id="filterStatus">
+                    <option value="inscrito">✅ Inscritos</option>
+                    <option value="prospecto">⏳ Prospectos</option>
+                    <option value="todos">📋 Todos</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Instrumento</th>
+                        <th>Tutor / Contacto</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+            <p id="noResults" class="hidden">No se encontraron alumnos.</p>
+        </div>
+
+    </main>
+
+    <div id="modalContainer" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nuevo Prospecto</h3>
+                <span id="btnCloseModal" class="close-btn">&times;</span>
+            </div>
+            <form id="formStudent">
+                <input type="text" id="newNombre" placeholder="Nombre completo del alumno" required>
+                <input type="number" id="newEdad" placeholder="Edad" required>
+                <input type="text" id="newInstrumento" placeholder="Instrumento de interés">
+                
+                <hr> <p class="section-title">Datos del Tutor</p>
+                <input type="text" id="newTutor" placeholder="Nombre del Tutor" required>
+                <input type="tel" id="newTelefono" placeholder="Teléfono de contacto" required>
+                
+                <button type="submit" class="btn-save">Guardar Prospecto</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="src/js/students.js"></script>
+
+</body>
+</html>
