@@ -1,0 +1,17 @@
+:root {
+    /* Paleta de Colores */
+    --color-primary: #1E394A;    /* Fondo oscuro principal */
+    --color-accent: #007bff;     /* Azul botones */
+    --color-accent-hover: #0056b3;
+    --color-white: #ffffff;
+    --color-text-main: #333333;
+    --color-error: #dc3545;
+    --color-success: #28a745;
+
+    /* Espaciado y Bordes */
+    --border-radius-main: 10px;
+    --shadow-card: 0 10px 25px rgba(0, 0, 0, 0.2);
+
+    /* Fuentes */
+    --font-main: 'Arial', sans-serif;
+}

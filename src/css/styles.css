@@ -1,0 +1,90 @@
+/* Reset básico */
+body {
+    font-family: var(--font-main);
+    background-color: var(--color-primary);
+    margin: 0;
+    padding: 0;
+    display: flex;             /* Centrado perfecto */
+    justify-content: center;
+    align-items: center;
+    height: 100vh;             /* Altura completa de la pantalla */
+}
+
+/* Contenedor Principal (Carga) */
+.Carga {
+    text-align: center;
+    width: 100%;
+    max-width: 350px;
+}
+
+/* Imagen del Logo */
+.img-Logo {
+    width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Tarjeta Blanca del Login */
+.container {
+    background-color: var(--color-white);
+    padding: 30px;
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre elementos */
+}
+
+h2 {
+    color: var(--color-text-main);
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+/* Inputs */
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Para que el padding no rompa el ancho */
+    font-size: 14px;
+}
+
+/* Botones */
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background-color: var(--color-accent);
+    color: var(--color-white);
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background-color: var(--color-accent-hover);
+}
+
+/* Botón secundario (opcional, para diferenciar Registro) */
+button#btnRegister {
+    background-color: transparent;
+    border: 1px solid var(--color-accent);
+    color: var(--color-accent);
+}
+
+button#btnRegister:hover {
+    background-color: #eef7ff;
+}
+
+/* Mensajes de error/éxito */
+#message {
+    font-size: 14px;
+    margin-top: 10px;
+    min-height: 20px;
+}
