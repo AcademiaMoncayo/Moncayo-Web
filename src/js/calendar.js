@@ -159,26 +159,51 @@ function renderCalendar() {
     });
 }
 
-// 5. VALIDACIÓN DE HORARIOS (CON ID DE EDICIÓN)
+// 5. VALIDACIÓN CONFLICTOS (CON VERIFICACIÓN DE DÍAS LABORALES)
 function actualizarHorariosDisponibles() {
     const teacherId = eventTeacher.value;
     const fechaVal = eventDate.value;
-    const idEdicion = document.getElementById('editEventId').value; // ID para ignorar
+    const idEdicion = document.getElementById('editEventId').value;
 
+    // Limpiar select
     eventTime.innerHTML = '<option value="">-- Selecciona Horario --</option>';
     
+    // Si faltan datos, no hacemos nada
     if (!teacherId || !fechaVal) return;
 
+    // 1. OBTENER DÍA DE LA SEMANA DE LA FECHA SELECCIONADA
     const fechaObj = new Date(fechaVal + 'T12:00:00');
+    // Importante: Estos nombres deben coincidir con los "value" de tus checkboxes en teachers.html
     const diasMap = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const diaSemana = diasMap[fechaObj.getDay()];
 
+    // 2. VALIDAR SI EL MAESTRO TRABAJA ESE DÍA
+    const maestroData = allTeachers.find(t => t.id === teacherId);
+    
+    // Si el maestro existe y tiene días definidos...
+    if (maestroData && maestroData.diasDisponibles) {
+        // Verificamos si el día actual está en su lista
+        if (!maestroData.diasDisponibles.includes(diaSemana)) {
+            // ¡NO TRABAJA! Bloqueamos todo
+            const option = document.createElement('option');
+            option.textContent = `⛔ ${maestroData.nombre} no trabaja los ${diaSemana}`;
+            option.disabled = true;
+            option.style.color = "red";
+            option.style.fontWeight = "bold";
+            eventTime.appendChild(option);
+            
+            // Opcional: Deshabilitar el select para que no puedan elegir nada
+            // eventTime.disabled = true; 
+            return; // DETENEMOS LA FUNCIÓN AQUÍ
+        }
+    }
+
+    // 3. SI SÍ TRABAJA, CALCULAMOS HORARIOS DISPONIBLES (Lógica anterior)
     const horasPosibles = ["14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
 
     horasPosibles.forEach(hora => {
         const ocupadoPor = allEvents.find(ev => {
-            // Regla: Ignorarse a sí mismo
-            if (idEdicion && ev.id === idEdicion) return false;
+            if (idEdicion && ev.id === idEdicion) return false; // Ignorarse a sí mismo
 
             if (ev.teacherId !== teacherId) return false;
             if (ev.time !== hora) return false;
@@ -193,6 +218,7 @@ function actualizarHorariosDisponibles() {
 
         const option = document.createElement('option');
         option.value = hora;
+        
         if (ocupadoPor) {
             option.textContent = `🔴 ${formatTime(hora)} - Ocupado`;
             option.disabled = true;
