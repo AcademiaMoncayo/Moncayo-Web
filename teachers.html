@@ -17,7 +17,7 @@
             <button class="nav-btn" onclick="window.location.href='students.html'">Alumnos</button>
             <button class="nav-btn active">Maestros</button>
             <button class="nav-btn" onclick="window.location.href='calendar.html'">Calendario</button>
-            <button class="nav-btn" onclick="window.location.href='finance.html'">Finanzas</button>
+            <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
         </nav>
         <div class="nav-right">
             <span id="userDisplay">Admin</span>
@@ -47,17 +47,17 @@
 
             <div class="table-container">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Usuario / Acceso</th>
-                            <th>Especialidad (Instrumentos)</th>
-                            <th>Días Disponibles</th>
-                            <th style="text-align:center;">Alumnos</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
+<thead>
+    <tr>
+        <th>Nombre</th>
+        <th>Usuario / Acceso</th>
+        <th>Especialidad</th>
+        <th>Días</th>
+        <th style="min-width: 180px;">Estadísticas de Clases</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+    </tr>
+</thead>
                     <tbody id="tableBody"></tbody>
                 </table>
                 <p id="noResults" class="hidden" style="text-align:center; padding: 20px; color:#666;">No se encontraron maestros.</p>

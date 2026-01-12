@@ -86,3 +86,34 @@ input[type="checkbox"] {
     color: #666;
     margin-left: 5px;
 }
+
+/* --- ESTADÍSTICAS EN TABLA --- */
+.stats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+/* Colores para los números */
+.num-fijos { color: #0d47a1; font-weight: bold; }       /* Azul */
+.num-pasadas { color: #388e3c; font-weight: bold; }     /* Verde */
+.num-futuras { color: #f57c00; font-weight: bold; }     /* Naranja */
+
+/* Iconos o etiquetas de texto */
+.stat-label {
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
