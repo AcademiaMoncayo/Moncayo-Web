@@ -1,8 +1,9 @@
-/* --- CONTENEDOR PRINCIPAL --- */
+/* --- CONFIGURACIÓN GENERAL --- */
 .main-content {
     padding: 30px;
-    background-color: #f4f6f9; /* Fondo gris muy suave para la página */
+    background-color: #f4f6f9; /* Fondo gris muy suave */
     min-height: 100vh;
+    font-family: sans-serif;
 }
 
 .page-header {
@@ -18,24 +19,39 @@
     margin: 0;
 }
 
+/* Botón Primario (Nuevo Prospecto) */
+.btn-primary {
+    background-color: var(--color-accent);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: background 0.2s;
+}
+.btn-primary:hover {
+    background-color: var(--color-accent-hover);
+}
+
 /* --- TARJETA DEL CONTENIDO (Fondo Blanco) --- */
-/* Esto agrupa Toolbar + Tabla + Paginación en un solo bloque blanco */
 .content-card {
     background: white;
     border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Sombra suave */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     padding: 20px;
-    overflow: hidden; /* Para que la tabla no se salga */
+    overflow: hidden;
 }
 
-/* --- BARRA DE HERRAMIENTAS (Arriba) --- */
+/* --- BARRA DE HERRAMIENTAS (Toolbar) --- */
 .toolbar {
     display: flex;
-    justify-content: space-between; /* Buscador izq, Filtro der */
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 20px;
-    border-bottom: 1px solid #eee; /* Línea divisoria sutil */
+    border-bottom: 1px solid #eee;
     flex-wrap: wrap;
     gap: 15px;
 }
@@ -65,10 +81,10 @@
     cursor: pointer;
 }
 
-/* --- TABLA (Centro) --- */
+/* --- TABLA --- */
 .table-container {
     width: 100%;
-    overflow-x: auto; /* Scroll si la pantalla es muy chica */
+    overflow-x: auto;
 }
 
 table {
@@ -84,27 +100,27 @@ thead tr {
 }
 
 th, td {
-    padding: 15px 12px; /* MÁS ESPACIO interno */
+    padding: 15px 12px;
     border-bottom: 1px solid #eee;
-    vertical-align: middle; /* Centrar verticalmente */
+    vertical-align: middle;
 }
 
 th {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 tbody tr:hover {
-    background-color: #f1f7fb; /* Color al pasar el mouse */
+    background-color: #f1f7fb;
 }
 
-/* --- ACCIONES (Botones separados) --- */
+/* --- ACCIONES Y ETIQUETAS --- */
 .actions-cell {
     display: flex;
     align-items: center;
-    gap: 8px; /* Espacio entre botones */
+    gap: 8px;
 }
 
 .btn-edit, .btn-archive, .btn-mini-email {
@@ -126,12 +142,12 @@ tbody tr:hover {
 .btn-archive { background: #f8d7da; color: #721c24; }
 .btn-archive:hover { background: #f5c6cb; }
 
-.btn-mini-email { background: #d1ecf1; color: #0c5460; border: none; }
+.btn-mini-email { background: #d1ecf1; color: #0c5460; }
 .btn-mini-email:hover { background: #bee5eb; }
 
 /* Botón Inscribir (Texto) */
-.btn-action-text {
-    background-color: var(--color-primary);
+.btn-action {
+    background-color: #17a2b8;
     color: white;
     border: none;
     padding: 6px 12px;
@@ -139,11 +155,18 @@ tbody tr:hover {
     font-size: 12px;
     cursor: pointer;
 }
+.btn-action:hover { background-color: #138496; }
 
-/* --- PAGINACIÓN (Abajo) --- */
+/* Etiquetas de Estado */
+.tag { padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+.tag-prospecto { background: #fff3cd; color: #856404; }
+.tag-inscrito { background: #d4edda; color: #155724; }
+.tag-inactivo { background: #e2e3e5; color: #383d41; }
+
+/* --- PAGINACIÓN --- */
 .pagination-controls {
     display: flex;
-    justify-content: center; /* CENTRADO TOTAL */
+    justify-content: center;
     align-items: center;
     gap: 20px;
     margin-top: 25px;
@@ -158,24 +181,109 @@ tbody tr:hover {
     padding: 8px 16px;
     border-radius: 6px;
     cursor: pointer;
-    font-weight: 500;
-    transition: 0.2s;
 }
-
 .pagination-controls button:hover:not(:disabled) {
     background-color: var(--color-primary);
     color: white;
     border-color: var(--color-primary);
 }
-
 .pagination-controls button:disabled {
     background-color: #f9f9f9;
     color: #ccc;
     cursor: not-allowed;
 }
 
-/* --- ETIQUETAS DE ESTADO --- */
-.tag { padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-.tag-prospecto { background: #fff3cd; color: #856404; }
-.tag-inscrito { background: #d4edda; color: #155724; }
-.tag-inactivo { background: #e2e3e5; color: #383d41; }
+/* =========================================
+   ESTILOS DE MODALES (¡ESTO FALTABA!)
+   ========================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); /* Fondo oscuro transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    width: 450px; /* Ancho cómodo */
+    max-width: 90%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.modal-header h3 { margin: 0; color: var(--color-primary); }
+
+.close-btn {
+    cursor: pointer;
+    font-size: 24px;
+    color: #999;
+}
+.close-btn:hover { color: #333; }
+
+/* Formularios dentro del modal */
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 13px;
+    color: #555;
+}
+
+form input, form select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box; /* Importante para que no se salga */
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-save {
+    width: 100%;
+    background: var(--color-success);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+.btn-save:hover { opacity: 0.9; }
+
+.section-title {
+    font-weight: bold;
+    color: #666;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+}
+
+.hidden { display: none !important; }

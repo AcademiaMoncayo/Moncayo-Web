@@ -1,0 +1,99 @@
+/* Importamos el estilo base de estudiantes para mantener la identidad */
+@import url('students.css');
+
+/* --- ESTILOS ESPECÍFICOS DE FINANZAS --- */
+
+/* Etiquetas de Estado de Pago */
+.tag-pago {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.pago-pendiente {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.pago-vencido {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.pago-pagado {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* Botón de cobrar ($) */
+.btn-cobrar {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.2s;
+}
+
+.btn-cobrar:hover {
+    background-color: #218838;
+}
+/* Botón Historial (Reloj) en la tabla principal */
+.btn-history {
+    background-color: #17a2b8; /* Cyan */
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+.btn-history:hover { background-color: #138496; }
+
+/* Botones dentro del Historial */
+.btn-action-small {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 3px;
+}
+
+.btn-email-pago { background-color: #ffc107; color: #333; } /* Amarillo */
+.btn-edit-pago { background-color: #6c757d; color: white; } /* Gris */
+.btn-delete-pago { background-color: #dc3545; color: white; } /* Rojo */
+
+.btn-email-pago:hover { background-color: #e0a800; }
+.btn-delete-pago:hover { background-color: #c82333; }
+
+/* Estilos para el reporte */
+#listaDesglose li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+    color: #444;
+}
+
+#listaDesglose li strong {
+    color: #2c3e50;
+}
+
+.metodo-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}

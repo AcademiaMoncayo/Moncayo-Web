@@ -50,17 +50,12 @@ function renderTable() {
     const filtroEstado = filterStatus.value;
 
     const listaFiltrada = allStudents.filter(alumno => {
-        // Lógica de Filtro Inteligente
         let coincideEstado = false;
-
         if (filtroEstado === 'todos') {
-            // 'Todos' muestra prospectos e inscritos (oculta inactivos)
             coincideEstado = (alumno.status === 'prospecto' || alumno.status === 'inscrito');
         } else {
-            // Muestra exactamente lo que pides (incluso inactivos)
             coincideEstado = (alumno.status === filtroEstado);
         }
-
         const coincideNombre = alumno.nombre.toLowerCase().includes(textoBusqueda);
         return coincideEstado && coincideNombre;
     });
@@ -76,7 +71,8 @@ function renderTable() {
     // Dibujar
     tableBody.innerHTML = '';
     if (alumnosPagina.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">No se encontraron resultados.</td></tr>';
+        // AJUSTE: colspan="9" porque agregamos una columna
+        tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center">No se encontraron resultados.</td></tr>';
         pageIndicator.textContent = "0 de 0";
         return;
     }
@@ -84,12 +80,10 @@ function renderTable() {
     alumnosPagina.forEach(alumno => {
         const fila = document.createElement('tr');
         
-        // Colores de estado
         let claseStatus = 'tag-prospecto';
         if (alumno.status === 'inscrito') claseStatus = 'tag-inscrito';
-        if (alumno.status === 'inactivo' || alumno.status === 'sin_interes') claseStatus = 'tag-inactivo'; // Definir estilo gris en CSS si gustas
+        if (alumno.status === 'inactivo' || alumno.status === 'sin_interes') claseStatus = 'tag-inactivo';
 
-        // Botón Inscribir (Solo si es prospecto)
         let accionBtn = '';
         if (alumno.status === 'prospecto') {
             accionBtn = `<button class="btn-action inscribir-btn" data-id="${alumno.id}" data-nombre="${alumno.nombre}">Inscribir</button>`;
@@ -99,12 +93,14 @@ function renderTable() {
             accionBtn = '<span style="color:#999; font-size:12px;">Archivado</span>';
         }
 
-        // Datos
+        // DATOS DE LA TABLA
         const emailDisplay = alumno.emailTutor ? `<div style="display:flex; gap:5px;"><span>${alumno.emailTutor}</span><button class="btn-mini-email" data-email="${alumno.emailTutor}">✉</button></div>` : '-';
         const diaPago = alumno.diaCorte ? `Día ${alumno.diaCorte}` : '-';
         const factura = alumno.requiereFactura ? '✅ Sí' : '-';
+        
+        // NUEVO DATO: Mensualidad (Si existe, le ponemos signo de pesos)
+        const costoDisplay = alumno.costoMensual ? `$${alumno.costoMensual}` : '-';
 
-        // Botones de Gestión (Editar y Borrar)
         const btnEditar = `<button class="btn-edit" data-id="${alumno.id}" title="Editar">✏️</button>`;
         const btnBaja = `<button class="btn-archive" data-id="${alumno.id}" data-status="${alumno.status}" title="Dar de baja / Archivar">🗑️</button>`;
 
@@ -113,7 +109,7 @@ function renderTable() {
             <td>${alumno.instrumentoInteres || 'N/A'}</td>
             <td>${alumno.nombreTutor}<br><small>${alumno.telefonoTutor}</small></td>
             <td>${emailDisplay}</td>
-            <td style="text-align:center;">${diaPago}</td>
+            <td style="font-weight:bold; color:#2c3e50;">${costoDisplay}</td> <td style="text-align:center;">${diaPago}</td>
             <td style="text-align:center;">${factura}</td>
             <td><span class="tag ${claseStatus}">${alumno.status.toUpperCase()}</span></td>
             <td>
@@ -293,26 +289,60 @@ if(formStudent) {
         try { await addDoc(collection(db, "students"), nuevo); modalContainer.classList.add('hidden'); formStudent.reset(); loadStudents(); } catch (e) { alert("Error"); }
     });
 }
-// INSCRIBIR
 if(formInscripcion) {
     formInscripcion.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // 1. Capturar datos del formulario
         const id = document.getElementById('inscripcionId').value;
+        const nombreAlumno = document.getElementById('inscripcionNombre').value;
         const mensualidad = document.getElementById('costoMensual').value;
+        const inscripcion = document.getElementById('costoInscripcion').value; // Nuevo Campo
+        const metodoPago = document.getElementById('metodoPagoInscripcion').value; // Nuevo Campo
         const fechaInicio = document.getElementById('fechaInicio').value;
         const correo = document.getElementById('correoTutor').value;
         const factura = document.getElementById('requiereFactura').checked;
+        
+        // Calcular día de corte
         const diaCorte = parseInt(fechaInicio.split('-')[2]);
 
         try {
-            await updateDoc(doc(db, "students", id), {
-                status: "inscrito", costoMensual: Number(mensualidad), diaCorte: diaCorte,
-                fechaInicioClases: fechaInicio, fechaInscripcion: new Date(),
-                emailTutor: correo, requiereFactura: factura
+            // PASO 1: Actualizar el perfil del Alumno (status: inscrito)
+            const alumnoRef = doc(db, "students", id);
+            await updateDoc(alumnoRef, {
+                status: "inscrito",
+                costoMensual: Number(mensualidad),
+                diaCorte: diaCorte,
+                fechaInicioClases: fechaInicio,
+                fechaInscripcion: new Date(),
+                emailTutor: correo,
+                requiereFactura: factura,
+                costoInscripcionPagado: Number(inscripcion) // Guardamos dato histórico
             });
-            alert(`Inscrito. Corte día ${diaCorte}`);
-            modalInscripcion.classList.add('hidden'); formInscripcion.reset(); loadStudents();
-        } catch (e) { alert("Error al inscribir"); }
+
+            // PASO 2: Registrar el PAGO DE INSCRIPCIÓN en Finanzas (Si es mayor a 0)
+            if (Number(inscripcion) > 0) {
+                await addDoc(collection(db, "payments"), {
+                    studentId: id,
+                    nombreAlumno: nombreAlumno,
+                    periodo: "Pago de Inscripción", // Etiqueta especial
+                    monto: Number(inscripcion),
+                    metodo: metodoPago,
+                    fechaPago: fechaInicio, // Asumimos que paga el día que inicia
+                    fechaRegistro: new Date()
+                });
+            }
+
+            alert(`¡Alumno Inscrito Correctamente!\n\n- Mensualidad: $${mensualidad}\n- Inscripción cobrada: $${inscripcion}\n- Día de corte: ${diaCorte}`);
+            
+            modalInscripcion.classList.add('hidden'); 
+            formInscripcion.reset(); 
+            loadStudents();
+
+        } catch (error) {
+            console.error("Error al inscribir:", error);
+            alert("Hubo un error al procesar la inscripción.");
+        }
     });
 }
 // Botones de abrir modales generales
