@@ -144,26 +144,110 @@
 }
 .slot-cell:hover { background-color: #fbfbfb; }
 
-/* --- TARJETAS DE CLASE --- */
+/* --- TARJETAS DE CLASE (DISEÑO MEJORADO) --- */
 .class-card {
     padding: 6px 8px;
-    border-radius: 4px;
+    border-radius: 6px; /* Bordes un poco más redondeados */
     height: 100%;
+    min-height: 75px; /* Altura mínima para que quepa la info */
     font-size: 12px;
     position: relative;
-    transition: transform 0.1s;
+    transition: all 0.2s ease;
     cursor: default;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    justify-content: flex-start; /* Alinear arriba */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    overflow: hidden; /* Para que nada se salga */
 }
 
 .class-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    z-index: 2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 5;
 }
+
+/* Colores por Tipo (Manteniendo tu paleta) */
+.class-card.type-fija { 
+    background-color: #e3f2fd; 
+    border-left: 4px solid #2196f3; 
+    color: #0d47a1; 
+}
+.class-card.type-muestra { 
+    background-color: #f3e5f5; 
+    border-left: 4px solid #ab47bc; 
+    color: #4a148c; 
+}
+.class-card.type-unica { 
+    background-color: #fff3e0; 
+    border-left: 4px solid #ff9800; 
+    color: #e65100; 
+}
+.class-card.type-junta { 
+    background-color: #e0f2f1; 
+    border-left: 4px solid #009688; 
+    color: #004d40; 
+}
+
+/* ELEMENTOS INTERNOS DE LA TARJETA */
+
+.card-type {
+    font-size: 9px;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.7;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+}
+
+.card-student {
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.card-instrument {
+    font-size: 11px;
+    opacity: 0.9;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.card-note {
+    margin-top: auto; /* Empuja la nota hacia abajo si hay espacio */
+    font-size: 10px;
+    font-style: italic;
+    background-color: rgba(255, 255, 255, 0.6);
+    padding: 3px 5px;
+    border-radius: 4px;
+    color: #444;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-left: 2px solid rgba(0,0,0,0.1);
+}
+
+/* Acciones (Botones flotantes) */
+.card-actions {
+    display: none;
+    position: absolute;
+    top: 4px; 
+    right: 4px;
+    gap: 3px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 4px;
+    padding: 3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.class-card:hover .card-actions { display: flex; }
 
 /* Colores */
 .class-card.type-fija { background-color: #e3f2fd; border-left: 3px solid #2196f3; color: #0d47a1; }

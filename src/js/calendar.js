@@ -98,7 +98,7 @@ function renderCalendarStructure() {
     });
 }
 
-// 4. RENDERIZAR EVENTOS
+// 4. RENDERIZAR EVENTOS (ACTUALIZADO CON DETALLES VISUALES)
 function renderCalendar() {
     // Limpiar celdas
     document.querySelectorAll('.slot-cell').forEach(td => td.innerHTML = '');
@@ -111,12 +111,11 @@ function renderCalendar() {
     allEvents.forEach(evento => {
         let mostrar = false;
 
-        // Filtro Cancelaciones
+        // Filtros de cancelación/fecha
         if (evento.cancelaciones && evento.cancelaciones.includes(fechaActualStr)) return;
-        // Filtro Baja Futura
         if (evento.fechaFin && fechaActualStr > evento.fechaFin) return;
 
-        // Coincidencia Fecha
+        // Lógica de visualización
         if (evento.type === 'fija') {
             if (evento.dayOfWeek === diaSemanaTexto) mostrar = true;
         } else {
@@ -131,8 +130,8 @@ function renderCalendar() {
                 const card = document.createElement('div');
                 card.className = `class-card type-${evento.type}`;
                 
+                // Botones (Igual que antes)
                 let botonesHtml = '';
-                // Botones específicos según tipo
                 if (evento.type === 'fija') {
                     botonesHtml = `
                         <div class="card-actions">
@@ -148,10 +147,22 @@ function renderCalendar() {
                         </div>`;
                 }
 
+                // --- NUEVO DISEÑO INTERNO ---
+                
+                // 1. Etiqueta Tipo
+                const labelMap = { 'fija': '🔄 Fija', 'muestra': '✨ Muestra', 'unica': '📅 Única', 'junta': '🤝 Junta' };
+                const labelTipo = labelMap[evento.type] || evento.type;
+
+                // 2. Nota (Si existe)
+                // Si la nota es muy larga, el CSS se encarga de poner "..."
+                const htmlNota = evento.note ? `<div class="card-note">📝 ${evento.note}</div>` : '';
+
                 card.innerHTML = `
                     ${botonesHtml}
-                    <strong>${evento.studentName}</strong>
-                    <div class="class-info">${evento.instrument}</div>
+                    <div class="card-type">${labelTipo}</div>
+                    <div class="card-student">${evento.studentName}</div>
+                    <div class="card-instrument">🎵 ${evento.instrument}</div>
+                    ${htmlNota}
                 `;
                 celda.appendChild(card);
             }
