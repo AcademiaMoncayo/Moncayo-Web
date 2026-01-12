@@ -1,0 +1,88 @@
+/* Heredamos estilos base de students */
+@import url('students.css');
+
+/* --- Estilos específicos de Maestros --- */
+
+/* Contenedor Días (Gris claro, fila simple) */
+.days-checkbox-container {
+    display: flex;
+    gap: 15px;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+/* NUEVO: Contenedor Instrumentos (Grid de 2 columnas) */
+.instruments-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 columnas iguales */
+    gap: 8px 15px; /* Espacio vertical y horizontal */
+    background-color: #e3f2fd; /* Azul muy clarito */
+    padding: 12px;
+    border-radius: 5px;
+    border: 1px solid #90caf9;
+    margin-bottom: 15px;
+}
+
+/* Estilo común de labels dentro de los contenedores */
+.days-checkbox-container label, 
+.instruments-grid label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #444;
+}
+
+input[type="checkbox"] {
+    width: 16px; 
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Badges (Etiquetas de color en la tabla) */
+.badge-instrumento {
+    background-color: #fff3e0; /* Naranja muy suave */
+    color: #e65100;
+    border: 1px solid #ffe0b2;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    margin-right: 4px;
+    display: inline-block;
+    margin-bottom: 2px;
+    font-weight: bold;
+}
+
+.badge-dia {
+    background-color: #eee;
+    color: #555;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    font-weight: bold;
+    margin-right: 2px;
+}
+.badge-dia.active {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.toggle-password {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    margin-left: 5px;
+}

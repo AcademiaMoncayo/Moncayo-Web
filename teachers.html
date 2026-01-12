@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maestros - Academia Moncayo</title>
+    <link rel="stylesheet" href="src/css/variables.css">
+    <link rel="stylesheet" href="src/css/dashboard.css">
+    <link rel="stylesheet" href="src/css/teachers.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-left"><h3>Academia Moncayo</h3></div>
+        <nav class="nav-center">
+            <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
+            <button class="nav-btn" onclick="window.location.href='students.html'">Alumnos</button>
+            <button class="nav-btn active">Maestros</button>
+            <button class="nav-btn" onclick="window.location.href='calendar.html'">Calendario</button>
+            <button class="nav-btn" onclick="window.location.href='finance.html'">Finanzas</button>
+        </nav>
+        <div class="nav-right">
+            <span id="userDisplay">Admin</span>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1>Gestión de Maestros</h1>
+            <button id="btnOpenModal" class="btn-primary" style="box-shadow: 0 4px 6px rgba(0,0,0,0.1);">+ Nuevo Maestro</button>
+        </div>
+
+        <div class="content-card">
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar maestro...">
+                </div>
+                <div class="filter-box">
+                    <label>Estado:</label>
+                    <select id="filterStatus">
+                        <option value="todos">Todos</option>
+                        <option value="activo">Activos</option>
+                        <option value="inactivo">Inactivos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Usuario / Acceso</th>
+                            <th>Especialidad (Instrumentos)</th>
+                            <th>Días Disponibles</th>
+                            <th style="text-align:center;">Alumnos</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+                <p id="noResults" class="hidden" style="text-align:center; padding: 20px; color:#666;">No se encontraron maestros.</p>
+            </div>
+
+            <div class="pagination-controls">
+                <button id="btnPrevPage" disabled>❮ Anterior</button>
+                <span id="pageIndicator" style="font-size: 14px; color: #666;">Página 1</span>
+                <button id="btnNextPage">Siguiente ❯</button>
+            </div>
+        </div> 
+    </main>
+
+    <div id="modalContainer" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 550px;"> <div class="modal-header">
+                <h3>Nuevo Maestro</h3>
+                <span id="btnCloseModal" class="close-btn">&times;</span>
+            </div>
+            <form id="formTeacher">
+                <label>Nombre Completo:</label>
+                <input type="text" id="newNombre" required placeholder="Ej. Juan Pérez">
+
+                <div class="form-row">
+                    <div style="flex:1">
+                        <label>Usuario (Login):</label>
+                        <input type="text" id="newUsuario" required placeholder="juan.perez">
+                    </div>
+                    <div style="flex:1">
+                        <label>Contraseña:</label>
+                        <input type="password" id="newPassword" required placeholder="******">
+                    </div>
+                </div>
+
+                <label>Especialidades (Selecciona):</label>
+                <div class="instruments-grid">
+                    <label><input type="checkbox" name="instrumentos" value="Canto"> Canto</label>
+                    <label><input type="checkbox" name="instrumentos" value="Piano"> Piano</label>
+                    <label><input type="checkbox" name="instrumentos" value="Batería"> Batería</label>
+                    <label><input type="checkbox" name="instrumentos" value="Violín"> Violín</label>
+                    <label><input type="checkbox" name="instrumentos" value="Guitarra Eléctrica"> Guitarra Eléctrica</label>
+                    <label><input type="checkbox" name="instrumentos" value="Guitarra Acústica"> Guitarra Acústica</label>
+                    <label><input type="checkbox" name="instrumentos" value="Bajo"> Bajo</label>
+                    <label><input type="checkbox" name="instrumentos" value="Ukulele"> Ukulele</label>
+                </div>
+
+                <label>Días Disponibles:</label>
+                <div class="days-checkbox-container">
+                    <label><input type="checkbox" name="dias" value="Lun"> Lun</label>
+                    <label><input type="checkbox" name="dias" value="Mar"> Mar</label>
+                    <label><input type="checkbox" name="dias" value="Mié"> Mié</label>
+                    <label><input type="checkbox" name="dias" value="Jue"> Jue</label>
+                    <label><input type="checkbox" name="dias" value="Vie"> Vie</label>
+                    <label><input type="checkbox" name="dias" value="Sáb"> Sáb</label>
+                </div>
+
+                <button type="submit" class="btn-save">Guardar Maestro</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalEditar" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 550px;">
+            <div class="modal-header">
+                <h3>Editar Maestro</h3>
+                <span id="btnCloseEditar" class="close-btn">&times;</span>
+            </div>
+            <form id="formEditar">
+                <input type="hidden" id="editId">
+                <input type="hidden" id="editStatus">
+
+                <label>Nombre Completo:</label>
+                <input type="text" id="editNombre" required>
+
+                <div class="form-row">
+                    <div style="flex:1">
+                        <label>Usuario:</label>
+                        <input type="text" id="editUsuario" required>
+                    </div>
+                    <div style="flex:1">
+                        <label>Contraseña:</label>
+                        <input type="text" id="editPassword" required placeholder="Nueva contraseña">
+                    </div>
+                </div>
+
+                <label>Especialidades:</label>
+                <div class="instruments-grid">
+                    <label><input type="checkbox" name="editInstrumentos" value="Canto"> Canto</label>
+                    <label><input type="checkbox" name="editInstrumentos" value="Piano"> Piano</label>
+                    <label><input type="checkbox" name="editInstrumentos" value="Batería"> Batería</label>
+                    <label><input type="checkbox" name="editInstrumentos" value="Violín"> Violín</label>
+                    <label><input type="checkbox" name="editInstrumentos" value="Guitarra Eléctrica"> Guitarra Eléctrica</label>
+                    <label><input type="checkbox" name="editInstrumentos" value="Guitarra Acústica"> Guitarra Acústica</label>
+                    <label><input type="checkbox" name="editInstrumentos" value="Bajo"> Bajo</label>
+                    <label><input type="checkbox" name="editInstrumentos" value="Ukulele"> Ukulele</label>
+                </div>
+
+                <label>Días Disponibles:</label>
+                <div class="days-checkbox-container">
+                    <label><input type="checkbox" name="editDias" value="Lun"> Lun</label>
+                    <label><input type="checkbox" name="editDias" value="Mar"> Mar</label>
+                    <label><input type="checkbox" name="editDias" value="Mié"> Mié</label>
+                    <label><input type="checkbox" name="editDias" value="Jue"> Jue</label>
+                    <label><input type="checkbox" name="editDias" value="Vie"> Vie</label>
+                    <label><input type="checkbox" name="editDias" value="Sáb"> Sáb</label>
+                </div>
+
+                <button type="submit" class="btn-save" style="background-color: #ffc107; color: #333; margin-top:20px;">Actualizar Datos</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="src/js/teachers.js"></script>
+
+</body>
+</html>

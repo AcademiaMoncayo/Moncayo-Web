@@ -1,0 +1,215 @@
+/* Heredamos estilos base */
+@import url('students.css');
+
+/* --- CONTROL DE FECHA --- */
+.date-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+}
+
+.date-selector input {
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #2c3e50;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.nav-arrow {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    color: #555;
+}
+.nav-arrow:hover { background: #f0f0f0; }
+
+.btn-today {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* --- GRID DEL CALENDARIO --- */
+.calendar-card {
+    padding: 0;
+    height: 78vh; /* Altura fija para scroll */
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.calendar-legend {
+    padding: 10px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    color: #666;
+    background: #fff;
+}
+
+.dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+.dot.available { background: #e0e0e0; }
+.dot.occupied { background: #2196f3; }
+.dot.trial { background: #9c27b0; }
+
+.calendar-wrapper {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    background: #fff;
+}
+
+#calendarTable {
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 100%;
+}
+
+/* ENCABEZADOS Y CELDAS */
+#calendarTable th {
+    background: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 12px 5px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    border-right: 1px solid #f5f5f5;
+    min-width: 140px;
+    font-size: 13px;
+    color: #444;
+    font-weight: 600;
+    box-shadow: 0 2px 2px rgba(0,0,0,0.02);
+}
+
+.time-col-header {
+    position: sticky;
+    left: 0;
+    z-index: 20 !important;
+    background: #ffffff;
+    border-right: 1px solid #eee;
+    width: 70px;
+}
+
+.time-cell {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: #fff;
+    font-size: 11px;
+    color: #888;
+    text-align: center;
+    border-right: 1px solid #eee;
+    border-bottom: 1px solid #f5f5f5;
+    vertical-align: top;
+    padding-top: 10px;
+}
+
+.slot-cell {
+    border-right: 1px solid #f9f9f9;
+    border-bottom: 1px solid #f9f9f9;
+    height: 90px;
+    vertical-align: top;
+    padding: 4px;
+    transition: background 0.1s;
+    position: relative;
+}
+.slot-cell:hover { background-color: #fbfbfb; }
+
+/* --- TARJETAS DE CLASE --- */
+.class-card {
+    padding: 6px 8px;
+    border-radius: 4px;
+    height: 100%;
+    font-size: 12px;
+    position: relative;
+    transition: transform 0.1s;
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.class-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+/* Colores */
+.class-card.type-fija { background-color: #e3f2fd; border-left: 3px solid #2196f3; color: #0d47a1; }
+.class-card.type-muestra { background-color: #f3e5f5; border-left: 3px solid #ab47bc; color: #4a148c; }
+.class-card.type-unica { background-color: #fff3e0; border-left: 3px solid #ff9800; color: #e65100; }
+.class-card.type-junta { background-color: #e0f2f1; border-left: 3px solid #009688; color: #004d40; }
+
+.class-card strong {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.class-info { font-size: 11px; opacity: 0.8; }
+
+/* --- BOTONES DE ACCIÓN (HOVER) --- */
+.card-actions {
+    display: none;
+    position: absolute;
+    top: 2px; right: 2px;
+    gap: 2px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 4px;
+    padding: 2px;
+}
+
+.class-card:hover .card-actions { display: flex; }
+
+.btn-mini-action {
+    width: 20px; height: 20px;
+    border: none; border-radius: 3px;
+    cursor: pointer; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+}
+
+.act-delete-day { background: #ffcdd2; color: #c62828; }
+.act-delete-all { background: #b71c1c; color: white; }
+.act-edit { background: #ffe0b2; color: #ef6c00; }
+
+/* Tooltips básicos */
+.act-delete-day:hover { background: #ef5350; color: white; }
+.act-edit:hover { background: #ff9800; color: white; }
+
+/* Formulario deshabilitado */
+select:disabled, input:disabled { background-color: #f5f5f5; cursor: not-allowed; color: #999; }
