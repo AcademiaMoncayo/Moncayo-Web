@@ -153,7 +153,7 @@ function renderTable() {
             <button class="toggle-password" onclick="alert('Usuario: ${maestro.usuario}\\nContraseña: ${maestro.password}')">👁️</button>
         `;
 
-        fila.innerHTML = `
+fila.innerHTML = `
             <td><strong>${maestro.nombre}</strong></td>
             <td>
                 <div style="font-size:12px; color:#666;">User: ${maestro.usuario}</div>
@@ -161,14 +161,18 @@ function renderTable() {
             </td>
             <td>${htmlInstrumentos}</td>
             <td>${htmlDias}</td>
-            <td>${htmlStats}</td> <td><span class="tag ${claseStatus}">${maestro.status.toUpperCase()}</span></td>
+            <td>${htmlStats}</td>
+            <td><span class="tag ${claseStatus}">${maestro.status.toUpperCase()}</span></td>
             <td>
                 <div class="actions-cell">
+                    <button class="btn-view" data-id="${maestro.id}" title="Ver Clases y Alumnos">📋</button>
+                    
                     <button class="btn-edit" data-id="${maestro.id}" title="Editar">✏️</button>
                     <button class="btn-archive" data-id="${maestro.id}" data-status="${maestro.status}" title="Activar/Desactivar">🔄</button>
                 </div>
             </td>
         `;
+        tableBody.appendChild(fila);
         tableBody.appendChild(fila);
     });
 
@@ -181,10 +185,10 @@ function renderTable() {
 // ... (EL RESTO DEL ARCHIVO TEACHERS.JS SE QUEDA EXACTAMENTE IGUAL) ...
 // (Copia aquí las funciones asignarEventos, formTeacher.submit, abrirModalEditar, formEditar.submit y listeners de botones que ya tenías)
 function asignarEventos() {
-    document.querySelectorAll('.btn-edit').forEach(btn => {
+    document.querySelectorAll('.btn-view').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const maestro = allTeachers.find(t => t.id === e.currentTarget.dataset.id);
-            abrirModalEditar(maestro);
+            abrirModalAlumnos(maestro);
         });
     });
 
@@ -273,6 +277,88 @@ formEditar.addEventListener('submit', async (e) => {
     } catch (error) { console.error(error); alert("Error al actualizar."); }
 });
 
+// --- FUNCIÓN PARA VER DETALLE DE CLASES ---
+function abrirModalAlumnos(maestro) {
+    const modalAlumnos = document.getElementById('modalAlumnos');
+    const tbodyFijas = document.getElementById('tablaFijas');
+    const tbodyHistorial = document.getElementById('tablaHistorial');
+    
+    // Títulos
+    document.getElementById('tituloMaestro').textContent = `Maestro: ${maestro.nombre}`;
+    
+    // 1. FILTRAR CLASES DE ESTE MAESTRO (Usando la memoria allClasses cargada en loadData)
+    const misClases = allClasses.filter(c => c.teacherId === maestro.id);
+    document.getElementById('subtituloMaestro').textContent = `Total registros históricos: ${misClases.length}`;
+
+    // 2. SEPARAR POR TIPO
+    const fijas = misClases.filter(c => c.type === 'fija' && (!c.fechaFin)); // Solo activas
+    const historial = misClases.filter(c => c.type !== 'fija' || c.fechaFin); // Muestras, Únicas o Fijas dadas de baja
+
+    // 3. ORDENAR FIJAS (Lunes a Sábado + Hora)
+    const mapDias = { 'Lun': 1, 'Mar': 2, 'Mié': 3, 'Jue': 4, 'Vie': 5, 'Sáb': 6, 'Dom': 7 };
+    fijas.sort((a, b) => {
+        const diaA = mapDias[a.dayOfWeek] || 99;
+        const diaB = mapDias[b.dayOfWeek] || 99;
+        if (diaA !== diaB) return diaA - diaB; // Primero por día
+        return a.time.localeCompare(b.time);   // Luego por hora
+    });
+
+    // 4. ORDENAR HISTORIAL (Fecha más reciente primero)
+    historial.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // 5. RENDERIZAR TABLA FIJAS
+    tbodyFijas.innerHTML = '';
+    if (fijas.length === 0) {
+        tbodyFijas.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999;">Sin clases fijas asignadas.</td></tr>';
+    } else {
+        fijas.forEach(c => {
+            const row = document.createElement('tr');
+            row.className = 'row-fija';
+            // Convertir hora 14:00 -> 2:00 PM
+            const [h, m] = c.time.split(':');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const horaStr = `${h%12||12}:${m} ${ampm}`;
+
+            row.innerHTML = `
+                <td><span class="badge-dia active" style="font-size:11px; width:auto; padding:2px 8px; border-radius:4px;">${c.dayOfWeek}</span></td>
+                <td style="font-weight:bold;">${horaStr}</td>
+                <td>${c.studentName}</td>
+                <td><span class="badge-instrumento">${c.instrument}</span></td>
+            `;
+            tbodyFijas.appendChild(row);
+        });
+    }
+
+    // 6. RENDERIZAR TABLA HISTORIAL
+    tbodyHistorial.innerHTML = '';
+    if (historial.length === 0) {
+        tbodyHistorial.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999;">Sin historial reciente.</td></tr>';
+    } else {
+        historial.forEach(c => {
+            const row = document.createElement('tr');
+            
+            let badgeTipo = '';
+            if(c.type === 'muestra') badgeTipo = '<span class="badge-type badge-muestra">Muestra</span>';
+            else if(c.type === 'unica') badgeTipo = '<span class="badge-type badge-unica">Única</span>';
+            else badgeTipo = '<span class="badge-type" style="background:#eee;">Baja</span>';
+
+            const [h, m] = c.time.split(':');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+
+            row.innerHTML = `
+                <td>${c.date}</td>
+                <td>${badgeTipo}</td>
+                <td>${h%12||12}:${m} ${ampm}</td>
+                <td>${c.studentName}</td>
+                <td>${c.instrument}</td>
+            `;
+            tbodyHistorial.appendChild(row);
+        });
+    }
+
+    modalAlumnos.classList.remove('hidden');
+}
+
 document.getElementById('btnOpenModal').addEventListener('click', () => modalContainer.classList.remove('hidden'));
 document.getElementById('btnCloseModal').addEventListener('click', () => modalContainer.classList.add('hidden'));
 document.getElementById('btnCloseEditar').addEventListener('click', () => modalEditar.classList.add('hidden'));
@@ -281,3 +367,6 @@ searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); })
 filterStatus.addEventListener('change', () => { currentPage = 1; renderTable(); });
 btnPrevPage.addEventListener('click', () => { if(currentPage>1) currentPage--; renderTable(); });
 btnNextPage.addEventListener('click', () => { currentPage++; renderTable(); });
+
+document.getElementById('btnCloseAlumnos').addEventListener('click', () => document.getElementById('modalAlumnos').classList.add('hidden'));
+document.getElementById('btnCerrarDetalle').addEventListener('click', () => document.getElementById('modalAlumnos').classList.add('hidden'));

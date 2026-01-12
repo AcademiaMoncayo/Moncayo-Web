@@ -169,6 +169,57 @@
         </div>
     </div>
 
+    <div id="modalAlumnos" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3>📋 Expediente de Clases</h3>
+                <span id="btnCloseAlumnos" class="close-btn">&times;</span>
+            </div>
+
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bbdefb;">
+                <h2 style="margin:0; font-size:18px; color:#0d47a1;" id="tituloMaestro">Maestro: ...</h2>
+                <p style="margin:5px 0 0; color:#555; font-size:13px;" id="subtituloMaestro">Total clases registradas: 0</p>
+            </div>
+
+            <h4 class="section-title">📅 Horario Semanal (Clases Fijas)</h4>
+            <div class="table-container" style="margin-bottom: 25px;">
+                <table style="font-size: 13px;">
+                    <thead>
+                        <tr style="background:#f1f1f1;">
+                            <th>Día</th>
+                            <th>Horario</th>
+                            <th>Alumno</th>
+                            <th>Instrumento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaFijas">
+                        </tbody>
+                </table>
+            </div>
+
+            <h4 class="section-title">✨ Historial (Muestras, Únicas y Pasadas)</h4>
+            <div class="table-container">
+                <table style="font-size: 13px;">
+                    <thead>
+                        <tr style="background:#f1f1f1;">
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Horario</th>
+                            <th>Alumno (Prospecto)</th>
+                            <th>Instrumento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaHistorial">
+                        </tbody>
+                </table>
+            </div>
+
+            <div style="text-align: right; margin-top: 20px;">
+                <button class="btn-save" id="btnCerrarDetalle" style="width: auto; background:#6c757d;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="src/js/teachers.js"></script>
 
 </body>

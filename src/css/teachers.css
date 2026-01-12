@@ -117,3 +117,43 @@ input[type="checkbox"] {
     align-items: center;
     gap: 5px;
 }
+
+
+/* ... (Mantén todo lo anterior) ... */
+
+/* Botón Ver Alumnos (Azul Info) */
+.btn-view {
+    background-color: #17a2b8;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+    transition: 0.2s;
+}
+.btn-view:hover {
+    background-color: #138496;
+}
+
+/* Estilo para las filas de clases fijas */
+.row-fija td {
+    border-bottom: 1px solid #eee;
+    padding: 8px;
+    color: #333;
+}
+
+/* Etiquetas pequeñas para el tipo de clase */
+.badge-type {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.badge-muestra { background: #f3e5f5; color: #7b1fa2; border: 1px solid #e1bee7; }
+.badge-unica { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
