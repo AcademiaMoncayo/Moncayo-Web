@@ -1,0 +1,178 @@
+/* Heredamos estilos base */
+@import url('students.css');
+
+/* --- Estilos de Almacén --- */
+
+/* Stock Badges */
+.stock-tag {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    min-width: 30px;
+    text-align: center;
+}
+
+.stock-ok {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.stock-low {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border: 1px solid #ffe0b2;
+}
+
+.stock-out {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+/* Columna de Precios */
+.price-col {
+    font-family: 'Courier New', Courier, monospace; /* Fuente tipo ticket */
+    font-weight: 600;
+    color: #444;
+}
+
+.total-col {
+    font-weight: bold;
+    color: #1565c0;
+}
+/* Heredamos estilos base */
+@import url('students.css');
+
+/* Etiquetas de Stock (Igual que antes) */
+.stock-tag { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; min-width: 30px; text-align: center; display: inline-block; }
+.stock-ok { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.stock-low { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
+.stock-out { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
+.price-col { font-family: monospace; font-weight: 600; color: #444; }
+.total-col { font-weight: bold; color: #1565c0; }
+
+/* NUEVO: Etiquetas de Categoría */
+.cat-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: #f0f4c3;
+    color: #827717;
+    border: 1px solid #e6ee9c;
+    text-transform: uppercase;
+}
+
+/* NUEVO: Botón de Reabastecer (+) */
+.btn-quick-add {
+    background-color: #28a745;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%; /* Redondo */
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.1s;
+}
+
+.btn-quick-add:hover {
+    background-color: #218838;
+    transform: scale(1.1);
+}
+
+/* Celda de Stock con Botón */
+.stock-cell-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ... (Mantener todo lo anterior) ... */
+
+/* Botón Rojo (Salida) */
+.btn-danger {
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: 0.2s;
+}
+.btn-danger:hover { background-color: #b71c1c; }
+
+.btn-secondary {
+    background-color: #607d8b;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0 15px;
+}
+
+/* Caja para agregar al carrito */
+.add-to-cart-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.add-to-cart-box input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+}
+
+/* Resumen del Carrito */
+.cart-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f5f5f5;
+    padding: 10px 15px;
+    border-radius: 6px;
+    border-top: 2px solid #ddd;
+}
+
+/* Botón eliminar fila del carrito */
+.btn-del-row {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-del-row:hover { color: red; }
+
+/* ... (Todo lo anterior) ... */
+
+/* Estilos para el Historial */
+.row-entrada {
+    background-color: #f1f8e9; /* Verde muy claro */
+}
+.row-salida {
+    background-color: #fff3e0; /* Naranja muy claro */
+}
+
+.badge-mov {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.mov-in { background: #c8e6c9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.mov-out { background: #ffccbc; color: #bf360c; border: 1px solid #ffab91; }

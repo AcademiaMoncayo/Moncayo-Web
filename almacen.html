@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Almacén - Academia Moncayo</title>
+    <link rel="stylesheet" href="src/css/variables.css">
+    <link rel="stylesheet" href="src/css/dashboard.css">
+    <link rel="stylesheet" href="src/css/storage.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-left"><h3>Academia Moncayo</h3></div>
+        <nav class="nav-center">
+            <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
+            <button class="nav-btn" onclick="window.location.href='students.html'">Alumnos</button>
+            <button class="nav-btn" onclick="window.location.href='teachers.html'">Maestros</button>
+            <button class="nav-btn" onclick="window.location.href='calendar.html'">Calendario</button>
+            <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
+            <button class="nav-btn active">Almacén</button>
+        </nav>
+        <div class="nav-right"><span id="userDisplay">Admin</span></div>
+    </header>
+
+    <main class="main-content">
+        
+        <div class="page-header">
+            <h1>Inventario / Almacén</h1>
+            <div style="display:flex; gap:10px;">
+                <button id="btnOpenHistory" class="btn-secondary" style="background:#546e7a;">📜 Historial</button>
+                <button id="btnOpenSalida" class="btn-danger">➖ Registrar Salida</button>
+                <button id="btnOpenModal" class="btn-primary">+ Nuevo Producto</button>
+            </div>
+        </div>
+
+        <div class="content-card">
+            
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar producto...">
+                </div>
+                
+                <div class="filter-box">
+                    <select id="filterCategory">
+                        <option value="todos">📂 Todas las Categorías</option>
+                        <option value="Instrumentos">🎸 Instrumentos</option>
+                        <option value="Libros">📚 Libros / Métodos</option>
+                        <option value="Accesorios">🔌 Accesorios</option>
+                        <option value="Otros">📦 Otros</option>
+                    </select>
+                </div>
+
+                <div class="filter-box">
+                    <select id="filterStock">
+                        <option value="todos">Estado: Todos</option>
+                        <option value="bajo">⚠️ Stock Bajo</option>
+                        <option value="agotado">❌ Agotados</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th style="text-align: center;">Stock Actual</th>
+                            <th>Precio Unit.</th>
+                            <th>Valor Total</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        </tbody>
+                </table>
+                <p id="noResults" class="hidden" style="text-align:center; padding: 20px; color:#666;">Inventario vacío.</p>
+            </div>
+
+            <div style="margin-top: 15px; text-align: right; font-size: 14px; color: #555;">
+                Valor Total del Inventario: <strong id="totalInventoryValue" style="color: var(--color-primary); font-size: 16px;">$0.00</strong>
+            </div>
+
+            <div class="pagination-controls">
+                <button id="btnPrevPage" disabled>❮ Anterior</button>
+                <span id="pageIndicator" style="font-size: 14px; color: #666;">Página 1</span>
+                <button id="btnNextPage">Siguiente ❯</button>
+            </div>
+
+        </div> 
+    </main>
+
+    <div id="modalContainer" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 500px;">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nuevo Producto</h3>
+                <span id="btnCloseModal" class="close-btn">&times;</span>
+            </div>
+            <form id="formProduct">
+                <input type="hidden" id="editId">
+
+                <div class="form-row">
+                    <div style="flex: 2;">
+                        <label>Nombre del Producto:</label>
+                        <input type="text" id="prodNombre" required placeholder="Ej. Libro Solfeo 1">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Categoría:</label>
+                        <select id="prodCategoria" required>
+                            <option value="Instrumentos">Instrumentos</option>
+                            <option value="Libros">Libros</option>
+                            <option value="Accesorios">Accesorios</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>Descripción:</label>
+                <textarea id="prodDesc" rows="2" placeholder="Detalles..."></textarea>
+
+                <div class="form-row">
+                    <div style="flex:1">
+                        <label>Stock Inicial:</label>
+                        <input type="number" id="prodCantidad" required min="0" placeholder="0">
+                    </div>
+                    <div style="flex:1">
+                        <label>Precio Unitario ($):</label>
+                        <input type="number" id="prodPrecio" required min="0" step="0.50" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div style="background: #f1f8e9; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: right;">
+                    <label style="margin:0; font-size:12px; color:#558b2f;">Valor Total Estimado:</label>
+                    <div id="calcTotal" style="font-weight: bold; font-size: 18px; color: #2e7d32;">$0.00</div>
+                </div>
+
+                <button type="submit" class="btn-save">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalSalida" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3>📉 Registrar Salida de Stock</h3>
+                <span id="btnCloseSalida" class="close-btn">&times;</span>
+            </div>
+            
+            <div class="form-row" style="background:#fff3e0; padding:10px; border-radius:6px; margin-bottom:15px; border:1px solid #ffe0b2;">
+                <div style="flex:1;">
+                    <label>Motivo:</label>
+                    <select id="salidaMotivo">
+                        <option value="Venta">💰 Venta a Alumno</option>
+                        <option value="Uso Interno">🏫 Uso Interno / Clase</option>
+                        <option value="Merma">🗑️ Merma / Dañado</option>
+                        <option value="Ajuste">🔧 Ajuste de Inventario</option>
+                        <option value="Regalo">🎁 Regalo / Promoción</option>
+                    </select>
+                </div>
+                <div style="flex:2;">
+                    <label>Referencia / Detalle:</label>
+                    <input type="text" id="salidaRef" placeholder="Ej. Ticket #104, Juan Pérez...">
+                </div>
+            </div>
+
+            <label>Seleccionar Producto:</label>
+            <div class="add-to-cart-box">
+                <div style="flex: 3;">
+                    <input list="listProductsOut" id="inputProdOut" placeholder="Buscar producto..." style="width:100%;">
+                    <datalist id="listProductsOut">
+                        </datalist>
+                    <input type="hidden" id="idProdOut">
+                </div>
+                <div style="flex: 1;">
+                    <input type="number" id="qtyProdOut" placeholder="Cant." min="1" value="1">
+                </div>
+                <button id="btnAddToCart" class="btn-secondary">⬇️ Agregar</button>
+            </div>
+
+            <h4 class="section-title">Lista de Artículos a Retirar</h4>
+            <div class="table-container" style="max-height: 200px; overflow-y: auto; border: 1px solid #eee; margin-bottom:15px;">
+                <table style="font-size: 13px;">
+                    <thead>
+                        <tr style="background:#f9f9f9;">
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th>Precio U.</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartBody"></tbody>
+                </table>
+                <p id="emptyCartMsg" style="text-align:center; color:#999; padding:10px; margin:0;">Lista vacía.</p>
+            </div>
+
+            <div class="cart-summary">
+                <div>Artículos: <strong id="sumQty">0</strong></div>
+                <div>Total Monetario: <strong id="sumTotal" style="font-size:18px; color:#c62828;">$0.00</strong></div>
+            </div>
+
+            <button id="btnConfirmOutput" class="btn-save" style="background:#c62828; margin-top:15px;">Confirmar Salida</button>
+        </div>
+    </div>
+
+    <div id="modalRestock" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 350px;">
+            <div class="modal-header">
+                <h3>📦 Agregar Stock</h3>
+                <span id="btnCloseRestock" class="close-btn">&times;</span>
+            </div>
+            <form id="formRestock">
+                <input type="hidden" id="restockId">
+                <p id="restockName" style="font-weight:bold; color:#0d47a1; margin-bottom:15px;">Producto...</p>
+                
+                <label>Cantidad a Sumar (+):</label>
+                <input type="number" id="restockQty" required min="1" placeholder="Ej. 5" style="font-size:18px; text-align:center;">
+                
+                <small style="display:block; color:#666; margin-bottom:15px;">Esto se sumará al stock actual.</small>
+                <button type="submit" class="btn-save" style="background:#28a745;">➕ Confirmar Entrada</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalHistory" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 800px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3>📜 Historial de Movimientos</h3>
+                <span id="btnCloseHistory" class="close-btn">&times;</span>
+            </div>
+
+            <div class="toolbar" style="background:#f5f5f5; border:1px solid #ddd; padding:10px; margin-bottom:15px;">
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <div>
+                        <label style="font-size:11px; display:block;">Desde:</label>
+                        <input type="date" id="histStart">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; display:block;">Hasta:</label>
+                        <input type="date" id="histEnd">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; display:block;">Tipo:</label>
+                        <select id="histType">
+                            <option value="todos">Todos</option>
+                            <option value="salida">📉 Salidas</option>
+                            <option value="entrada">📈 Entradas</option>
+                        </select>
+                    </div>
+                    <div style="align-self: flex-end;">
+                        <button id="btnFilterHistory" class="btn-primary" style="padding: 6px 15px; font-size:13px;">🔍 Buscar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                <table style="font-size: 13px;">
+                    <thead>
+                        <tr style="background:#eceff1;">
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th>Motivo / Ref.</th>
+                            <th>Valor (Costo)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="cart-summary" style="margin-top:15px; background:#e3f2fd; border-color:#90caf9;">
+                <div>Movimientos: <strong id="histCount">0</strong></div>
+                <div>Piezas Movidas: <strong id="histPiezas">0</strong></div>
+                <div>Valor Total: <strong id="histValor" style="font-size:16px; color:#0d47a1;">$0.00</strong></div>
+            </div>
+
+            <div style="text-align: right; margin-top: 15px;">
+                 <button class="btn-secondary" onclick="window.print()">🖨️ Imprimir Reporte</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="src/js/storage.js"></script>
+
+</body>
+</html>
