@@ -33,20 +33,27 @@
 </div>
         <div class="content-card">
             
-            <div class="toolbar">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Buscar alumno por nombre...">
-                </div>
-                
-                <div class="filter-box">
-                    <label>Estado de Pago:</label>
-                    <select id="filterPayment">
-                        <option value="todos">Todos</option>
-                        <option value="pendiente">⏳ Pendientes</option>
-                        <option value="pagado">✅ Pagados</option>
-                    </select>
-                </div>
-            </div>
+<div class="toolbar">
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar alumno...">
+    </div>
+    
+    <div class="filter-box">
+        <select id="filterStatus">
+            <option value="activos" selected>👤 Solo Activos</option>
+            <option value="todos">📂 Todos (Historial)</option>
+            <option value="bajas">❌ Solo Bajas</option>
+        </select>
+    </div>
+
+    <div class="filter-box">
+        <select id="filterPayment">
+            <option value="todos">Estado Pago: Todos</option>
+            <option value="pendiente">⏳ Pendientes / Vencidos</option>
+            <option value="pagado">✅ Pagados</option>
+        </select>
+    </div>
+</div>
 
             <div class="table-container">
                 <table>

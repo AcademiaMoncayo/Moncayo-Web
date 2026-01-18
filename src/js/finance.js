@@ -1,11 +1,12 @@
 import { db, auth } from './firebase-config.js';
-import { collection, getDocs, query, where, addDoc, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, query, where, addDoc, doc, deleteDoc, updateDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // --- REFERENCIAS DOM ---
 const tableBody = document.getElementById('tableBody');
 const searchInput = document.getElementById('searchInput');
 const filterPayment = document.getElementById('filterPayment');
+const filterStatus = document.getElementById('filterStatus'); // Referencia al nuevo select
 
 // Paginación
 const btnPrevPage = document.getElementById('btnPrevPage');
@@ -14,14 +15,16 @@ const pageIndicator = document.getElementById('pageIndicator');
 
 // Modales
 const modalPago = document.getElementById('modalPago');
-const modalHistorial = document.getElementById('modalHistorial'); // NUEVO
+const modalHistorial = document.getElementById('modalHistorial');
+const modalReporte = document.getElementById('modalReporte');
 
+// Forms y Botones
 const formPago = document.getElementById('formPago');
 const selectPeriodo = document.getElementById('pagoPeriodo');
 
 // Estado Global
 let allStudents = []; 
-let allPayments = []; // Aquí guardaremos TODOS los pagos para consulta rápida
+let allPayments = []; 
 let currentPage = 1;
 const rowsPerPage = 20;
 
@@ -31,18 +34,17 @@ onAuthStateChanged(auth, (user) => {
     else loadFinanceData();
 });
 
-// 2. CARGAR DATOS (ALUMNOS Y PAGOS)
+// 2. CARGAR DATOS
 async function loadFinanceData() {
-    tableBody.innerHTML = '<tr><td colspan="8">Cargando base de datos...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">Cargando base de datos completa...</td></tr>';
     try {
-        // A) Cargar Alumnos Inscritos
-        const qStudents = query(collection(db, "students"), where("status", "==", "inscrito"));
+        // A) Cargar TODOS los Alumnos (ACTIVOS Y BAJAS)
+        const qStudents = query(collection(db, "students"), orderBy("nombre"));
         const snapStudents = await getDocs(qStudents);
         allStudents = [];
         snapStudents.forEach((doc) => allStudents.push({ id: doc.id, ...doc.data() }));
-        allStudents.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-        // B) Cargar TODOS los Pagos (Para saber quién ya pagó)
+        // B) Cargar TODOS los Pagos
         const qPayments = query(collection(db, "payments"));
         const snapPayments = await getDocs(qPayments);
         allPayments = [];
@@ -51,7 +53,7 @@ async function loadFinanceData() {
         renderTable();
     } catch (error) {
         console.error("Error:", error);
-        tableBody.innerHTML = '<tr><td colspan="8">Error al cargar datos.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">Error al cargar datos.</td></tr>';
     }
 }
 
@@ -59,38 +61,48 @@ async function loadFinanceData() {
 function renderTable() {
     const textoBusqueda = searchInput.value.toLowerCase();
     const filtroPago = filterPayment.value; 
+    
+    // Protección: Si el HTML del filtro no existe aun, usamos 'activos' por defecto
+    const filtroEstatus = filterStatus ? filterStatus.value : 'activos'; 
+    
     const hoy = new Date();
 
-    // Filtramos y Procesamos
+    // Procesamiento inicial
     const listaProcesada = allStudents.map(alumno => {
-        // 1. Calcular el string del "Periodo Actual" (El que debería pagar este mes)
         const periodoActualStr = calcularPeriodoActual(alumno.fechaInicioClases);
-        
-        // 2. Buscar si existe un pago para este alumno y este periodo
         const estaPagado = allPayments.some(p => p.studentId === alumno.id && p.periodo === periodoActualStr);
-
-        // 3. Determinar estado
+        
         let estadoPago = 'pendiente';
-        if (estaPagado) {
-            estadoPago = 'pagado';
-        } else {
-            // Si no está pagado, checamos si ya pasó su día de corte
+        if (estaPagado) estadoPago = 'pagado';
+        else {
             const diaCorte = alumno.diaCorte || 5;
             if (hoy.getDate() > diaCorte) estadoPago = 'vencido';
         }
-
         return { ...alumno, estadoPago, periodoActualStr };
     });
 
-    // Filtros Visuales
+    // --- FILTROS ---
     const listaFiltrada = listaProcesada.filter(alumno => {
+        // 1. Filtro Nombre
         const coincideNombre = alumno.nombre.toLowerCase().includes(textoBusqueda);
         
-        let coincideFiltro = true;
-        if (filtroPago === 'pagado') coincideFiltro = (alumno.estadoPago === 'pagado');
-        if (filtroPago === 'pendiente') coincideFiltro = (alumno.estadoPago === 'pendiente' || alumno.estadoPago === 'vencido');
+        // 2. Filtro Pago
+        let coincidePago = true;
+        if (filtroPago === 'pagado') coincidePago = (alumno.estadoPago === 'pagado');
+        if (filtroPago === 'pendiente') coincidePago = (alumno.estadoPago === 'pendiente' || alumno.estadoPago === 'vencido');
 
-        return coincideNombre && coincideFiltro;
+        // 3. NUEVO: Filtro Estatus (Activo vs Baja)
+        let coincideEstatus = true;
+        const esBaja = alumno.status !== 'inscrito';
+
+        if (filtroEstatus === 'activos') {
+            coincideEstatus = !esBaja; // Mostrar solo si NO es baja
+        } else if (filtroEstatus === 'bajas') {
+            coincideEstatus = esBaja;  // Mostrar solo si ES baja
+        }
+        // Si es 'todos', dejamos pasar a todos
+
+        return coincideNombre && coincidePago && coincideEstatus;
     });
 
     // Paginación
@@ -104,43 +116,62 @@ function renderTable() {
     // Dibujar
     tableBody.innerHTML = '';
     if (alumnosPagina.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">No hay alumnos.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">No se encontraron resultados.</td></tr>';
         return;
     }
 
     alumnosPagina.forEach(alumno => {
         const fila = document.createElement('tr');
+        const esBaja = alumno.status !== 'inscrito';
         
-        // Renderizar Estado
-        let htmlEstado = '';
-        if (alumno.estadoPago === 'pagado') {
-            htmlEstado = `<span class="tag-pago pago-pagado">✅ PAGADO</span>`;
-        } else if (alumno.estadoPago === 'vencido') {
-            htmlEstado = `<span class="tag-pago pago-vencido">⚠️ VENCIDO (Día ${alumno.diaCorte})</span>`;
+        // Estilo visual para bajas
+        if (esBaja) fila.style.backgroundColor = '#f5f5f5'; 
+
+        // Estado Pago Visual
+        let htmlEstadoPago = '';
+        if (esBaja) {
+            htmlEstadoPago = `<span style="color:#999; font-size:12px;">—</span>`; 
         } else {
-            htmlEstado = `<span class="tag-pago pago-pendiente">⏳ PENDIENTE (Día ${alumno.diaCorte})</span>`;
+            if (alumno.estadoPago === 'pagado') {
+                htmlEstadoPago = `<span class="tag-pago pago-pagado">✅ PAGADO</span>`;
+            } else if (alumno.estadoPago === 'vencido') {
+                htmlEstadoPago = `<span class="tag-pago pago-vencido">⚠️ VENCIDO (Día ${alumno.diaCorte})</span>`;
+            } else {
+                htmlEstadoPago = `<span class="tag-pago pago-pendiente">⏳ PENDIENTE (Día ${alumno.diaCorte})</span>`;
+            }
         }
+
+        // Etiqueta Estado
+        let htmlStatusAlumno = esBaja 
+            ? `<span class="tag" style="background:#ffebee; color:#c62828; border:1px solid #ffcdd2;">BAJA</span>`
+            : `<span class="tag tag-inscrito">ACTIVO</span>`;
 
         const costo = alumno.costoMensual ? `$${alumno.costoMensual}` : '$0';
         
         fila.innerHTML = `
-            <td><strong>${alumno.nombre}</strong></td>
-            <td>${alumno.nombreTutor}</td>
+            <td>
+                <strong>${alumno.nombre}</strong>
+                ${esBaja ? '<br><small style="color:red;">(Inactivo)</small>' : ''}
+            </td>
+            <td>${alumno.nombreTutor || '-'}</td>
             <td style="text-align:center;">${alumno.requiereFactura ? '✅' : 'No'}</td>
             <td style="font-weight:bold; color:#2c3e50;">${costo}</td>
-            <td style="text-align:center;">${alumno.diaCorte}</td>
-            <td style="text-align:center;"><span class="tag tag-inscrito">ACTIVO</span></td>
-            <td>${htmlEstado}</td>
+            <td style="text-align:center;">${alumno.diaCorte || '-'}</td>
+            <td style="text-align:center;">${htmlStatusAlumno}</td>
+            <td>${htmlEstadoPago}</td>
             <td>
                 <div style="display:flex; gap:5px;">
                     <button class="btn-history" data-id="${alumno.id}" title="Ver Historial">📜</button>
-                    <button class="btn-cobrar" 
-                        data-id="${alumno.id}" 
-                        data-nombre="${alumno.nombre}" 
-                        data-costo="${alumno.costoMensual}"
-                        data-inicio="${alumno.fechaInicioClases}">
-                        💲 Pagar
-                    </button>
+                    ${!esBaja ? 
+                        `<button class="btn-cobrar" 
+                            data-id="${alumno.id}" 
+                            data-nombre="${alumno.nombre}" 
+                            data-costo="${alumno.costoMensual}"
+                            data-inicio="${alumno.fechaInicioClases}">
+                            💲 Pagar
+                        </button>` 
+                        : '' 
+                    }
                 </div>
             </td>
         `;
@@ -151,9 +182,8 @@ function renderTable() {
     actualizarPaginacion(totalPages);
 }
 
-// 4. FUNCIONES DE MODAL PAGO (Cobrar)
+// 4. LISTENERS (MODAL PAGO Y HISTORIAL)
 function asignarListenersTabla() {
-    // Botón Cobrar
     document.querySelectorAll('.btn-cobrar').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const d = e.currentTarget.dataset;
@@ -161,22 +191,18 @@ function asignarListenersTabla() {
         });
     });
 
-    // Botón Historial (NUEVO)
     document.querySelectorAll('.btn-history').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.currentTarget.dataset.id;
-            // Buscar datos del alumno para mostrarlos en el header
             const alumno = allStudents.find(a => a.id === id);
             abrirHistorial(alumno);
         });
     });
 }
 
-// Lógica para abrir modal de pago (Generación de Periodos)
 function abrirModalPago(id, nombre, costo, fechaInicioStr) {
     document.getElementById('pagoStudentId').value = id;
     document.getElementById('pagoNombreTexto').value = nombre;
-    document.getElementById('pagoAlumnoNombre').value = nombre;
     document.getElementById('pagoMontoBase').value = `$${costo}`;
     document.getElementById('pagoMontoReal').value = costo;
     document.getElementById('pagoFecha').valueAsDate = new Date();
@@ -184,9 +210,7 @@ function abrirModalPago(id, nombre, costo, fechaInicioStr) {
     selectPeriodo.innerHTML = '<option>Cargando periodos...</option>';
     modalPago.classList.remove('hidden');
 
-    // Generar lista de periodos (Próximos 12 meses)
-    selectPeriodo.innerHTML = '<option value="">-- Selecciona --</option>';
-    
+    selectPeriodo.innerHTML = '<option value="">-- Selecciona Periodo --</option>';
     let fechaIteracion = fechaInicioStr ? new Date(fechaInicioStr + 'T12:00:00') : new Date();
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -199,7 +223,6 @@ function abrirModalPago(id, nombre, costo, fechaInicioStr) {
         const strFin = `${fin.getDate()} ${meses[fin.getMonth()]} ${fin.getFullYear()}`;
         const valorPeriodo = `${strInicio} - ${strFin}`;
 
-        // Verificamos si YA está pagado en memoria (allPayments)
         const yaPagado = allPayments.some(p => p.studentId === id && p.periodo === valorPeriodo);
 
         const option = document.createElement('option');
@@ -211,7 +234,6 @@ function abrirModalPago(id, nombre, costo, fechaInicioStr) {
             option.text = `⭕ PENDIENTE: ${valorPeriodo}`;
         }
         selectPeriodo.add(option);
-
         fechaIteracion.setMonth(fechaIteracion.getMonth() + 1);
     }
 }
@@ -226,26 +248,28 @@ formPago.addEventListener('submit', async (e) => {
         monto: Number(document.getElementById('pagoMontoReal').value),
         metodo: document.getElementById('pagoMetodo').value,
         fechaPago: document.getElementById('pagoFecha').value,
+        tipo: 'ingreso', 
+        concepto: `Mensualidad ${selectPeriodo.value}`, 
         fechaRegistro: new Date()
     };
 
     try {
         await addDoc(collection(db, "payments"), data);
-        alert("Pago registrado");
+        await addDoc(collection(db, "finance"), { ...data, concepto: `Mensualidad: ${data.nombreAlumno}` });
+
+        alert("Pago registrado exitosamente");
         modalPago.classList.add('hidden');
-        loadFinanceData(); // Recargar todo para actualizar colores
-    } catch (e) { alert("Error al guardar pago"); }
+        loadFinanceData();
+    } catch (e) { console.error(e); alert("Error al guardar pago"); }
 });
 
-// 6. HISTORIAL DE PAGOS (Lógica Nueva)
+// 6. HISTORIAL
 function abrirHistorial(alumno) {
     document.getElementById('historialAlumnoNombre').textContent = alumno.nombre;
-    document.getElementById('historialAlumnoEmail').textContent = alumno.emailTutor || 'Sin correo';
+    const emailT = alumno.emailTutor || 'Sin correo';
+    document.getElementById('historialAlumnoEmail').textContent = alumno.status === 'inscrito' ? emailT : `${emailT} (BAJA)`;
     
-    // Filtramos los pagos de este alumno
     const pagosAlumno = allPayments.filter(p => p.studentId === alumno.id);
-    
-    // Ordenar por fecha de pago (más reciente arriba)
     pagosAlumno.sort((a, b) => new Date(b.fechaPago) - new Date(a.fechaPago));
 
     const tbody = document.getElementById('historialTableBody');
@@ -270,13 +294,12 @@ function abrirHistorial(alumno) {
             tbody.appendChild(row);
         });
     }
-
     modalHistorial.classList.remove('hidden');
 }
 
-// Funciones globales para que funcionen los onclick del HTML inyectado
+// GLOBALES
 window.eliminarPago = async (idPago) => {
-    if(confirm("¿Seguro que deseas eliminar este pago? El periodo volverá a aparecer como pendiente.")) {
+    if(confirm("¿Seguro que deseas eliminar este pago?")) {
         try {
             await deleteDoc(doc(db, "payments", idPago));
             alert("Pago eliminado.");
@@ -287,7 +310,7 @@ window.eliminarPago = async (idPago) => {
 };
 
 window.editarPago = async (idPago, montoActual) => {
-    const nuevoMonto = prompt("Editar monto del pago:", montoActual);
+    const nuevoMonto = prompt("Nuevo monto:", montoActual);
     if(nuevoMonto && !isNaN(nuevoMonto)) {
         try {
             await updateDoc(doc(db, "payments", idPago), { monto: Number(nuevoMonto) });
@@ -299,11 +322,8 @@ window.editarPago = async (idPago, montoActual) => {
 };
 
 window.enviarRecibo = (email, periodo, monto) => {
-    if(!email) { alert("El alumno no tiene correo registrado."); return; }
-    // Simulación de envío
-    if(confirm(`¿Enviar recibo a ${email}?\n\nDetalles:\nPeriodo: ${periodo}\nMonto: $${monto}`)) {
-        alert("📧 ¡Recibo enviado correctamente! (Simulación)");
-    }
+    if(!email || email === 'undefined') { alert("Sin correo registrado."); return; }
+    if(confirm(`¿Enviar recibo a ${email}?`)) { alert("📧 Recibo enviado (Simulación)"); }
 };
 
 // UTILIDADES
@@ -311,35 +331,26 @@ function calcularPeriodoActual(fechaInicioStr) {
     if (!fechaInicioStr) return "";
     const hoy = new Date();
     const inicio = new Date(fechaInicioStr + 'T12:00:00');
-    
-    // Buscamos el periodo que cubre el día de HOY
-    // Truco: Empezamos iterando desde el inicio de clases hasta pasar la fecha de hoy
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     
     let fechaIter = new Date(inicio);
-    // Límite de seguridad para while (5 años)
     let seguridad = 0; 
     
     while(seguridad < 60) {
         let finIter = new Date(fechaIter);
         finIter.setMonth(finIter.getMonth() + 1);
         
-        // Si hoy cae dentro de este rango, ESTE es el periodo actual
         if (hoy >= fechaIter && hoy < finIter) {
             const sInicio = `${fechaIter.getDate()} ${meses[fechaIter.getMonth()]} ${fechaIter.getFullYear()}`;
             const sFin = `${finIter.getDate()} ${meses[finIter.getMonth()]} ${finIter.getFullYear()}`;
             return `${sInicio} - ${sFin}`;
         }
-        
-        // Si hoy es antes del inicio de clases (raro), devolvemos el primer periodo
         if (hoy < inicio) {
              const sInicio = `${inicio.getDate()} ${meses[inicio.getMonth()]} ${inicio.getFullYear()}`;
-             // Recalcular fin
              let fin = new Date(inicio); fin.setMonth(fin.getMonth()+1);
              const sFin = `${fin.getDate()} ${meses[fin.getMonth()]} ${fin.getFullYear()}`;
              return `${sInicio} - ${sFin}`;
         }
-
         fechaIter.setMonth(fechaIter.getMonth() + 1);
         seguridad++;
     }
@@ -347,176 +358,122 @@ function calcularPeriodoActual(fechaInicioStr) {
 }
 
 function actualizarPaginacion(total) {
-    pageIndicator.textContent = `Página ${currentPage} de ${total}`;
-    btnPrevPage.disabled = currentPage === 1;
-    btnNextPage.disabled = currentPage === total;
+    if(pageIndicator) pageIndicator.textContent = `Página ${currentPage} de ${total}`;
+    if(btnPrevPage) btnPrevPage.disabled = currentPage === 1;
+    if(btnNextPage) btnNextPage.disabled = currentPage === total;
 }
 
-// Cierre Modales
+// Listeners
 document.getElementById('btnClosePago').addEventListener('click', () => modalPago.classList.add('hidden'));
 document.getElementById('btnCloseHistorial').addEventListener('click', () => modalHistorial.classList.add('hidden'));
 document.getElementById('btnCerrarHistorial').addEventListener('click', () => modalHistorial.classList.add('hidden'));
 
-// Listeners Paginación
 searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
 filterPayment.addEventListener('change', () => { currentPage = 1; renderTable(); });
-btnPrevPage.addEventListener('click', () => { if(currentPage>1) currentPage--; renderTable(); });
-btnNextPage.addEventListener('click', () => { currentPage++; renderTable(); });
 
+// LISTENER NUEVO PARA EL FILTRO DE ESTATUS
+if(filterStatus) {
+    filterStatus.addEventListener('change', () => { 
+        currentPage = 1; 
+        renderTable(); 
+    });
+}
 
-// ==========================================
-//          LÓGICA DEL REPORTE MENSUAL
-// ==========================================
+if(btnPrevPage) btnPrevPage.addEventListener('click', () => { if(currentPage>1) currentPage--; renderTable(); });
+if(btnNextPage) btnNextPage.addEventListener('click', () => { currentPage++; renderTable(); });
 
-// Referencias del Modal Reporte
-const btnAbrirReporte = document.querySelector('.btn-primary'); 
-
-const modalReporte = document.getElementById('modalReporte');
-const btnCloseReporte = document.getElementById('btnCloseReporte');
-const btnGenerarReporte = document.getElementById('btnGenerarReporte');
-const btnImprimirReporte = document.getElementById('btnImprimirReporte');
-const btnNuevoReporte = document.getElementById('btnNuevoReporte');
-
+// REPORTES
 const inputInicio = document.getElementById('reporteInicio');
 const inputFin = document.getElementById('reporteFin');
 const divFiltros = document.getElementById('reporteFiltros');
 const divResultados = document.getElementById('reporteResultados');
+const btnOpenReport = document.getElementById('btnOpenReport') || document.querySelector('.btn-primary'); 
 
-// 1. Abrir Modal
-// Asegúrate de ponerle id="btnOpenReport" a tu botón en el HTML, o usa esta línea si es el único .btn-primary en el header
-document.getElementById('btnOpenReport').addEventListener('click', () => {
-    // Poner fechas por defecto (Día 1 del mes actual hasta hoy)
-    const hoy = new Date();
-    const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    
-    inputInicio.valueAsDate = primerDia;
-    inputFin.valueAsDate = hoy;
-
-    divFiltros.classList.remove('hidden');
-    divResultados.classList.add('hidden');
-    modalReporte.classList.remove('hidden');
-});
-
-btnCloseReporte.addEventListener('click', () => modalReporte.classList.add('hidden'));
-
-// 2. GENERAR CÁLCULOS
-btnGenerarReporte.addEventListener('click', () => {
-    const fechaInicio = inputInicio.value;
-    const fechaFin = inputFin.value;
-
-    if(!fechaInicio || !fechaFin) {
-        alert("Selecciona ambas fechas");
-        return;
-    }
-
-    // Filtrar pagos en el rango (allPayments ya tiene TODOS los pagos cargados desde el inicio)
-    const pagosFiltrados = allPayments.filter(pago => {
-        return pago.fechaPago >= fechaInicio && pago.fechaPago <= fechaFin;
+if(btnOpenReport) {
+    btnOpenReport.addEventListener('click', () => {
+        const hoy = new Date();
+        const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        if(inputInicio) inputInicio.valueAsDate = primerDia;
+        if(inputFin) inputFin.valueAsDate = hoy;
+        if(divFiltros) divFiltros.classList.remove('hidden');
+        if(divResultados) divResultados.classList.add('hidden');
+        if(modalReporte) modalReporte.classList.remove('hidden');
     });
+}
 
-    if (pagosFiltrados.length === 0) {
-        alert("No se encontraron pagos en estas fechas.");
-        return;
-    }
+const btnCloseReporte = document.getElementById('btnCloseReporte');
+if(btnCloseReporte) btnCloseReporte.addEventListener('click', () => modalReporte.classList.add('hidden'));
 
-    procesarDatosReporte(pagosFiltrados);
-});
+const btnGenerarReporte = document.getElementById('btnGenerarReporte');
+if(btnGenerarReporte) {
+    btnGenerarReporte.addEventListener('click', () => {
+        const fechaInicio = inputInicio.value;
+        const fechaFin = inputFin.value;
+        if(!fechaInicio || !fechaFin) { alert("Selecciona fechas"); return; }
+        
+        const pagosFiltrados = allPayments.filter(pago => {
+            return pago.fechaPago >= fechaInicio && pago.fechaPago <= fechaFin;
+        });
+        if (pagosFiltrados.length === 0) { alert("No hay pagos en estas fechas."); return; }
+        procesarDatosReporte(pagosFiltrados);
+    });
+}
 
 function procesarDatosReporte(pagos) {
     let granTotal = 0;
-    
-    // Contadores para agrupación
-    let mensualidades = {}; // Ej: { "1500": 3, "1200": 1 }
+    let mensualidades = {}; 
     let inscripciones = 0;
     let totalInscripciones = 0;
-    
     let metodos = { "Efectivo": 0, "Transferencia": 0, "Tarjeta": 0 };
 
-    // Limpiar tabla detalle
     const tbody = document.getElementById('tablaDetalleReporte');
-    tbody.innerHTML = '';
+    if(tbody) tbody.innerHTML = '';
 
-    // Iterar pagos
     pagos.forEach(p => {
         const monto = Number(p.monto);
         granTotal += monto;
-
-        // A) Agrupar por Concepto
-        if (p.periodo === "Pago de Inscripción") {
+        if (p.periodo && p.periodo.includes("Inscripción")) {
             inscripciones++;
             totalInscripciones += monto;
         } else {
-            // Es mensualidad
             if (!mensualidades[monto]) mensualidades[monto] = 0;
             mensualidades[monto]++;
         }
-
-        // B) Agrupar por Método
         const metodo = p.metodo || "Efectivo";
         if (!metodos[metodo]) metodos[metodo] = 0;
         metodos[metodo] += monto;
-
-        // C) Llenar tabla detalle
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${p.fechaPago}</td>
-            <td>${p.nombreAlumno}</td>
-            <td>${p.periodo}</td>
-            <td>$${monto}</td>
-        `;
-        tbody.appendChild(tr);
+        if(tbody) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${p.fechaPago}</td><td>${p.nombreAlumno}</td><td>${p.periodo}</td><td>$${monto}</td>`;
+            tbody.appendChild(tr);
+        }
     });
 
-    // RENDERIZAR RESULTADOS
     document.getElementById('txtGranTotal').textContent = `$${granTotal.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
-
-    // 1. Lista Desglose
     const ulDesglose = document.getElementById('listaDesglose');
-    ulDesglose.innerHTML = '';
-
-    // Inscripciones
-    if (inscripciones > 0) {
-        ulDesglose.innerHTML += `
-            <li>
-                <span>🎓 Inscripciones (${inscripciones})</span>
-                <strong>$${totalInscripciones}</strong>
-            </li>`;
-    }
-
-    // Mensualidades Agrupadas
-    for (const [monto, cantidad] of Object.entries(mensualidades)) {
-        const subtotal = monto * cantidad;
-        ulDesglose.innerHTML += `
-            <li>
-                <span>📅 Mensualidades de $${monto} (${cantidad})</span>
-                <strong>$${subtotal}</strong>
-            </li>`;
-    }
-
-    // 2. Corte de Caja (Métodos)
-    const divMetodos = document.getElementById('tablaMetodos');
-    divMetodos.innerHTML = '';
-    for (const [metodo, total] of Object.entries(metodos)) {
-        if (total > 0) {
-            divMetodos.innerHTML += `
-                <div class="metodo-row">
-                    <span>${metodo}</span>
-                    <strong>$${total.toLocaleString('es-MX')}</strong>
-                </div>`;
+    if(ulDesglose) {
+        ulDesglose.innerHTML = '';
+        if (inscripciones > 0) ulDesglose.innerHTML += `<li><span>🎓 Inscripciones (${inscripciones})</span><strong>$${totalInscripciones}</strong></li>`;
+        for (const [monto, cantidad] of Object.entries(mensualidades)) {
+            ulDesglose.innerHTML += `<li><span>📅 Mensualidades $${monto} (${cantidad})</span><strong>$${monto * cantidad}</strong></li>`;
         }
     }
-
-    // Mostrar vista de resultados
+    const divMetodos = document.getElementById('tablaMetodos');
+    if(divMetodos) {
+        divMetodos.innerHTML = '';
+        for (const [metodo, total] of Object.entries(metodos)) {
+            if (total > 0) divMetodos.innerHTML += `<div class="metodo-row"><span>${metodo}</span><strong>$${total.toLocaleString('es-MX')}</strong></div>`;
+        }
+    }
     divFiltros.classList.add('hidden');
     divResultados.classList.remove('hidden');
 }
 
-// 3. BOTONES EXTRA
-btnNuevoReporte.addEventListener('click', () => {
+const btnNuevoReporte = document.getElementById('btnNuevoReporte');
+if(btnNuevoReporte) btnNuevoReporte.addEventListener('click', () => {
     divFiltros.classList.remove('hidden');
     divResultados.classList.add('hidden');
 });
 
-btnImprimirReporte.addEventListener('click', () => {
-    window.print();
-});
+const btnImprimirReporte = document.getElementById('btnImprimirReporte');
+if(btnImprimirReporte) btnImprimirReporte.addEventListener('click', () => window.print());
