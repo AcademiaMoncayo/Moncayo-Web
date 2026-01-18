@@ -10,6 +10,7 @@ const filterStatus = document.getElementById('filterStatus');
 // Modales
 const modalContainer = document.getElementById('modalContainer'); 
 const modalEditar = document.getElementById('modalEditar'); 
+const modalAlumnos = document.getElementById('modalAlumnos'); // Referencia faltante agregada
 
 const formTeacher = document.getElementById('formTeacher');
 const formEditar = document.getElementById('formEditar');
@@ -20,7 +21,7 @@ const btnNextPage = document.getElementById('btnNextPage');
 const pageIndicator = document.getElementById('pageIndicator');
 
 let allTeachers = []; 
-let allClasses = []; // NUEVO: Para guardar las clases y hacer conteos
+let allClasses = []; 
 let currentPage = 1;
 const rowsPerPage = 20;
 
@@ -41,7 +42,6 @@ async function loadData() {
         snapTeachers.forEach((doc) => allTeachers.push({ id: doc.id, ...doc.data() }));
 
         // B) Cargar Clases (Para estadísticas)
-        // Traemos todas para filtrar en memoria (más eficiente que hacer 1 query por maestro)
         const qClasses = query(collection(db, "classes"));
         const snapClasses = await getDocs(qClasses);
         allClasses = [];
@@ -59,8 +59,7 @@ function renderTable() {
     const textoBusqueda = searchInput.value.toLowerCase();
     const filtro = filterStatus.value;
     
-    // Obtener fecha de hoy para comparaciones (YYYY-MM-DD)
-    // Ajustamos zona horaria para que "hoy" sea correcto localmente
+    // Obtener fecha de hoy local
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
     const todayStr = (new Date(now - offset)).toISOString().split('T')[0];
@@ -94,35 +93,27 @@ function renderTable() {
         let muestrasPasadas = 0;
         let muestrasFuturas = 0;
 
-        // Filtramos las clases de ESTE maestro
         const susClases = allClasses.filter(c => c.teacherId === maestro.id);
 
         susClases.forEach(c => {
-            // 1. Clases FIJAS (Alumnos Activos)
             if (c.type === 'fija') {
-                // Solo cuenta si NO tiene fechaFin (activa) o si la fechaFin es futura
                 if (!c.fechaFin || c.fechaFin >= todayStr) {
                     fijos++;
                 }
-            }
-            // 2. Clases MUESTRA
-            else if (c.type === 'muestra') {
+            } else if (c.type === 'muestra') {
                 if (c.date < todayStr) {
-                    muestrasPasadas++; // Ya sucedieron
+                    muestrasPasadas++; 
                 } else {
-                    muestrasFuturas++; // Pendientes (Hoy o futuro)
+                    muestrasFuturas++; 
                 }
             }
         });
 
-        // --- RENDERIZADO DE BADGES Y COLUMNAS ---
-        
-        // Instrumentos
+        // --- RENDERIZADO ---
         let htmlInstrumentos = '';
         let listaInst = Array.isArray(maestro.instrumentos) ? maestro.instrumentos : (maestro.instrumentos ? maestro.instrumentos.split(',') : []);
         listaInst.forEach(inst => htmlInstrumentos += `<span class="badge-instrumento">${inst.trim()}</span>`);
 
-        // Días
         let htmlDias = '';
         const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         diasSemana.forEach(dia => {
@@ -130,21 +121,11 @@ function renderTable() {
             if (activo) htmlDias += `<span class="badge-dia active">${dia}</span>`;
         });
 
-        // HTML ESTADÍSTICAS
         const htmlStats = `
             <div class="stats-container">
-                <div class="stat-row">
-                    <span class="stat-label">👥 Alumnos Fijos</span>
-                    <span class="num-fijos">${fijos}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">✨ Muestras Pendientes</span>
-                    <span class="num-futuras">${muestrasFuturas}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">📜 Muestras Pasadas</span>
-                    <span class="num-pasadas">${muestrasPasadas}</span>
-                </div>
+                <div class="stat-row"><span class="stat-label">👥 Alumnos Fijos</span><span class="num-fijos">${fijos}</span></div>
+                <div class="stat-row"><span class="stat-label">✨ Muestras Pendientes</span><span class="num-futuras">${muestrasFuturas}</span></div>
+                <div class="stat-row"><span class="stat-label">📜 Muestras Pasadas</span><span class="num-pasadas">${muestrasPasadas}</span></div>
             </div>
         `;
 
@@ -153,27 +134,22 @@ function renderTable() {
             <button class="toggle-password" onclick="alert('Usuario: ${maestro.usuario}\\nContraseña: ${maestro.password}')">👁️</button>
         `;
 
-fila.innerHTML = `
+        fila.innerHTML = `
             <td><strong>${maestro.nombre}</strong></td>
-            <td>
-                <div style="font-size:12px; color:#666;">User: ${maestro.usuario}</div>
-                ${passwordDisplay}
-            </td>
+            <td><div style="font-size:12px; color:#666;">User: ${maestro.usuario}</div>${passwordDisplay}</td>
             <td>${htmlInstrumentos}</td>
             <td>${htmlDias}</td>
             <td>${htmlStats}</td>
             <td><span class="tag ${claseStatus}">${maestro.status.toUpperCase()}</span></td>
             <td>
                 <div class="actions-cell">
-                    <button class="btn-view" data-id="${maestro.id}" title="Ver Clases y Alumnos">📋</button>
-                    
+                    <button class="btn-view" data-id="${maestro.id}" title="Ver Clases">📋</button>
                     <button class="btn-edit" data-id="${maestro.id}" title="Editar">✏️</button>
                     <button class="btn-archive" data-id="${maestro.id}" data-status="${maestro.status}" title="Activar/Desactivar">🔄</button>
                 </div>
             </td>
         `;
-        tableBody.appendChild(fila);
-        tableBody.appendChild(fila);
+        tableBody.appendChild(fila); // Solo una vez
     });
 
     asignarEventos();
@@ -182,9 +158,9 @@ fila.innerHTML = `
     btnNextPage.disabled = currentPage === totalPages;
 }
 
-// ... (EL RESTO DEL ARCHIVO TEACHERS.JS SE QUEDA EXACTAMENTE IGUAL) ...
-// (Copia aquí las funciones asignarEventos, formTeacher.submit, abrirModalEditar, formEditar.submit y listeners de botones que ya tenías)
+// 4. ASIGNAR LISTENERS (AQUÍ ESTABA EL ERROR)
 function asignarEventos() {
+    // A) Botón Ver Alumnos
     document.querySelectorAll('.btn-view').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const maestro = allTeachers.find(t => t.id === e.currentTarget.dataset.id);
@@ -192,6 +168,15 @@ function asignarEventos() {
         });
     });
 
+    // B) Botón EDITAR (ESTO FALTABA)
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const maestro = allTeachers.find(t => t.id === e.currentTarget.dataset.id);
+            abrirModalEditar(maestro);
+        });
+    });
+
+    // C) Botón Archivar
     document.querySelectorAll('.btn-archive').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.id;
@@ -206,6 +191,7 @@ function asignarEventos() {
     });
 }
 
+// 5. GUARDAR NUEVO
 formTeacher.addEventListener('submit', async (e) => {
     e.preventDefault();
     const diasCheck = document.querySelectorAll('input[name="dias"]:checked');
@@ -222,7 +208,7 @@ formTeacher.addEventListener('submit', async (e) => {
         instrumentos: instSeleccionados,
         diasDisponibles: diasSeleccionados,
         status: "activo", 
-        alumnosCount: 0, // Dato legacy, ya no se usa visualmente porque calculamos en tiempo real
+        alumnosCount: 0,
         fechaRegistro: new Date()
     };
 
@@ -235,6 +221,7 @@ formTeacher.addEventListener('submit', async (e) => {
     } catch (error) { console.error(error); alert("Error al guardar."); }
 });
 
+// 6. EDITAR MAESTRO
 function abrirModalEditar(maestro) {
     document.getElementById('editId').value = maestro.id;
     document.getElementById('editStatus').value = maestro.status;
@@ -242,12 +229,21 @@ function abrirModalEditar(maestro) {
     document.getElementById('editUsuario').value = maestro.usuario;
     document.getElementById('editPassword').value = maestro.password;
 
-    document.querySelectorAll('input[name="editDias"]').forEach(cb => {
-        cb.checked = maestro.diasDisponibles && maestro.diasDisponibles.includes(cb.value);
-    });
+    // Resetear checkboxes primero
+    document.querySelectorAll('input[name="editDias"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('input[name="editInstrumentos"]').forEach(cb => cb.checked = false);
+
+    // Marcar días
+    if(maestro.diasDisponibles) {
+        document.querySelectorAll('input[name="editDias"]').forEach(cb => {
+            if(maestro.diasDisponibles.includes(cb.value)) cb.checked = true;
+        });
+    }
+
+    // Marcar instrumentos
     const misInstrumentos = Array.isArray(maestro.instrumentos) ? maestro.instrumentos : [];
     document.querySelectorAll('input[name="editInstrumentos"]').forEach(cb => {
-        cb.checked = misInstrumentos.includes(cb.value);
+        if(misInstrumentos.includes(cb.value)) cb.checked = true;
     });
 
     modalEditar.classList.remove('hidden');
@@ -256,8 +252,11 @@ function abrirModalEditar(maestro) {
 formEditar.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('editId').value;
+    
+    // Obtener valores de checkboxes de edición
     const diasCheck = document.querySelectorAll('input[name="editDias"]:checked');
     const diasSeleccionados = Array.from(diasCheck).map(cb => cb.value);
+    
     const instCheck = document.querySelectorAll('input[name="editInstrumentos"]:checked');
     const instSeleccionados = Array.from(instCheck).map(cb => cb.value);
 
@@ -273,40 +272,33 @@ formEditar.addEventListener('submit', async (e) => {
         await updateDoc(doc(db, "teachers", id), datos);
         modalEditar.classList.add('hidden');
         loadData();
-        alert("Actualizado.");
+        alert("Actualizado correctamente.");
     } catch (error) { console.error(error); alert("Error al actualizar."); }
 });
 
-// --- FUNCIÓN PARA VER DETALLE DE CLASES ---
+// 7. VER DETALLES (MODAL ALUMNOS)
 function abrirModalAlumnos(maestro) {
+    // ... Copia la lógica de abrirModalAlumnos que ya tenías, no cambia ...
     const modalAlumnos = document.getElementById('modalAlumnos');
     const tbodyFijas = document.getElementById('tablaFijas');
     const tbodyHistorial = document.getElementById('tablaHistorial');
     
-    // Títulos
     document.getElementById('tituloMaestro').textContent = `Maestro: ${maestro.nombre}`;
-    
-    // 1. FILTRAR CLASES DE ESTE MAESTRO (Usando la memoria allClasses cargada en loadData)
     const misClases = allClasses.filter(c => c.teacherId === maestro.id);
     document.getElementById('subtituloMaestro').textContent = `Total registros históricos: ${misClases.length}`;
 
-    // 2. SEPARAR POR TIPO
-    const fijas = misClases.filter(c => c.type === 'fija' && (!c.fechaFin)); // Solo activas
-    const historial = misClases.filter(c => c.type !== 'fija' || c.fechaFin); // Muestras, Únicas o Fijas dadas de baja
+    const fijas = misClases.filter(c => c.type === 'fija' && (!c.fechaFin)); 
+    const historial = misClases.filter(c => c.type !== 'fija' || c.fechaFin); 
 
-    // 3. ORDENAR FIJAS (Lunes a Sábado + Hora)
     const mapDias = { 'Lun': 1, 'Mar': 2, 'Mié': 3, 'Jue': 4, 'Vie': 5, 'Sáb': 6, 'Dom': 7 };
     fijas.sort((a, b) => {
         const diaA = mapDias[a.dayOfWeek] || 99;
         const diaB = mapDias[b.dayOfWeek] || 99;
-        if (diaA !== diaB) return diaA - diaB; // Primero por día
-        return a.time.localeCompare(b.time);   // Luego por hora
+        if (diaA !== diaB) return diaA - diaB; 
+        return a.time.localeCompare(b.time);   
     });
-
-    // 4. ORDENAR HISTORIAL (Fecha más reciente primero)
     historial.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // 5. RENDERIZAR TABLA FIJAS
     tbodyFijas.innerHTML = '';
     if (fijas.length === 0) {
         tbodyFijas.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999;">Sin clases fijas asignadas.</td></tr>';
@@ -314,7 +306,6 @@ function abrirModalAlumnos(maestro) {
         fijas.forEach(c => {
             const row = document.createElement('tr');
             row.className = 'row-fija';
-            // Convertir hora 14:00 -> 2:00 PM
             const [h, m] = c.time.split(':');
             const ampm = h >= 12 ? 'PM' : 'AM';
             const horaStr = `${h%12||12}:${m} ${ampm}`;
@@ -329,14 +320,12 @@ function abrirModalAlumnos(maestro) {
         });
     }
 
-    // 6. RENDERIZAR TABLA HISTORIAL
     tbodyHistorial.innerHTML = '';
     if (historial.length === 0) {
         tbodyHistorial.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999;">Sin historial reciente.</td></tr>';
     } else {
         historial.forEach(c => {
             const row = document.createElement('tr');
-            
             let badgeTipo = '';
             if(c.type === 'muestra') badgeTipo = '<span class="badge-type badge-muestra">Muestra</span>';
             else if(c.type === 'unica') badgeTipo = '<span class="badge-type badge-unica">Única</span>';
@@ -355,10 +344,10 @@ function abrirModalAlumnos(maestro) {
             tbodyHistorial.appendChild(row);
         });
     }
-
     modalAlumnos.classList.remove('hidden');
 }
 
+// Listeners Globales
 document.getElementById('btnOpenModal').addEventListener('click', () => modalContainer.classList.remove('hidden'));
 document.getElementById('btnCloseModal').addEventListener('click', () => modalContainer.classList.add('hidden'));
 document.getElementById('btnCloseEditar').addEventListener('click', () => modalEditar.classList.add('hidden'));
@@ -368,5 +357,9 @@ filterStatus.addEventListener('change', () => { currentPage = 1; renderTable(); 
 btnPrevPage.addEventListener('click', () => { if(currentPage>1) currentPage--; renderTable(); });
 btnNextPage.addEventListener('click', () => { currentPage++; renderTable(); });
 
-document.getElementById('btnCloseAlumnos').addEventListener('click', () => document.getElementById('modalAlumnos').classList.add('hidden'));
-document.getElementById('btnCerrarDetalle').addEventListener('click', () => document.getElementById('modalAlumnos').classList.add('hidden'));
+// Listeners Modal Alumnos
+const btnCloseAlumnos = document.getElementById('btnCloseAlumnos');
+if(btnCloseAlumnos) btnCloseAlumnos.addEventListener('click', () => document.getElementById('modalAlumnos').classList.add('hidden'));
+
+const btnCerrarDetalle = document.getElementById('btnCerrarDetalle');
+if(btnCerrarDetalle) btnCerrarDetalle.addEventListener('click', () => document.getElementById('modalAlumnos').classList.add('hidden'));
