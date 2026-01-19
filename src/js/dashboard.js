@@ -1,13 +1,14 @@
 import { db, auth } from './firebase-config.js';
 import { 
     collection, addDoc, query, where, getDocs, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; // Nota: Agregué getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // DOM References
 const dateDisplay = document.getElementById('dateDisplay');
 const userDisplay = document.getElementById('userDisplay');
 const btnLogout = document.getElementById('btnLogout');
+
 
 // Notes DOM
 const notesList = document.getElementById('notesList');
@@ -17,21 +18,68 @@ const noteInput = document.getElementById('noteInput');
 const btnSaveNote = document.getElementById('btnSaveNote');
 const btnCancelNote = document.getElementById('btnCancelNote');
 
-// Stats & Today DOM
+// Stats & WhatsApp DOM
 const statAlumnos = document.getElementById('statAlumnos');
 const statClasesHoy = document.getElementById('statClasesHoy');
 const todayList = document.getElementById('todayList');
 const todayLabel = document.getElementById('todayLabel');
-
-// NEW: Referencia para Notificaciones WhatsApp
 const listaRecordatorios = document.getElementById('listaRecordatorios');
+
+// DOM CONFIRMACIÓN
+const modalConfirm = document.getElementById('modalConfirm');
+const confirmMessage = document.getElementById('confirmMessage');
+const btnOkConfirm = document.getElementById('btnOkConfirm');
+const btnCancelConfirm = document.getElementById('btnCancelConfirm');
+
+let confirmCallback = null; // Variable para guardar la acción pendiente
+
+// --- SISTEMA DE NOTIFICACIONES (TOASTS) ---
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    let icon = '✅';
+    if (type === 'error') icon = '❌';
+    if (type === 'info') icon = 'ℹ️';
+
+    toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = 'toastExit 0.4s forwards';
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+// --- SISTEMA DE CONFIRMACIÓN CUSTOM ---
+function showConfirm(mensaje, accionSi) {
+    confirmMessage.textContent = mensaje;
+    confirmCallback = accionSi; // Guardamos la función a ejecutar
+    modalConfirm.classList.remove('hidden');
+}
+
+// Listeners del Modal de Confirmación
+btnOkConfirm.addEventListener('click', () => {
+    if (confirmCallback) confirmCallback(); // Ejecutar la acción guardada
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null; // Limpiar
+});
+
+btnCancelConfirm.addEventListener('click', () => {
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
+
 
 // 1. SEGURIDAD Y CARGA INICIAL
 onAuthStateChanged(auth, (user) => {
     if (!user) {
         window.location.href = "index.html";
     } else {
-        userDisplay.textContent = user.email.split('@')[0]; // Mostrar nombre usuario
+        userDisplay.textContent = user.email.split('@')[0]; 
         initDashboard();
     }
 });
@@ -45,7 +93,7 @@ function initDashboard() {
     cargarNotas();
     cargarEstadisticas();
     cargarAgendaHoy();
-    checkRemindersForTomorrow(); // <--- NUEVA FUNCIÓN AGREGADA
+    checkRemindersForTomorrow();
 }
 
 function mostrarFecha() {
@@ -55,10 +103,9 @@ function mostrarFecha() {
 }
 
 // ==========================================
-// 2. MÓDULO DE NOTAS (TO-DO LIST)
+// 2. MÓDULO DE NOTAS
 // ==========================================
 
-// Cargar Notas (Tiempo Real)
 function cargarNotas() {
     const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
     
@@ -76,7 +123,6 @@ function cargarNotas() {
             const div = document.createElement('div');
             div.className = `note-item ${nota.completed ? 'completed' : ''}`;
             
-            // Checkbox para marcar como completado
             const check = document.createElement('input');
             check.type = 'checkbox';
             check.checked = nota.completed;
@@ -89,7 +135,8 @@ function cargarNotas() {
             const btnDel = document.createElement('button');
             btnDel.className = 'btn-delete-note';
             btnDel.textContent = '×';
-            btnDel.onclick = () => borrarNota(id);
+            // CAMBIO: Ahora llama a nuestra función wrapper, no borra directo
+            btnDel.onclick = () => solicitarBorrarNota(id); 
 
             div.appendChild(check);
             div.appendChild(text);
@@ -99,10 +146,30 @@ function cargarNotas() {
     });
 }
 
-// Agregar Nota
+// Función Intermedia para activar el Modal
+function solicitarBorrarNota(id) {
+    showConfirm("¿Deseas eliminar esta nota permanentemente?", async () => {
+        // Esta es la 'accionSi' que se ejecuta al dar click en "Sí, Eliminar"
+        try { 
+            await deleteDoc(doc(db, "notes", id)); 
+            showToast("Nota eliminada", "info");
+        } catch(e) { 
+            console.error(e); 
+            showToast("Error al eliminar", "error");
+        }
+    });
+}
+
 btnSaveNote.addEventListener('click', async () => {
     const texto = noteInput.value.trim();
-    if(!texto) return;
+    if(!texto) {
+        showToast("Escribe algo primero", "info");
+        return;
+    }
+
+    const originalText = btnSaveNote.textContent;
+    btnSaveNote.textContent = "Guardando...";
+    btnSaveNote.classList.add('btn-loading');
 
     try {
         await addDoc(collection(db, "notes"), {
@@ -112,24 +179,22 @@ btnSaveNote.addEventListener('click', async () => {
         });
         noteInput.value = '';
         newNoteForm.classList.add('hidden');
-    } catch(e) { console.error(e); alert("Error al guardar nota"); }
+        showToast("Nota agregada", "success");
+    } catch(e) { 
+        console.error(e); 
+        showToast("Error al guardar", "error");
+    } finally {
+        btnSaveNote.textContent = originalText;
+        btnSaveNote.classList.remove('btn-loading');
+    }
 });
 
-// Toggle Completado
 async function toggleNota(id, estado) {
     try {
         await updateDoc(doc(db, "notes", id), { completed: estado });
     } catch(e) { console.error(e); }
 }
 
-// Borrar Nota
-async function borrarNota(id) {
-    if(confirm("¿Borrar nota?")) {
-        try { await deleteDoc(doc(db, "notes", id)); } catch(e) { console.error(e); }
-    }
-}
-
-// UI del Formulario Notas
 btnAddNoteToggle.addEventListener('click', () => {
     newNoteForm.classList.remove('hidden');
     noteInput.focus();
@@ -138,32 +203,28 @@ btnCancelNote.addEventListener('click', () => newNoteForm.classList.add('hidden'
 
 
 // ==========================================
-// 3. ESTADÍSTICAS Y AGENDA DE HOY
+// 3. ESTADÍSTICAS Y AGENDA
 // ==========================================
 
 async function cargarEstadisticas() {
-    // Contar Alumnos Inscritos
     try {
         const q = query(collection(db, "students"), where("status", "==", "inscrito"));
         const snap = await getDocs(q);
-        statAlumnos.textContent = snap.size; // Cantidad total
+        statAlumnos.textContent = snap.size;
     } catch(e) { console.error(e); }
 }
 
 async function cargarAgendaHoy() {
     const now = new Date();
-    // Formato YYYY-MM-DD local
     const offset = now.getTimezoneOffset() * 60000;
     const todayStr = (new Date(now - offset)).toISOString().split('T')[0];
     
-    // Para saber el día de la semana (para clases fijas)
     const diasMap = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const diaSemanaTexto = diasMap[now.getDay()];
 
     todayLabel.textContent = `Eventos para: ${todayStr} (${diaSemanaTexto})`;
 
     try {
-        // Traemos TODAS las clases y filtramos en memoria
         const q = query(collection(db, "classes"));
         const snap = await getDocs(q);
         
@@ -173,26 +234,18 @@ async function cargarAgendaHoy() {
             const ev = docSnap.data();
             let esHoy = false;
 
-            // Filtro de Cancelación
             if (ev.cancelaciones && ev.cancelaciones.includes(todayStr)) return;
             if (ev.fechaFin && todayStr > ev.fechaFin) return;
 
-            // 1. Es clase FIJA y toca hoy
             if (ev.type === 'fija' && ev.dayOfWeek === diaSemanaTexto) esHoy = true;
-            
-            // 2. Es clase ÚNICA/MUESTRA y la fecha coincide
             if (ev.type !== 'fija' && ev.date === todayStr) esHoy = true;
 
             if (esHoy) eventosHoy.push(ev);
         });
 
-        // Ordenar por hora
         eventosHoy.sort((a,b) => a.time.localeCompare(b.time));
-
-        // Actualizar contador en tarjeta de stats
         statClasesHoy.textContent = eventosHoy.length;
 
-        // Renderizar Lista
         todayList.innerHTML = '';
         if (eventosHoy.length === 0) {
             todayList.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">No hay clases hoy. ¡Día libre! ☀️</div>';
@@ -223,15 +276,14 @@ async function cargarAgendaHoy() {
 }
 
 // ==========================================
-// 4. NUEVO: RECORDATORIOS WHATSAPP (MAÑANA)
+// 4. RECORDATORIOS WHATSAPP
 // ==========================================
 
 async function checkRemindersForTomorrow() {
-    if(!listaRecordatorios) return; // Si no existe el div en HTML, salimos
+    if(!listaRecordatorios) return;
 
     listaRecordatorios.innerHTML = '<p style="color:#666; font-size:12px;">Buscando recordatorios...</p>';
 
-    // 1. Calcular fecha de MAÑANA (Formato YYYY-MM-DD)
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
@@ -240,7 +292,6 @@ async function checkRemindersForTomorrow() {
     const tomorrowStr = (new Date(tomorrow - offset)).toISOString().split('T')[0];
 
     try {
-        // 2. Buscar clases muestra de mañana
         const qClases = query(
             collection(db, "classes"), 
             where("date", "==", tomorrowStr),
@@ -254,16 +305,13 @@ async function checkRemindersForTomorrow() {
             return;
         }
 
-        listaRecordatorios.innerHTML = ''; // Limpiar loader
+        listaRecordatorios.innerHTML = '';
 
-        // 3. Procesar cada clase
         for (const docClase of snapClases.docs) {
             const clase = docClase.data();
-            
             let telefono = "";
             let nombreTutor = "";
 
-            // Buscar datos del alumno en colección 'students'
             if (clase.studentId) {
                 try {
                     const docStudent = await getDoc(doc(db, "students", clase.studentId));
@@ -272,16 +320,14 @@ async function checkRemindersForTomorrow() {
                         telefono = sData.telefono;
                         nombreTutor = sData.nombreTutor;
                     }
-                } catch(err) { console.error("Error buscando alumno", err); }
+                } catch(err) { console.error(err); }
             }
 
-            // 4. Crear tarjeta visual
             const card = document.createElement('div');
             card.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#f1f8e9; padding:8px; border-radius:6px; border:1px solid #c8e6c9; margin-bottom:5px;";
 
             if (telefono) {
                 const phoneClean = telefono.replace(/\D/g, ''); 
-                // Convertir hora 24h a 12h
                 const [h, m] = clase.time.split(':');
                 const ampm = h >= 12 ? 'PM' : 'AM';
                 const horaAmPm = `${h%12||12}:${m} ${ampm}`;

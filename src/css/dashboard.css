@@ -135,3 +135,153 @@
 .today-info { font-size: 13px; color: #444; }
 .today-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #e3f2fd; color: #0d47a1; }
 
+/* --- ANIMACIONES Y UI DINÁMICA --- */
+
+/* 1. Animación de Entrada (Fade In Up) */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card, .notification-panel, .panel-card {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Retrasos para efecto cascada */
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.notification-panel { animation-delay: 0.4s; }
+.dashboard-panels { animation-delay: 0.5s; }
+
+/* 2. Animación al agregar Nota */
+.note-item {
+    animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* 3. TOASTS (Notificaciones Flotantes) */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 250px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateX(50px);
+    animation: toastEnter 0.4s forwards;
+    border-left: 5px solid #ccc;
+}
+
+.toast.success { border-left-color: #2e7d32; color: #1b5e20; }
+.toast.error { border-left-color: #c62828; color: #b71c1c; }
+.toast.info { border-left-color: #0288d1; color: #01579b; }
+
+.toast-icon { font-size: 18px; }
+
+@keyframes toastEnter {
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toastExit {
+    to { opacity: 0; transform: translateX(50px); }
+}
+
+/* 4. Estado Loading en Botones */
+.btn-loading {
+    opacity: 0.7;
+    cursor: wait !important;
+    pointer-events: none;
+}
+
+/* Animación para el icono de alerta */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Asegurar que el modal de confirmación esté por encima de todo */
+#modalConfirm {
+    backdrop-filter: blur(2px); /* Efecto borroso en el fondo */
+}
+
+/* --- ESTILOS DEL MODAL (Faltaban estos) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; /* Muy por encima de todo */
+    backdrop-filter: blur(3px); /* Efecto borroso bonito */
+    transition: opacity 0.3s ease;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    width: 400px;
+    max-width: 90%;
+    animation: zoomIn 0.3s ease;
+    text-align: center;
+}
+
+/* Animación de entrada del modal */
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Clase para ocultar (ya la tenías, pero asegúrate que esté así) */
+.hidden {
+    display: none !important;
+}
+
+/* Botones del modal de confirmación */
+#btnCancelConfirm {
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+#btnOkConfirm {
+    background-color: #d32f2f; /* Rojo alerta */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(211, 47, 47, 0.3);
+}
+
+#btnOkConfirm:hover { background-color: #b71c1c; }
+#btnCancelConfirm:hover { background-color: #d5d5d5; }
