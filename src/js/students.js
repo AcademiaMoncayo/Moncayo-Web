@@ -8,14 +8,14 @@ const searchInput = document.getElementById('searchInput');
 const filterStatus = document.getElementById('filterStatus');
 
 // Modales
-const modalContainer = document.getElementById('modalContainer'); // Prospecto
-const modalInscripcion = document.getElementById('modalInscripcion'); // Nuevo (Inscribir)
+const modalContainer = document.getElementById('modalContainer'); 
+const modalInscripcion = document.getElementById('modalInscripcion');
 const modalEditar = document.getElementById('modalEditar');
 const modalPerfil = document.getElementById('modalPerfil');
 
 // Forms
-const formStudent = document.getElementById('formStudent'); // Form Prospecto
-const formInscripcion = document.getElementById('formInscripcion'); // Form Inscripción
+const formStudent = document.getElementById('formStudent');
+const formInscripcion = document.getElementById('formInscripcion');
 const formEditar = document.getElementById('formEditar');
 
 // Paginación
@@ -23,9 +23,49 @@ const btnPrevPage = document.getElementById('btnPrevPage');
 const btnNextPage = document.getElementById('btnNextPage');
 const pageIndicator = document.getElementById('pageIndicator');
 
+// CONFIRMACIÓN CUSTOM
+const modalConfirm = document.getElementById('modalConfirm');
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmMessage = document.getElementById('confirmMessage');
+const btnOkConfirm = document.getElementById('btnOkConfirm');
+const btnCancelConfirm = document.getElementById('btnCancelConfirm');
+let confirmCallback = null;
+
 let allStudents = [];
 let currentPage = 1;
 const rowsPerPage = 20;
+
+// --- UTILS UI (TOASTS & CONFIRM) ---
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if(!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+    toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'toastExit 0.4s forwards';
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+function showConfirm(title, msg, callback) {
+    confirmTitle.textContent = title;
+    confirmMessage.textContent = msg;
+    confirmCallback = callback;
+    modalConfirm.classList.remove('hidden');
+}
+
+btnOkConfirm.addEventListener('click', () => {
+    if(confirmCallback) confirmCallback();
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
+btnCancelConfirm.addEventListener('click', () => {
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
 
 // 1. SEGURIDAD
 onAuthStateChanged(auth, (user) => {
@@ -35,7 +75,7 @@ onAuthStateChanged(auth, (user) => {
 
 // 2. CARGAR
 async function loadStudents() {
-    tableBody.innerHTML = '<tr><td colspan="8">Cargando base de datos...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">Cargando datos...</td></tr>';
     try {
         const q = query(collection(db, "students"), orderBy("nombre"));
         const snap = await getDocs(q);
@@ -44,7 +84,8 @@ async function loadStudents() {
         renderTable();
     } catch (error) {
         console.error(error);
-        tableBody.innerHTML = '<tr><td colspan="8">Error de conexión.</td></tr>';
+        showToast("Error cargando alumnos", "error");
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red">Error de conexión.</td></tr>';
     }
 }
 
@@ -54,37 +95,38 @@ function renderTable() {
     const filtro = filterStatus.value;
 
     const listaFiltrada = allStudents.filter(alumno => {
-        const coincideNombre = alumno.nombre.toLowerCase().includes(texto);
-        
+        // Búsqueda inteligente (Nombre, Tutor, Status)
+        const coincideTexto = 
+            alumno.nombre.toLowerCase().includes(texto) ||
+            (alumno.nombreTutor && alumno.nombreTutor.toLowerCase().includes(texto)) ||
+            alumno.status.includes(texto);
+
         let coincideStatus = true;
         if (filtro !== 'todos') {
             coincideStatus = (alumno.status === filtro);
         }
-        
-        return coincideNombre && coincideStatus;
+        return coincideTexto && coincideStatus;
     });
 
-    // Paginación
     const totalPages = Math.ceil(listaFiltrada.length / rowsPerPage) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
+    
     const startIndex = (currentPage - 1) * rowsPerPage;
     const itemsPagina = listaFiltrada.slice(startIndex, startIndex + rowsPerPage);
 
     tableBody.innerHTML = '';
     if (itemsPagina.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">No hay registros con este filtro.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#888;">No se encontraron resultados.</td></tr>';
         return;
     }
 
     itemsPagina.forEach(alumno => {
         const fila = document.createElement('tr');
-        const st = alumno.status; // Variable corta
+        const st = alumno.status; 
         
-        // 1. ETIQUETA DE ESTADO
         let tagHtml = `<span class="tag tag-${st}">${st.replace('_', ' ').toUpperCase()}</span>`;
 
-        // 2. ACCESO
         let accessDisplay = '<span style="color:#ccc; font-size:11px;">—</span>';
         if (st === 'inscrito' || st === 'inactivo' || st === 'baja') {
             const usuario = alumno.usuario || '?';
@@ -95,46 +137,36 @@ function renderTable() {
             `;
         }
 
-        // 3. BOTONES DE ACCIÓN (MÁQUINA DE ESTADOS)
+        // Acciones Dinámicas
         let botonesAccion = '';
-
-        // --- FLUJO A: PROSPECTOS ---
         if (st === 'prospecto') {
             botonesAccion = `
                 <button class="btn-inscribir" data-id="${alumno.id}" title="Inscribir" style="background:#2e7d32; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">✅</button>
                 <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="sin_interes" title="Mover a Sin Interés" class="btn-state-gray">💤</button>
                 <button class="btn-edit" data-id="${alumno.id}" title="Editar">✏️</button>
             `;
-        } 
-        else if (st === 'sin_interes') {
+        } else if (st === 'sin_interes') {
             botonesAccion = `
-                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="prospecto" title="Reactivar como Prospecto" class="btn-state-blue">⬆️ Prospecto</button>
-                <button class="btn-delete-prospecto" data-id="${alumno.id}" title="Eliminar Definitivamente">🗑️</button>
+                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="prospecto" title="Reactivar" class="btn-state-blue">⬆️</button>
+                <button class="btn-delete-prospecto" data-id="${alumno.id}" title="Eliminar">🗑️</button>
             `;
-        }
-
-        // --- FLUJO B: ALUMNOS ---
-        else if (st === 'inscrito') {
+        } else if (st === 'inscrito') {
             botonesAccion = `
                 <button class="btn-game" data-id="${alumno.id}" title="Gamer" style="background:#ffc107; border:none; padding:4px; border-radius:4px; cursor:pointer;">🎮</button>
-                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="inactivo" title="Suspender (Inactivo)" class="btn-state-orange">⏸️</button>
+                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="inactivo" title="Suspender" class="btn-state-orange">⏸️</button>
                 <button class="btn-edit" data-id="${alumno.id}" title="Editar">✏️</button>
             `;
-        }
-        else if (st === 'inactivo') {
+        } else if (st === 'inactivo') {
             botonesAccion = `
                 <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="inscrito" title="Reactivar" class="btn-state-green">▶️</button>
-                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="baja" title="Dar de Baja Definitiva" class="btn-state-red">❌</button>
-
+                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="baja" title="Dar de Baja" class="btn-state-red">❌</button>
             `;
-        }
-        else if (st === 'baja') {
+        } else if (st === 'baja') {
             botonesAccion = `
-                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="inscrito" title="Re-Inscribir (Reactivar)" class="btn-state-green">♻️ Reactivar</button>
+                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="inscrito" title="Re-Inscribir" class="btn-state-green">♻️</button>
             `;
         }
 
-        // AQUÍ ESTÁ LA CORRECCIÓN: AGREGADO EL EMAIL
         fila.innerHTML = `
             <td>
                 <strong>${alumno.nombre}</strong>
@@ -144,15 +176,12 @@ function renderTable() {
             <td>
                 <div style="font-weight:bold; font-size:12px;">${alumno.nombreTutor || ''}</div>
                 <div style="font-size:11px;">📞 ${alumno.telefono || '-'}</div>
-                <div style="font-size:11px; color:#666;">✉️ ${alumno.emailTutor || '-'}</div> </td>
+                <div style="font-size:11px; color:#666;">✉️ ${alumno.emailTutor || '-'}</div>
+            </td>
             <td style="text-align:center;">${alumno.requiereFactura ? '✅' : '-'}</td>
             <td>${alumno.costoMensual ? '$'+alumno.costoMensual : '-'}</td>
             <td style="text-align:center;">${tagHtml}</td>
-            <td>
-                <div class="actions-cell" style="display:flex; gap:5px;">
-                    ${botonesAccion}
-                </div>
-            </td>
+            <td><div class="actions-cell" style="display:flex; gap:5px;">${botonesAccion}</div></td>
         `;
         tableBody.appendChild(fila);
     });
@@ -163,29 +192,35 @@ function renderTable() {
     btnNextPage.disabled = currentPage === totalPages;
 }
 
-// 4. LISTENERS (Gestor de Estados)
+// 4. LISTENERS
 function asignarEventos() {
-    // 1. CAMBIO DE ESTADO GENÉRICO
+    // CAMBIO DE ESTADO (Con Modal Bonito)
     document.querySelectorAll('.btn-cambiar-estado').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+        btn.addEventListener('click', (e) => {
             const id = e.currentTarget.dataset.id;
             const nuevoEstado = e.currentTarget.dataset.nuevo;
             
-            let mensaje = `¿Cambiar estado a ${nuevoEstado.toUpperCase().replace('_', ' ')}?`;
-            if (nuevoEstado === 'baja') mensaje = "⚠️ ¿Seguro que deseas dar de BAJA definitiva? (El historial se conserva)";
+            let titulo = "Cambiar Estado";
+            let msg = `¿Mover alumno a: ${nuevoEstado.toUpperCase().replace('_', ' ')}?`;
             
-            if(confirm(mensaje)) {
+            if (nuevoEstado === 'baja') {
+                titulo = "⚠️ Dar de Baja";
+                msg = "El alumno pasará a Bajas. Su historial financiero se conserva.";
+            }
+
+            showConfirm(titulo, msg, async () => {
                 try {
                     await updateDoc(doc(db, "students", id), { status: nuevoEstado });
+                    showToast("Estado actualizado", "success");
                     loadStudents();
                 } catch (err) {
-                    alert("Error al cambiar estado: " + err.message);
+                    showToast("Error: " + err.message, "error");
                 }
-            }
+            });
         });
     });
 
-    // 2. Inscribir
+    // Inscribir
     document.querySelectorAll('.btn-inscribir').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const alumno = allStudents.find(s => s.id === e.currentTarget.dataset.id);
@@ -193,7 +228,7 @@ function asignarEventos() {
         });
     });
 
-    // 3. Editar
+    // Editar
     document.querySelectorAll('.btn-edit').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const alumno = allStudents.find(s => s.id === e.currentTarget.dataset.id);
@@ -201,7 +236,7 @@ function asignarEventos() {
         });
     });
 
-    // 4. Gamer
+    // Gamer
     document.querySelectorAll('.btn-game').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const alumno = allStudents.find(s => s.id === e.currentTarget.dataset.id);
@@ -209,13 +244,17 @@ function asignarEventos() {
         });
     });
 
-    // 5. Eliminar Físico
+    // Eliminar Físico (Prospectos)
     document.querySelectorAll('.btn-delete-prospecto').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            if(confirm("¿Eliminar este registro permanentemente?")) {
-                await deleteDoc(doc(db, "students", e.currentTarget.dataset.id));
-                loadStudents();
-            }
+        btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.dataset.id;
+            showConfirm("Eliminar Registro", "Esta acción borrará al prospecto permanentemente.", async () => {
+                try {
+                    await deleteDoc(doc(db, "students", id));
+                    showToast("Registro eliminado", "info");
+                    loadStudents();
+                } catch(err) { showToast("Error al eliminar", "error"); }
+            });
         });
     });
 }
@@ -223,6 +262,9 @@ function asignarEventos() {
 // 5. GUARDAR PROSPECTO
 formStudent.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const btnSubmit = formStudent.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
     const nuevo = {
         nombre: document.getElementById('stuNombre').value.trim(),
         nombreTutor: document.getElementById('stuTutor').value.trim(),
@@ -238,8 +280,13 @@ formStudent.addEventListener('submit', async (e) => {
         modalContainer.classList.add('hidden');
         formStudent.reset();
         loadStudents();
-        alert("Prospecto guardado.");
-    } catch (error) { console.error(error); alert("Error al guardar."); }
+        showToast("Prospecto registrado con éxito", "success");
+    } catch (error) { 
+        console.error(error); 
+        showToast("Error al guardar", "error"); 
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
 });
 
 // 6. INSCRIPCIÓN + PAGO
@@ -257,12 +304,19 @@ function abrirModalInscripcion(alumno) {
 
 formInscripcion.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const btnSubmit = formInscripcion.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
     const id = document.getElementById('insId').value;
     const nombreAlumno = document.getElementById('insNombre').value;
     const inicioClases = document.getElementById('insInicio').value;
     const montoInscripcion = Number(document.getElementById('insMontoInscripcion').value);
     
-    if(montoInscripcion <= 0) { alert("⚠️ Ingresa el pago de inscripción."); return; }
+    if(montoInscripcion <= 0) { 
+        showToast("⚠️ Falta el pago de inscripción", "error");
+        btnSubmit.classList.remove('btn-loading');
+        return; 
+    }
 
     const fechaObj = new Date(inicioClases + 'T12:00:00');
     const diaCorteAuto = fechaObj.getDate();
@@ -297,8 +351,14 @@ formInscripcion.addEventListener('submit', async (e) => {
 
         modalInscripcion.classList.add('hidden');
         loadStudents();
-        alert(`✅ Alumno inscrito y cobro de $${montoInscripcion} registrado.`);
-    } catch (error) { console.error(error); alert("Error al inscribir."); }
+        showToast("¡Inscripción completada! 🎓", "success");
+        showToast(`Pago de $${montoInscripcion} registrado`, "info");
+    } catch (error) { 
+        console.error(error); 
+        showToast("Error en inscripción", "error"); 
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
 });
 
 // 7. EDITAR
@@ -319,6 +379,9 @@ function abrirModalEditar(alumno) {
 
 formEditar.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const btnSubmit = formEditar.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
     const id = document.getElementById('editId').value;
     const inicioClases = document.getElementById('editInicio').value;
 
@@ -346,8 +409,13 @@ formEditar.addEventListener('submit', async (e) => {
         await updateDoc(doc(db, "students", id), datos);
         modalEditar.classList.add('hidden');
         loadStudents();
-        alert("Datos actualizados.");
-    } catch (error) { console.error(error); alert("Error al actualizar."); }
+        showToast("Datos actualizados", "success");
+    } catch (error) { 
+        console.error(error); 
+        showToast("Error al actualizar", "error"); 
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
 });
 
 // 8. LOGICA GAMER
