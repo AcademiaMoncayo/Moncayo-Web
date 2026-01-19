@@ -10,20 +10,32 @@ const filterStatus = document.getElementById('filterStatus');
 // Modales
 const modalContainer = document.getElementById('modalContainer'); 
 const modalEditar = document.getElementById('modalEditar'); 
-const modalAlumnos = document.getElementById('modalAlumnos'); // Referencia faltante agregada
+const modalAlumnos = document.getElementById('modalAlumnos');
 
 const formTeacher = document.getElementById('formTeacher');
 const formEditar = document.getElementById('formEditar');
 
-// Paginación
+// Paginación Principal (Tabla Maestros)
 const btnPrevPage = document.getElementById('btnPrevPage');
 const btnNextPage = document.getElementById('btnNextPage');
 const pageIndicator = document.getElementById('pageIndicator');
 
+// Paginación Interna (Modal Detalle)
+const btnModalPrev = document.getElementById('btnModalPrev');
+const btnModalNext = document.getElementById('btnModalNext');
+const lblModalPage = document.getElementById('lblModalPage');
+
+// Estado Global Maestros
 let allTeachers = []; 
 let allClasses = []; 
 let currentPage = 1;
 const rowsPerPage = 20;
+
+// Estado Global Modal (Temporal para paginación interna)
+let modalFijas = [];
+let modalHistorial = [];
+let modalPage = 1;
+const modalLimit = 10; // 10 alumnos por página en el modal
 
 // 1. SEGURIDAD
 onAuthStateChanged(auth, (user) => {
@@ -31,17 +43,15 @@ onAuthStateChanged(auth, (user) => {
     else loadData();
 });
 
-// 2. CARGAR DATOS (MAESTROS Y CLASES)
+// 2. CARGAR DATOS
 async function loadData() {
-    tableBody.innerHTML = '<tr><td colspan="7">Cargando datos y calculando estadísticas...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7">Cargando datos...</td></tr>';
     try {
-        // A) Cargar Maestros
         const qTeachers = query(collection(db, "teachers"), orderBy("nombre"));
         const snapTeachers = await getDocs(qTeachers);
         allTeachers = [];
         snapTeachers.forEach((doc) => allTeachers.push({ id: doc.id, ...doc.data() }));
 
-        // B) Cargar Clases (Para estadísticas)
         const qClasses = query(collection(db, "classes"));
         const snapClasses = await getDocs(qClasses);
         allClasses = [];
@@ -54,12 +64,11 @@ async function loadData() {
     }
 }
 
-// 3. RENDERIZAR TABLA
+// 3. RENDERIZAR TABLA PRINCIPAL
 function renderTable() {
     const textoBusqueda = searchInput.value.toLowerCase();
     const filtro = filterStatus.value;
     
-    // Obtener fecha de hoy local
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
     const todayStr = (new Date(now - offset)).toISOString().split('T')[0];
@@ -70,7 +79,6 @@ function renderTable() {
         return coincideEstado && coincideNombre;
     });
 
-    // Paginación
     const totalPages = Math.ceil(listaFiltrada.length / rowsPerPage) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
@@ -88,7 +96,6 @@ function renderTable() {
         const fila = document.createElement('tr');
         const claseStatus = maestro.status === 'activo' ? 'tag-inscrito' : 'tag-inactivo';
 
-        // --- CÁLCULO DE ESTADÍSTICAS ---
         let fijos = 0;
         let muestrasPasadas = 0;
         let muestrasFuturas = 0;
@@ -97,19 +104,13 @@ function renderTable() {
 
         susClases.forEach(c => {
             if (c.type === 'fija') {
-                if (!c.fechaFin || c.fechaFin >= todayStr) {
-                    fijos++;
-                }
+                if (!c.fechaFin || c.fechaFin >= todayStr) fijos++;
             } else if (c.type === 'muestra') {
-                if (c.date < todayStr) {
-                    muestrasPasadas++; 
-                } else {
-                    muestrasFuturas++; 
-                }
+                if (c.date < todayStr) muestrasPasadas++; 
+                else muestrasFuturas++; 
             }
         });
 
-        // --- RENDERIZADO ---
         let htmlInstrumentos = '';
         let listaInst = Array.isArray(maestro.instrumentos) ? maestro.instrumentos : (maestro.instrumentos ? maestro.instrumentos.split(',') : []);
         listaInst.forEach(inst => htmlInstrumentos += `<span class="badge-instrumento">${inst.trim()}</span>`);
@@ -149,7 +150,7 @@ function renderTable() {
                 </div>
             </td>
         `;
-        tableBody.appendChild(fila); // Solo una vez
+        tableBody.appendChild(fila);
     });
 
     asignarEventos();
@@ -158,9 +159,8 @@ function renderTable() {
     btnNextPage.disabled = currentPage === totalPages;
 }
 
-// 4. ASIGNAR LISTENERS (AQUÍ ESTABA EL ERROR)
+// 4. LISTENERS TABLA PRINCIPAL
 function asignarEventos() {
-    // A) Botón Ver Alumnos
     document.querySelectorAll('.btn-view').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const maestro = allTeachers.find(t => t.id === e.currentTarget.dataset.id);
@@ -168,7 +168,6 @@ function asignarEventos() {
         });
     });
 
-    // B) Botón EDITAR (ESTO FALTABA)
     document.querySelectorAll('.btn-edit').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const maestro = allTeachers.find(t => t.id === e.currentTarget.dataset.id);
@@ -176,14 +175,12 @@ function asignarEventos() {
         });
     });
 
-    // C) Botón Archivar
     document.querySelectorAll('.btn-archive').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.id;
             const statusActual = e.currentTarget.dataset.status;
             const nuevoStatus = statusActual === 'activo' ? 'inactivo' : 'activo';
-            
-            if(confirm(`¿Cambiar estado del maestro a ${nuevoStatus.toUpperCase()}?`)) {
+            if(confirm(`¿Cambiar estado a ${nuevoStatus.toUpperCase()}?`)) {
                 await updateDoc(doc(db, "teachers", id), { status: nuevoStatus });
                 loadData();
             }
@@ -191,7 +188,7 @@ function asignarEventos() {
     });
 }
 
-// 5. GUARDAR NUEVO
+// 5. GUARDAR Y EDITAR (MODALES CRUD)
 formTeacher.addEventListener('submit', async (e) => {
     e.preventDefault();
     const diasCheck = document.querySelectorAll('input[name="dias"]:checked');
@@ -208,7 +205,6 @@ formTeacher.addEventListener('submit', async (e) => {
         instrumentos: instSeleccionados,
         diasDisponibles: diasSeleccionados,
         status: "activo", 
-        alumnosCount: 0,
         fechaRegistro: new Date()
     };
 
@@ -221,7 +217,6 @@ formTeacher.addEventListener('submit', async (e) => {
     } catch (error) { console.error(error); alert("Error al guardar."); }
 });
 
-// 6. EDITAR MAESTRO
 function abrirModalEditar(maestro) {
     document.getElementById('editId').value = maestro.id;
     document.getElementById('editStatus').value = maestro.status;
@@ -229,18 +224,14 @@ function abrirModalEditar(maestro) {
     document.getElementById('editUsuario').value = maestro.usuario;
     document.getElementById('editPassword').value = maestro.password;
 
-    // Resetear checkboxes primero
     document.querySelectorAll('input[name="editDias"]').forEach(cb => cb.checked = false);
     document.querySelectorAll('input[name="editInstrumentos"]').forEach(cb => cb.checked = false);
 
-    // Marcar días
     if(maestro.diasDisponibles) {
         document.querySelectorAll('input[name="editDias"]').forEach(cb => {
             if(maestro.diasDisponibles.includes(cb.value)) cb.checked = true;
         });
     }
-
-    // Marcar instrumentos
     const misInstrumentos = Array.isArray(maestro.instrumentos) ? maestro.instrumentos : [];
     document.querySelectorAll('input[name="editInstrumentos"]').forEach(cb => {
         if(misInstrumentos.includes(cb.value)) cb.checked = true;
@@ -252,11 +243,8 @@ function abrirModalEditar(maestro) {
 formEditar.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('editId').value;
-    
-    // Obtener valores de checkboxes de edición
     const diasCheck = document.querySelectorAll('input[name="editDias"]:checked');
     const diasSeleccionados = Array.from(diasCheck).map(cb => cb.value);
-    
     const instCheck = document.querySelectorAll('input[name="editInstrumentos"]:checked');
     const instSeleccionados = Array.from(instCheck).map(cb => cb.value);
 
@@ -276,34 +264,63 @@ formEditar.addEventListener('submit', async (e) => {
     } catch (error) { console.error(error); alert("Error al actualizar."); }
 });
 
-// 7. VER DETALLES (MODAL ALUMNOS)
+// =========================================================
+// 7. LÓGICA DE PAGINACIÓN INTERNA DEL MODAL
+// =========================================================
+
 function abrirModalAlumnos(maestro) {
-    // ... Copia la lógica de abrirModalAlumnos que ya tenías, no cambia ...
-    const modalAlumnos = document.getElementById('modalAlumnos');
-    const tbodyFijas = document.getElementById('tablaFijas');
-    const tbodyHistorial = document.getElementById('tablaHistorial');
-    
     document.getElementById('tituloMaestro').textContent = `Maestro: ${maestro.nombre}`;
+    
+    // 1. Filtrar Datos
     const misClases = allClasses.filter(c => c.teacherId === maestro.id);
     document.getElementById('subtituloMaestro').textContent = `Total registros históricos: ${misClases.length}`;
 
-    const fijas = misClases.filter(c => c.type === 'fija' && (!c.fechaFin)); 
-    const historial = misClases.filter(c => c.type !== 'fija' || c.fechaFin); 
+    // 2. Separar y Guardar en Variables Globales Temporales
+    modalFijas = misClases.filter(c => c.type === 'fija' && (!c.fechaFin)); 
+    modalHistorial = misClases.filter(c => c.type !== 'fija' || c.fechaFin); 
 
+    // 3. Ordenar
     const mapDias = { 'Lun': 1, 'Mar': 2, 'Mié': 3, 'Jue': 4, 'Vie': 5, 'Sáb': 6, 'Dom': 7 };
-    fijas.sort((a, b) => {
+    modalFijas.sort((a, b) => {
         const diaA = mapDias[a.dayOfWeek] || 99;
         const diaB = mapDias[b.dayOfWeek] || 99;
         if (diaA !== diaB) return diaA - diaB; 
         return a.time.localeCompare(b.time);   
     });
-    historial.sort((a, b) => new Date(b.date) - new Date(a.date));
+    modalHistorial.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    // 4. Reiniciar Paginación y Renderizar
+    modalPage = 1;
+    renderModalPage();
+    modalAlumnos.classList.remove('hidden');
+}
+
+function renderModalPage() {
+    const tbodyFijas = document.getElementById('tablaFijas');
+    const tbodyHistorial = document.getElementById('tablaHistorial');
+
+    // Calculamos el índice máximo basado en la tabla más larga (generalmente el historial)
+    // Pero aplicaremos paginación a AMBAS para mantener consistencia visual
+    const totalItems = Math.max(modalFijas.length, modalHistorial.length);
+    const totalPages = Math.ceil(totalItems / modalLimit) || 1;
+
+    if (modalPage > totalPages) modalPage = totalPages;
+    if (modalPage < 1) modalPage = 1;
+
+    const start = (modalPage - 1) * modalLimit;
+    const end = start + modalLimit;
+
+    // --- RENDER FIJAS (PAGINADO) ---
     tbodyFijas.innerHTML = '';
-    if (fijas.length === 0) {
-        tbodyFijas.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999;">Sin clases fijas asignadas.</td></tr>';
+    const sliceFijas = modalFijas.slice(start, end);
+    
+    if (modalFijas.length === 0) {
+        tbodyFijas.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999;">Sin clases fijas.</td></tr>';
+    } else if (sliceFijas.length === 0 && modalPage > 1) {
+        // Si hay fijas pero no en esta página (ej. pag 3, pero solo hay 5 fijas)
+        tbodyFijas.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ddd;">(Más clases en páginas anteriores)</td></tr>';
     } else {
-        fijas.forEach(c => {
+        sliceFijas.forEach(c => {
             const row = document.createElement('tr');
             row.className = 'row-fija';
             const [h, m] = c.time.split(':');
@@ -320,11 +337,16 @@ function abrirModalAlumnos(maestro) {
         });
     }
 
+    // --- RENDER HISTORIAL (PAGINADO) ---
     tbodyHistorial.innerHTML = '';
-    if (historial.length === 0) {
-        tbodyHistorial.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999;">Sin historial reciente.</td></tr>';
+    const sliceHistorial = modalHistorial.slice(start, end);
+
+    if (modalHistorial.length === 0) {
+        tbodyHistorial.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999;">Sin historial.</td></tr>';
+    } else if (sliceHistorial.length === 0 && modalPage > 1) {
+        tbodyHistorial.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ddd;">(Fin del historial)</td></tr>';
     } else {
-        historial.forEach(c => {
+        sliceHistorial.forEach(c => {
             const row = document.createElement('tr');
             let badgeTipo = '';
             if(c.type === 'muestra') badgeTipo = '<span class="badge-type badge-muestra">Muestra</span>';
@@ -344,8 +366,31 @@ function abrirModalAlumnos(maestro) {
             tbodyHistorial.appendChild(row);
         });
     }
-    modalAlumnos.classList.remove('hidden');
+
+    // Actualizar Controles
+    lblModalPage.textContent = `Página ${modalPage} de ${totalPages}`;
+    btnModalPrev.disabled = modalPage === 1;
+    btnModalNext.disabled = modalPage === totalPages;
 }
+
+// LISTENERS PAGINACIÓN MODAL
+btnModalPrev.addEventListener('click', () => { 
+    if(modalPage > 1) {
+        modalPage--;
+        renderModalPage();
+    }
+});
+
+btnModalNext.addEventListener('click', () => {
+    // Calculamos total pages de nuevo para saber si avanzar
+    const totalItems = Math.max(modalFijas.length, modalHistorial.length);
+    const totalPages = Math.ceil(totalItems / modalLimit) || 1;
+    
+    if(modalPage < totalPages) {
+        modalPage++;
+        renderModalPage();
+    }
+});
 
 // Listeners Globales
 document.getElementById('btnOpenModal').addEventListener('click', () => modalContainer.classList.remove('hidden'));
