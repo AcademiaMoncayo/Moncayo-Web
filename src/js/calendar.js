@@ -28,11 +28,20 @@ let allTeachers = [];
 let allStudents = [];
 let allEvents = []; 
 
+// --- FUNCIÓN AUXILIAR PARA CORREGIR ZONA HORARIA ---
+function getLocalDateString() {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000; // Desfase en milisegundos
+    const localDate = new Date(now - offset);
+    return localDate.toISOString().split('T')[0]; // Devuelve YYYY-MM-DD local
+}
+
 // 1. SEGURIDAD E INICIO
 onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = "index.html";
     else {
-        calendarDate.valueAsDate = new Date(); // Hoy
+        // CORRECCIÓN AQUÍ: Usamos la fecha local string, no el objeto Date UTC
+        calendarDate.value = getLocalDateString(); 
         loadInitialData();
     }
 });
@@ -98,7 +107,7 @@ function renderCalendarStructure() {
     });
 }
 
-// 4. RENDERIZAR EVENTOS (ACTUALIZADO CON DETALLES VISUALES)
+// 4. RENDERIZAR EVENTOS
 function renderCalendar() {
     // Limpiar celdas
     document.querySelectorAll('.slot-cell').forEach(td => td.innerHTML = '');
@@ -130,7 +139,7 @@ function renderCalendar() {
                 const card = document.createElement('div');
                 card.className = `class-card type-${evento.type}`;
                 
-                // Botones (Igual que antes)
+                // Botones
                 let botonesHtml = '';
                 if (evento.type === 'fija') {
                     botonesHtml = `
@@ -147,14 +156,8 @@ function renderCalendar() {
                         </div>`;
                 }
 
-                // --- NUEVO DISEÑO INTERNO ---
-                
-                // 1. Etiqueta Tipo
                 const labelMap = { 'fija': '🔄 Fija', 'muestra': '✨ Muestra', 'unica': '📅 Única', 'junta': '🤝 Junta' };
                 const labelTipo = labelMap[evento.type] || evento.type;
-
-                // 2. Nota (Si existe)
-                // Si la nota es muy larga, el CSS se encarga de poner "..."
                 const htmlNota = evento.note ? `<div class="card-note">📝 ${evento.note}</div>` : '';
 
                 card.innerHTML = `
@@ -170,51 +173,39 @@ function renderCalendar() {
     });
 }
 
-// 5. VALIDACIÓN CONFLICTOS (CON VERIFICACIÓN DE DÍAS LABORALES)
+// 5. VALIDACIÓN CONFLICTOS
 function actualizarHorariosDisponibles() {
     const teacherId = eventTeacher.value;
     const fechaVal = eventDate.value;
     const idEdicion = document.getElementById('editEventId').value;
 
-    // Limpiar select
     eventTime.innerHTML = '<option value="">-- Selecciona Horario --</option>';
     
-    // Si faltan datos, no hacemos nada
     if (!teacherId || !fechaVal) return;
 
-    // 1. OBTENER DÍA DE LA SEMANA DE LA FECHA SELECCIONADA
     const fechaObj = new Date(fechaVal + 'T12:00:00');
-    // Importante: Estos nombres deben coincidir con los "value" de tus checkboxes en teachers.html
     const diasMap = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const diaSemana = diasMap[fechaObj.getDay()];
 
-    // 2. VALIDAR SI EL MAESTRO TRABAJA ESE DÍA
     const maestroData = allTeachers.find(t => t.id === teacherId);
     
-    // Si el maestro existe y tiene días definidos...
     if (maestroData && maestroData.diasDisponibles) {
-        // Verificamos si el día actual está en su lista
         if (!maestroData.diasDisponibles.includes(diaSemana)) {
-            // ¡NO TRABAJA! Bloqueamos todo
             const option = document.createElement('option');
             option.textContent = `⛔ ${maestroData.nombre} no trabaja los ${diaSemana}`;
             option.disabled = true;
             option.style.color = "red";
             option.style.fontWeight = "bold";
             eventTime.appendChild(option);
-            
-            // Opcional: Deshabilitar el select para que no puedan elegir nada
-            // eventTime.disabled = true; 
-            return; // DETENEMOS LA FUNCIÓN AQUÍ
+            return;
         }
     }
 
-    // 3. SI SÍ TRABAJA, CALCULAMOS HORARIOS DISPONIBLES (Lógica anterior)
     const horasPosibles = ["14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
 
     horasPosibles.forEach(hora => {
         const ocupadoPor = allEvents.find(ev => {
-            if (idEdicion && ev.id === idEdicion) return false; // Ignorarse a sí mismo
+            if (idEdicion && ev.id === idEdicion) return false;
 
             if (ev.teacherId !== teacherId) return false;
             if (ev.time !== hora) return false;
@@ -242,9 +233,7 @@ function actualizarHorariosDisponibles() {
     });
 }
 
-// 6. FUNCIONES GLOBALES (ACCIONES)
-
-// Editar (Cargar datos y abrir modal)
+// 6. FUNCIONES GLOBALES
 window.editarEvento = (idEvento) => {
     const evento = allEvents.find(e => e.id === idEvento);
     if (!evento) return;
@@ -254,7 +243,6 @@ window.editarEvento = (idEvento) => {
     
     eventDate.value = evento.date; 
     
-    // Simular cascada
     eventType.value = evento.type;
     eventType.dispatchEvent(new Event('change')); 
 
@@ -265,7 +253,6 @@ window.editarEvento = (idEvento) => {
     eventTeacher.value = evento.teacherId;
     eventTeacher.disabled = false;
 
-    // Recalcular ignorando el ID actual
     actualizarHorariosDisponibles();
 
     eventTime.value = evento.time;
@@ -276,7 +263,6 @@ window.editarEvento = (idEvento) => {
     modalEvent.classList.remove('hidden');
 };
 
-// Cancelar solo hoy
 window.cancelarSoloHoy = async (idEvento) => {
     const fechaActual = calendarDate.value;
     if(!confirm(`¿Cancelar clase del ${fechaActual}?`)) return;
@@ -285,11 +271,10 @@ window.cancelarSoloHoy = async (idEvento) => {
     } catch(e) { alert("Error al cancelar"); }
 };
 
-// Baja Horario
 window.bajaHorario = async (idEvento) => {
     const fechaActual = calendarDate.value;
     const hoy = new Date(fechaActual);
-    hoy.setDate(hoy.getDate() - 1); // Ayer
+    hoy.setDate(hoy.getDate() - 1); 
     const fechaAyer = hoy.toISOString().split('T')[0];
 
     if(!confirm(`¿Dar de baja horario desde hoy?`)) return;
@@ -299,8 +284,6 @@ window.bajaHorario = async (idEvento) => {
 };
 
 // 7. LISTENERS FORMULARIO
-
-// Tipo -> Instrumento
 eventType.addEventListener('change', () => {
     const tipo = eventType.value;
     if(tipo) {
@@ -324,7 +307,6 @@ eventType.addEventListener('change', () => {
     }
 });
 
-// Instrumento -> Maestro
 eventInstrument.addEventListener('change', () => {
     const inst = eventInstrument.value;
     eventTeacher.innerHTML = '<option value="">-- Selecciona --</option>';
@@ -350,7 +332,6 @@ eventInstrument.addEventListener('change', () => {
 eventTeacher.addEventListener('change', actualizarHorariosDisponibles);
 eventDate.addEventListener('change', actualizarHorariosDisponibles);
 
-// Detectar ID Alumno
 eventStudentInput.addEventListener('input', () => {
     const val = eventStudentInput.value;
     const optionFound = Array.from(listStudents.options).find(o => o.value === val);
@@ -362,7 +343,6 @@ eventStudentInput.addEventListener('input', () => {
     }
 });
 
-// SUBMIT (Guardar/Editar)
 formEvent.addEventListener('submit', async (e) => {
     e.preventDefault();
     const idEdicion = document.getElementById('editEventId').value;
@@ -430,8 +410,21 @@ btnNewEvent.addEventListener('click', () => {
 
 btnCloseEvent.addEventListener('click', () => modalEvent.classList.add('hidden'));
 
-// Navegación Fecha
+// NAVEGACIÓN DE FECHA CORREGIDA
 calendarDate.addEventListener('change', renderCalendar);
-document.getElementById('btnPrevDay').addEventListener('click', () => { calendarDate.stepDown(); calendarDate.dispatchEvent(new Event('change')); });
-document.getElementById('btnNextDay').addEventListener('click', () => { calendarDate.stepUp(); calendarDate.dispatchEvent(new Event('change')); });
-document.getElementById('btnToday').addEventListener('click', () => { calendarDate.valueAsDate = new Date(); calendarDate.dispatchEvent(new Event('change')); });
+
+document.getElementById('btnPrevDay').addEventListener('click', () => { 
+    calendarDate.stepDown(); 
+    calendarDate.dispatchEvent(new Event('change')); 
+});
+
+document.getElementById('btnNextDay').addEventListener('click', () => { 
+    calendarDate.stepUp(); 
+    calendarDate.dispatchEvent(new Event('change')); 
+});
+
+// CORRECCIÓN BOTÓN HOY
+document.getElementById('btnToday').addEventListener('click', () => { 
+    calendarDate.value = getLocalDateString(); // Usar la función local, no new Date()
+    calendarDate.dispatchEvent(new Event('change')); 
+});
