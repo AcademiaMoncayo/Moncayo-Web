@@ -15,27 +15,65 @@ const modalAlumnos = document.getElementById('modalAlumnos');
 const formTeacher = document.getElementById('formTeacher');
 const formEditar = document.getElementById('formEditar');
 
-// Paginación Principal (Tabla Maestros)
+// Paginación Principal
 const btnPrevPage = document.getElementById('btnPrevPage');
 const btnNextPage = document.getElementById('btnNextPage');
 const pageIndicator = document.getElementById('pageIndicator');
 
-// Paginación Interna (Modal Detalle)
+// Paginación Interna
 const btnModalPrev = document.getElementById('btnModalPrev');
 const btnModalNext = document.getElementById('btnModalNext');
 const lblModalPage = document.getElementById('lblModalPage');
 
-// Estado Global Maestros
+// CONFIRMACIÓN CUSTOM
+const modalConfirm = document.getElementById('modalConfirm');
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmMessage = document.getElementById('confirmMessage');
+const btnOkConfirm = document.getElementById('btnOkConfirm');
+const btnCancelConfirm = document.getElementById('btnCancelConfirm');
+let confirmCallback = null;
+
 let allTeachers = []; 
 let allClasses = []; 
 let currentPage = 1;
 const rowsPerPage = 20;
 
-// Estado Global Modal (Temporal para paginación interna)
 let modalFijas = [];
 let modalHistorial = [];
 let modalPage = 1;
-const modalLimit = 10; // 10 alumnos por página en el modal
+const modalLimit = 10; 
+
+// --- UTILS UI (TOASTS & CONFIRM) ---
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if(!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+    toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'toastExit 0.4s forwards';
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+function showConfirm(title, msg, callback) {
+    confirmTitle.textContent = title;
+    confirmMessage.textContent = msg;
+    confirmCallback = callback;
+    modalConfirm.classList.remove('hidden');
+}
+
+btnOkConfirm.addEventListener('click', () => {
+    if(confirmCallback) confirmCallback();
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
+btnCancelConfirm.addEventListener('click', () => {
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
 
 // 1. SEGURIDAD
 onAuthStateChanged(auth, (user) => {
@@ -60,6 +98,7 @@ async function loadData() {
         renderTable();
     } catch (error) {
         console.error("Error:", error);
+        showToast("Error de conexión", "error");
         tableBody.innerHTML = '<tr><td colspan="7">Error de conexión.</td></tr>';
     }
 }
@@ -88,7 +127,7 @@ function renderTable() {
 
     tableBody.innerHTML = '';
     if (itemsPagina.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center">No hay maestros registrados.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#888;">No hay maestros registrados.</td></tr>';
         return;
     }
 
@@ -159,7 +198,7 @@ function renderTable() {
     btnNextPage.disabled = currentPage === totalPages;
 }
 
-// 4. LISTENERS TABLA PRINCIPAL
+// 4. LISTENERS TABLA
 function asignarEventos() {
     document.querySelectorAll('.btn-view').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -175,28 +214,40 @@ function asignarEventos() {
         });
     });
 
+    // CAMBIO DE ESTADO (CON CONFIRMACIÓN)
     document.querySelectorAll('.btn-archive').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.id;
             const statusActual = e.currentTarget.dataset.status;
             const nuevoStatus = statusActual === 'activo' ? 'inactivo' : 'activo';
-            if(confirm(`¿Cambiar estado a ${nuevoStatus.toUpperCase()}?`)) {
-                await updateDoc(doc(db, "teachers", id), { status: nuevoStatus });
-                loadData();
-            }
+            
+            showConfirm("Cambiar Estado", `¿Cambiar estado a ${nuevoStatus.toUpperCase()}?`, async () => {
+                try {
+                    await updateDoc(doc(db, "teachers", id), { status: nuevoStatus });
+                    loadData();
+                    showToast("Estado actualizado", "info");
+                } catch(err) { showToast("Error al actualizar", "error"); }
+            });
         });
     });
 }
 
-// 5. GUARDAR Y EDITAR (MODALES CRUD)
+// 5. GUARDAR NUEVO
 formTeacher.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const btnSubmit = formTeacher.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
     const diasCheck = document.querySelectorAll('input[name="dias"]:checked');
     const diasSeleccionados = Array.from(diasCheck).map(cb => cb.value);
     const instCheck = document.querySelectorAll('input[name="instrumentos"]:checked');
     const instSeleccionados = Array.from(instCheck).map(cb => cb.value);
 
-    if (instSeleccionados.length === 0) { alert("Selecciona instrumentos."); return; }
+    if (instSeleccionados.length === 0) { 
+        showToast("Selecciona al menos un instrumento", "error"); 
+        btnSubmit.classList.remove('btn-loading');
+        return; 
+    }
 
     const nuevo = {
         nombre: document.getElementById('newNombre').value.trim(),
@@ -205,6 +256,7 @@ formTeacher.addEventListener('submit', async (e) => {
         instrumentos: instSeleccionados,
         diasDisponibles: diasSeleccionados,
         status: "activo", 
+        alumnosCount: 0,
         fechaRegistro: new Date()
     };
 
@@ -213,10 +265,16 @@ formTeacher.addEventListener('submit', async (e) => {
         modalContainer.classList.add('hidden');
         formTeacher.reset();
         loadData();
-        alert("Maestro agregado.");
-    } catch (error) { console.error(error); alert("Error al guardar."); }
+        showToast("Maestro agregado exitosamente", "success");
+    } catch (error) { 
+        console.error(error); 
+        showToast("Error al guardar", "error"); 
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
 });
 
+// 6. EDITAR MAESTRO
 function abrirModalEditar(maestro) {
     document.getElementById('editId').value = maestro.id;
     document.getElementById('editStatus').value = maestro.status;
@@ -242,6 +300,9 @@ function abrirModalEditar(maestro) {
 
 formEditar.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const btnSubmit = formEditar.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
     const id = document.getElementById('editId').value;
     const diasCheck = document.querySelectorAll('input[name="editDias"]:checked');
     const diasSeleccionados = Array.from(diasCheck).map(cb => cb.value);
@@ -260,26 +321,25 @@ formEditar.addEventListener('submit', async (e) => {
         await updateDoc(doc(db, "teachers", id), datos);
         modalEditar.classList.add('hidden');
         loadData();
-        alert("Actualizado correctamente.");
-    } catch (error) { console.error(error); alert("Error al actualizar."); }
+        showToast("Datos actualizados", "success");
+    } catch (error) { 
+        console.error(error); 
+        showToast("Error al actualizar", "error"); 
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
 });
 
-// =========================================================
-// 7. LÓGICA DE PAGINACIÓN INTERNA DEL MODAL
-// =========================================================
-
+// 7. PAGINACIÓN INTERNA DEL MODAL
 function abrirModalAlumnos(maestro) {
     document.getElementById('tituloMaestro').textContent = `Maestro: ${maestro.nombre}`;
     
-    // 1. Filtrar Datos
     const misClases = allClasses.filter(c => c.teacherId === maestro.id);
     document.getElementById('subtituloMaestro').textContent = `Total registros históricos: ${misClases.length}`;
 
-    // 2. Separar y Guardar en Variables Globales Temporales
     modalFijas = misClases.filter(c => c.type === 'fija' && (!c.fechaFin)); 
     modalHistorial = misClases.filter(c => c.type !== 'fija' || c.fechaFin); 
 
-    // 3. Ordenar
     const mapDias = { 'Lun': 1, 'Mar': 2, 'Mié': 3, 'Jue': 4, 'Vie': 5, 'Sáb': 6, 'Dom': 7 };
     modalFijas.sort((a, b) => {
         const diaA = mapDias[a.dayOfWeek] || 99;
@@ -289,7 +349,6 @@ function abrirModalAlumnos(maestro) {
     });
     modalHistorial.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // 4. Reiniciar Paginación y Renderizar
     modalPage = 1;
     renderModalPage();
     modalAlumnos.classList.remove('hidden');
@@ -299,8 +358,6 @@ function renderModalPage() {
     const tbodyFijas = document.getElementById('tablaFijas');
     const tbodyHistorial = document.getElementById('tablaHistorial');
 
-    // Calculamos el índice máximo basado en la tabla más larga (generalmente el historial)
-    // Pero aplicaremos paginación a AMBAS para mantener consistencia visual
     const totalItems = Math.max(modalFijas.length, modalHistorial.length);
     const totalPages = Math.ceil(totalItems / modalLimit) || 1;
 
@@ -310,15 +367,14 @@ function renderModalPage() {
     const start = (modalPage - 1) * modalLimit;
     const end = start + modalLimit;
 
-    // --- RENDER FIJAS (PAGINADO) ---
+    // Fijas
     tbodyFijas.innerHTML = '';
     const sliceFijas = modalFijas.slice(start, end);
     
     if (modalFijas.length === 0) {
         tbodyFijas.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999;">Sin clases fijas.</td></tr>';
     } else if (sliceFijas.length === 0 && modalPage > 1) {
-        // Si hay fijas pero no en esta página (ej. pag 3, pero solo hay 5 fijas)
-        tbodyFijas.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ddd;">(Más clases en páginas anteriores)</td></tr>';
+        tbodyFijas.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ddd;">(Ver páginas anteriores)</td></tr>';
     } else {
         sliceFijas.forEach(c => {
             const row = document.createElement('tr');
@@ -337,7 +393,7 @@ function renderModalPage() {
         });
     }
 
-    // --- RENDER HISTORIAL (PAGINADO) ---
+    // Historial
     tbodyHistorial.innerHTML = '';
     const sliceHistorial = modalHistorial.slice(start, end);
 
@@ -367,44 +423,34 @@ function renderModalPage() {
         });
     }
 
-    // Actualizar Controles
     lblModalPage.textContent = `Página ${modalPage} de ${totalPages}`;
     btnModalPrev.disabled = modalPage === 1;
     btnModalNext.disabled = modalPage === totalPages;
 }
 
-// LISTENERS PAGINACIÓN MODAL
 btnModalPrev.addEventListener('click', () => { 
-    if(modalPage > 1) {
-        modalPage--;
-        renderModalPage();
-    }
+    if(modalPage > 1) { modalPage--; renderModalPage(); }
 });
 
 btnModalNext.addEventListener('click', () => {
-    // Calculamos total pages de nuevo para saber si avanzar
     const totalItems = Math.max(modalFijas.length, modalHistorial.length);
     const totalPages = Math.ceil(totalItems / modalLimit) || 1;
-    
-    if(modalPage < totalPages) {
-        modalPage++;
-        renderModalPage();
-    }
+    if(modalPage < totalPages) { modalPage++; renderModalPage(); }
 });
 
-// Listeners Globales
+// UI Listeners Globales
 document.getElementById('btnOpenModal').addEventListener('click', () => modalContainer.classList.remove('hidden'));
 document.getElementById('btnCloseModal').addEventListener('click', () => modalContainer.classList.add('hidden'));
 document.getElementById('btnCloseEditar').addEventListener('click', () => modalEditar.classList.add('hidden'));
+
+if(document.getElementById('btnCloseAlumnos')) {
+    document.getElementById('btnCloseAlumnos').addEventListener('click', () => document.getElementById('modalAlumnos').classList.add('hidden'));
+}
+if(document.getElementById('btnCerrarDetalle')) {
+    document.getElementById('btnCerrarDetalle').addEventListener('click', () => document.getElementById('modalAlumnos').classList.add('hidden'));
+}
 
 searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
 filterStatus.addEventListener('change', () => { currentPage = 1; renderTable(); });
 btnPrevPage.addEventListener('click', () => { if(currentPage>1) currentPage--; renderTable(); });
 btnNextPage.addEventListener('click', () => { currentPage++; renderTable(); });
-
-// Listeners Modal Alumnos
-const btnCloseAlumnos = document.getElementById('btnCloseAlumnos');
-if(btnCloseAlumnos) btnCloseAlumnos.addEventListener('click', () => document.getElementById('modalAlumnos').classList.add('hidden'));
-
-const btnCerrarDetalle = document.getElementById('btnCerrarDetalle');
-if(btnCerrarDetalle) btnCerrarDetalle.addEventListener('click', () => document.getElementById('modalAlumnos').classList.add('hidden'));
