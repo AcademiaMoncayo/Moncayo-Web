@@ -14,57 +14,63 @@
         <div class="nav-left"><h3>Academia Moncayo</h3></div>
         <nav class="nav-center">
             <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
-            <button class="nav-btn active" onclick="window.location.href='students.html'">Alumnos</button>
+            <button class="nav-btn active">Alumnos</button>
             <button class="nav-btn" onclick="window.location.href='teachers.html'">Maestros</button>
             <button class="nav-btn" onclick="window.location.href='calendar.html'">Calendario</button>
             <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
-            <button class="nav-btn" onclick="window.location.href='almacen.html'">Almacen</button>
+            <button class="nav-btn" onclick="window.location.href='almacen.html'">Almacén</button>
         </nav>
         <div class="nav-right">
             <span id="userDisplay">Admin</span>
         </div>
     </header>
 
-<main class="main-content">
+    <main class="main-content">
         
         <div class="page-header">
             <h1>Gestión de Alumnos</h1>
-            <button id="btnOpenModal" class="btn-primary" style="padding: 10px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">+ Nuevo Prospecto</button>
+            <button id="btnOpenModal" class="btn-primary" style="box-shadow: 0 4px 6px rgba(0,0,0,0.1);">+ Nuevo Prospecto</button>
         </div>
 
         <div class="content-card">
             
             <div class="toolbar">
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Buscar alumno...">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar alumno...">
                 </div>
                 
-                <div class="filter-box">
-                    <label>Filtrar por:</label>
-                    <select id="filterStatus">
-                        <option value="todos">Todos los Activos</option>
-                        <option value="prospecto">Prospectos</option>
-                        <option value="inscrito">Alumnos Inscritos</option>
-                        <option value="inactivo">Alumnos Inactivos</option>
-                        <option value="sin_interes">Sin Interés</option>
-                    </select>
-                </div>
+<div class="filter-box">
+    <label>Estado:</label>
+    <select id="filterStatus">
+        <option value="todos">📂 Ver Todos</option>
+        
+        <optgroup label="Ciclo Académico">
+            <option value="inscrito">✅ Inscritos (Activos)</option>
+            <option value="inactivo">⏸️ Inactivos (Suspendidos)</option>
+            <option value="baja">❌ Bajas Definitivas</option>
+        </optgroup>
+
+        <optgroup label="Ciclo Ventas">
+            <option value="prospecto">📞 Prospectos</option>
+            <option value="sin_interes">💤 Sin Interés</option>
+        </optgroup>
+    </select>
+</div>
             </div>
 
             <div class="table-container">
                 <table>
-<thead>
-    <tr>
-        <th>Nombre</th>
-        <th>Instrumento</th>
-        <th>Tutor / Contacto</th>
-        <th>Correo</th>
-        <th>Mensualidad</th>   <th>Día Pago</th>
-        <th style="text-align:center;">Factura</th>
-        <th>Estado</th>
-        <th>Acciones</th>
-    </tr>
-</thead>
+                    <thead>
+                        <tr>
+                            <th>Nombre Alumno</th>
+                            <th>Usuario App</th>
+                            <th style="min-width: 180px;">Datos Tutor / Contacto</th>
+                            <th style="text-align: center;">Factura</th>
+                            <th>Costo</th>
+                            <th>Status</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
                     <tbody id="tableBody">
                         </tbody>
                 </table>
@@ -77,201 +83,208 @@
                 <button id="btnNextPage">Siguiente ❯</button>
             </div>
 
-        </div> </main>
+        </div> 
+    </main>
 
-<div id="modalContainer" class="modal-overlay hidden">
-        <div class="modal-content">
+    <div id="modalContainer" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 500px;">
             <div class="modal-header">
                 <h3>Nuevo Prospecto</h3>
                 <span id="btnCloseModal" class="close-btn">&times;</span>
             </div>
             <form id="formStudent">
-                <label>Nombre del Alumno Completo:</label>
-                <input type="text" id="newNombre" placeholder="Nombre completo del alumno" required>
-                <label>Edad del Alumno:</label>
-                <input type="number" id="newEdad" placeholder="Edad" required>
-                <label>Nota o Instrumento de interes:</label>
-                <input type="text" id="newInstrumento" placeholder="Instrumento de interés">
-                
-                <hr> 
-                <p class="section-title">Datos del Tutor</p>
-                <label>Nombre:</label>
-                <input type="text" id="newTutor" placeholder="Nombre del Tutor" required>
-                <label>Telefono:</label>
-                <input type="tel" id="newTelefono" placeholder="Teléfono de contacto" required>
-                
+                <p style="color:#666; font-size:13px; margin-bottom:15px;">
+                    Registra los datos de contacto iniciales. Podrás completar la inscripción después.
+                </p>
+
+                <label>Nombre del Interesado:</label>
+                <input type="text" id="stuNombre" required placeholder="Ej. Miguel Ángel Moncayo">
+
+                <div class="form-row">
+                    <div style="flex:1">
+                        <label>Nombre del Tutor:</label>
+                        <input type="text" id="stuTutor" required placeholder="Padre/Madre">
+                    </div>
+                    <div style="flex:1">
+                        <label>Teléfono (WhatsApp):</label>
+                        <input type="tel" id="stuTel" required placeholder="33 1234 5678">
+                    </div>
+                </div>
+
+                <label>Correo Electrónico:</label>
+                <input type="email" id="stuEmail" placeholder="correo@ejemplo.com">
+
+                <label>Instrumento de Interés:</label>
+                <input type="text" id="stuInteres" placeholder="Ej. Piano, Canto, Violín..." style="width:100%;">
+
                 <button type="submit" class="btn-save">Guardar Prospecto</button>
             </form>
         </div>
     </div>
-
 <div id="modalInscripcion" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Formalizar Inscripción</h3>
+        <div class="modal-content" style="width: 600px;">
+            <div class="modal-header" style="background-color: #e8f5e9;">
+                <h3 style="color:#2e7d32;">✅ Formalizar Inscripción</h3>
                 <span id="btnCloseInscripcion" class="close-btn">&times;</span>
             </div>
             <form id="formInscripcion">
-                <input type="hidden" id="inscripcionId"> 
+                <input type="hidden" id="insId">
                 
-                <label>Alumno:</label>
-                <input type="text" id="inscripcionNombre" disabled style="background:#eee; font-weight:bold;">
+                <div style="margin-bottom:15px;">
+                    <label>Alumno:</label>
+                    <input type="text" id="insNombre" disabled style="background:#f9f9f9; font-weight:bold;">
+                </div>
+
+                <div style="background: #fff8e1; padding: 10px; border: 1px solid #ffecb3; border-radius: 6px; margin-bottom: 15px;">
+                    <label style="color:#f57f17; font-weight:bold;">💰 Pago de Inscripción ($):</label>
+                    <input type="number" id="insMontoInscripcion" required placeholder="Ej. 500.00" style="font-size: 16px; font-weight: bold;">
+                    <small style="color:#888;">Este pago se registrará automáticamente en Finanzas.</small>
+                </div>
+
+                <div class="form-row" style="background: #e3f2fd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #bbdefb;">
+                    <div style="flex:1">
+                        <label style="color:#0d47a1; font-weight:bold;">Usuario App:</label>
+                        <input type="text" id="insUsuario" required placeholder="usuario.app">
+                    </div>
+                    <div style="flex:1">
+                        <label style="color:#0d47a1; font-weight:bold;">Contraseña:</label>
+                        <input type="text" id="insPassword" required placeholder="******">
+                    </div>
+                </div>
 
                 <div class="form-row">
-                    <div style="flex: 1;">
-                        <label>Mensualidad ($):</label>
-                        <input type="number" id="costoMensual" placeholder="Ej. 1500" required>
+                    <div style="flex:1">
+                        <label>Fecha Nacimiento:</label>
+                        <input type="date" id="insFechaNac" required>
                     </div>
-                    <div style="flex: 1;">
-                        <label>Inscripción Única ($):</label>
-                        <input type="number" id="costoInscripcion" placeholder="Ej. 500" value="0">
+                    <div style="flex:1; display:flex; align-items:center; margin-top:25px;">
+                        <input type="checkbox" id="insFactura" style="width:auto; margin-right:10px;">
+                        <label for="insFactura" style="margin:0;">Requiere Factura</label>
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div style="flex: 1;">
-                        <label>Fecha Inicio:</label>
-                        <input type="date" id="fechaInicio" required>
+                    <div style="flex:1">
+                        <label>Costo Mensualidad ($):</label>
+                        <input type="number" id="insCosto" required placeholder="0.00">
                     </div>
-                    <div style="flex: 1;">
-                        <label>Método Pago (Inscrip.):</label>
-                        <select id="metodoPagoInscripcion">
-                            <option value="Efectivo">Efectivo</option>
-                            <option value="Transferencia">Transferencia</option>
-                            <option value="Tarjeta">Tarjeta</option>
-                        </select>
+                    <div style="flex:1">
+                        <label>Inicio Clases:</label>
+                        <input type="date" id="insInicio" required>
+                        <small style="color:#666; font-size:11px;">El día de inicio será el día de corte.</small>
                     </div>
                 </div>
 
-                <label>Correo Tutor (Para recibos):</label>
-                <input type="email" id="correoTutor" placeholder="nombre@correo.com" required>
-
-                <div style="margin: 15px 0; display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" id="requiereFactura" style="width: auto; margin: 0;">
-                    <label for="requiereFactura" style="margin: 0; cursor:pointer;">¿Requiere Factura?</label>
-                </div>
-                
-                <small style="color:#666; display:block;">* El día de corte será el mismo de la fecha de inicio.</small>
-                <small style="color:#666; display:block;">* Se generará automáticamente el registro del pago de inscripción.</small>
-
-                <button type="submit" class="btn-save" style="background-color: #28a745; margin-top:15px;">Confirmar Inscripción y Cobrar</button>
+                <button type="submit" class="btn-save" style="background-color:#2e7d32;">Confirmar Inscripción y Cobrar</button>
             </form>
         </div>
     </div>
 
     <div id="modalEditar" class="modal-overlay hidden">
-        <div class="modal-content">
+        <div class="modal-content" style="width: 600px;">
             <div class="modal-header">
-                <h3>Editar Información</h3>
+                <h3>Editar Alumno</h3>
                 <span id="btnCloseEditar" class="close-btn">&times;</span>
             </div>
             <form id="formEditar">
                 <input type="hidden" id="editId">
-                <input type="hidden" id="editStatus"> <p class="section-title">Datos Personales</p>
-                <label>Nombre y Edad:</label>
-                <div class="form-row"> 
-                    <input type="text" id="editNombre" placeholder="Nombre" required>
-                    <input type="number" id="editEdad" placeholder="Edad" style="width: 80px;">
-                </div>
-                <label>Instrumento Registrado:</label>
-                <input type="text" id="editInstrumento" placeholder="Instrumento">
                 
-                <p class="section-title">Contacto Tutor</p>
-                <label>Nombre:</label>
-                <input type="text" id="editTutor" placeholder="Nombre Tutor" required>
-                <label>Telefono:</label>
-                <input type="tel" id="editTelefono" placeholder="Teléfono" required>
-                <label>Correo:</label>
-                <input type="email" id="editCorreo" placeholder="Correo (Opcional para prospectos)">
+                <label>Nombre Completo:</label>
+                <input type="text" id="editNombre" required>
 
-                <div id="editFinanzasContainer" class="hidden">
-                    <hr>
-                    <p class="section-title">Datos de Inscripción</p>
-                    <div class="form-row">
-                        <div>
-                            <label>Mensualidad ($)</label>
-                            <input type="number" id="editCosto">
-                        </div>
-                        <div>
-                            <label>Día Corte</label>
-                            <input type="number" id="editDiaCorte" max="31">
-                        </div>
+                <div class="form-row" style="background: #fff3e0; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #ffe0b2;">
+                    <div style="flex:1">
+                        <label style="color:#e65100; font-weight:bold;">Usuario (App):</label>
+                        <input type="text" id="editStuUsuario" required style="border:1px solid #ffcc80;">
                     </div>
-                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
-                        <input type="checkbox" id="editFactura" style="width: auto; margin: 0;">
-                        <label for="editFactura" style="margin: 0; cursor:pointer;">Requiere Factura</label>
+                    <div style="flex:1">
+                        <label style="color:#e65100; font-weight:bold;">Contraseña:</label>
+                        <input type="text" id="editStuPassword" required style="border:1px solid #ffcc80;">
                     </div>
                 </div>
 
-                <button type="submit" class="btn-save" style="background-color: #ffc107; color: #333; margin-top:20px;">Guardar Cambios</button>
+                <div class="form-row">
+                    <div style="flex:1">
+                        <label>Tutor:</label>
+                        <input type="text" id="editTutor" required>
+                    </div>
+                    <div style="flex:1">
+                        <label>Teléfono:</label>
+                        <input type="tel" id="editTel" required>
+                    </div>
+                </div>
+
+                <label>Correo Electrónico:</label>
+                <input type="email" id="editEmail">
+
+                <div class="form-row">
+                    <div style="flex:1">
+                        <label>Fecha Nacimiento:</label>
+                        <input type="date" id="editFechaNac" required>
+                    </div>
+                    <div style="flex:1; display:flex; align-items:center; margin-top:25px;">
+                        <input type="checkbox" id="editFactura" style="width:auto; margin-right:10px;">
+                        <label for="editFactura" style="margin:0;">Requiere Factura</label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div style="flex:1">
+                        <label>Costo ($):</label>
+                        <input type="number" id="editCosto" required>
+                    </div>
+                    <div style="flex:1">
+                        <label>Inicio / Corte:</label>
+                        <input type="date" id="editInicio">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save" style="background-color: #ffc107; color: #333;">Actualizar Datos</button>
             </form>
         </div>
     </div>
 
-    <div id="modalReporte" class="modal-overlay hidden">
-        <div class="modal-content" style="width: 600px; max-height: 90vh; overflow-y: auto;">
-            <div class="modal-header">
-                <h3>📊 Generar Reporte Financiero</h3>
-                <span id="btnCloseReporte" class="close-btn">&times;</span>
+    <div id="modalPerfil" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 450px; text-align: center; border-radius: 20px; overflow: hidden;">
+            <div class="modal-header" style="border:none; justify-content: flex-end;">
+                <span id="btnClosePerfil" class="close-btn" style="font-size: 24px;">&times;</span>
+            </div>
+            
+            <div style="margin-top: -20px; margin-bottom: 20px;">
+                <div style="width: 100px; height: 100px; background: #ffc107; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 50px; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                    🎸
+                </div>
+                <h2 id="gamerName" style="margin: 10px 0 5px; color: #333;">Nombre Alumno</h2>
+                <div style="color: #666; font-weight: bold; font-size: 14px;">Nivel <span id="gamerLevel" style="color: #2196f3; font-size: 18px;">1</span>: <span id="gamerRank">Novato Musical</span></div>
             </div>
 
-            <div id="reporteFiltros">
-                <p style="color:#666; font-size:14px; margin-bottom:15px;">Selecciona el rango de fechas para calcular los ingresos.</p>
-                <div class="form-row">
-                    <div style="flex:1;">
-                        <label>Desde:</label>
-                        <input type="date" id="reporteInicio" required>
-                    </div>
-                    <div style="flex:1;">
-                        <label>Hasta:</label>
-                        <input type="date" id="reporteFin" required>
-                    </div>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; font-weight: bold; color: #555;">
+                    <span>XP (Experiencia)</span>
+                    <span id="gamerXP">0 / 1000</span>
                 </div>
-                <button id="btnGenerarReporte" class="btn-save" style="background-color: var(--color-primary);">
-                    Generar Reporte
-                </button>
-            </div>
-
-            <div id="reporteResultados" class="hidden">
-                <hr>
-                
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
-                    <h2 style="margin:0; color: #2c3e50;" id="txtGranTotal">$0.00</h2>
-                    <p style="margin:0; color:#666;">Ingreso Total del Periodo</p>
+                <div style="background: #e0e0e0; height: 12px; border-radius: 10px; overflow: hidden; margin-bottom: 20px;">
+                    <div id="barXP" style="background: #4caf50; width: 0%; height: 100%; transition: width 1s ease;"></div>
                 </div>
 
-                <h4 class="section-title">📌 Desglose por Concepto</h4>
-                <ul id="listaDesglose" style="list-style: none; padding: 0; font-size: 14px; margin-bottom: 20px;">
-                    </ul>
-
-                <h4 class="section-title">🏦 Corte de Caja (Métodos)</h4>
-                <div id="tablaMetodos" style="font-size: 14px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <div style="font-size: 20px;">🔥</div>
+                        <div style="font-weight: bold; font-size: 18px;" id="gamerStreak">0</div>
+                        <div style="font-size: 11px; color: #888;">Racha de Clases</div>
                     </div>
-
-                <h4 class="section-title">📝 Lista Detallada de Movimientos</h4>
-                <div class="table-container" style="max-height: 200px; overflow-y: auto; border: 1px solid #eee;">
-                    <table style="font-size: 12px; width: 100%;">
-                        <thead style="position: sticky; top: 0; background: #eee;">
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Alumno</th>
-                                <th>Concepto</th>
-                                <th>Monto</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaDetalleReporte">
-                            </tbody>
-                    </table>
-                </div>
-
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button id="btnImprimirReporte" class="btn-save" style="background:#6c757d;">🖨️ Imprimir</button>
-                    <button id="btnNuevoReporte" class="btn-save" style="background:var(--color-primary);">Nuevo Cálculo</button>
+                    <div style="background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <div style="font-size: 20px;">📚</div>
+                        <div style="font-weight: bold; font-size: 18px;" id="gamerClasses">0</div>
+                        <div style="font-size: 11px; color: #888;">Clases Totales</div>
+                    </div>
                 </div>
             </div>
 
+            <button class="btn-primary" onclick="document.getElementById('modalPerfil').classList.add('hidden')" style="width: 100%; border-radius: 10px;">¡Genial!</button>
         </div>
     </div>
+
     <script type="module" src="src/js/students.js"></script>
 
 </body>

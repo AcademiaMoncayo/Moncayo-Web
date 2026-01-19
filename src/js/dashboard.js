@@ -1,7 +1,7 @@
 import { db, auth } from './firebase-config.js';
 import { 
-    collection, addDoc, query, where, getDocs, orderBy, onSnapshot, doc, updateDoc, deleteDoc 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    collection, addDoc, query, where, getDocs, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; // Nota: Agregué getDoc
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // DOM References
@@ -23,6 +23,9 @@ const statClasesHoy = document.getElementById('statClasesHoy');
 const todayList = document.getElementById('todayList');
 const todayLabel = document.getElementById('todayLabel');
 
+// NEW: Referencia para Notificaciones WhatsApp
+const listaRecordatorios = document.getElementById('listaRecordatorios');
+
 // 1. SEGURIDAD Y CARGA INICIAL
 onAuthStateChanged(auth, (user) => {
     if (!user) {
@@ -42,6 +45,7 @@ function initDashboard() {
     cargarNotas();
     cargarEstadisticas();
     cargarAgendaHoy();
+    checkRemindersForTomorrow(); // <--- NUEVA FUNCIÓN AGREGADA
 }
 
 function mostrarFecha() {
@@ -159,8 +163,7 @@ async function cargarAgendaHoy() {
     todayLabel.textContent = `Eventos para: ${todayStr} (${diaSemanaTexto})`;
 
     try {
-        // Traemos TODAS las clases (porque filtrar por "OR" en Firebase es complejo sin índices avanzados)
-        // y filtramos en memoria. Si son miles de clases, habría que optimizar, pero para una academia está bien.
+        // Traemos TODAS las clases y filtramos en memoria
         const q = query(collection(db, "classes"));
         const snap = await getDocs(q);
         
@@ -200,7 +203,6 @@ async function cargarAgendaHoy() {
             const div = document.createElement('div');
             div.className = 'today-item';
             
-            // Formato Hora AM/PM
             const [h, m] = ev.time.split(':');
             const ampm = h >= 12 ? 'PM' : 'AM';
             const horaStr = `${h%12||12}:${m} ${ampm}`;
@@ -218,4 +220,92 @@ async function cargarAgendaHoy() {
         });
 
     } catch(e) { console.error("Error cargando agenda:", e); }
+}
+
+// ==========================================
+// 4. NUEVO: RECORDATORIOS WHATSAPP (MAÑANA)
+// ==========================================
+
+async function checkRemindersForTomorrow() {
+    if(!listaRecordatorios) return; // Si no existe el div en HTML, salimos
+
+    listaRecordatorios.innerHTML = '<p style="color:#666; font-size:12px;">Buscando recordatorios...</p>';
+
+    // 1. Calcular fecha de MAÑANA (Formato YYYY-MM-DD)
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    
+    const offset = tomorrow.getTimezoneOffset() * 60000;
+    const tomorrowStr = (new Date(tomorrow - offset)).toISOString().split('T')[0];
+
+    try {
+        // 2. Buscar clases muestra de mañana
+        const qClases = query(
+            collection(db, "classes"), 
+            where("date", "==", tomorrowStr),
+            where("type", "==", "muestra")
+        );
+        
+        const snapClases = await getDocs(qClases);
+        
+        if (snapClases.empty) {
+            listaRecordatorios.innerHTML = '<div style="color:#2e7d32; font-size:13px;">✅ No hay clases muestra para mañana.</div>';
+            return;
+        }
+
+        listaRecordatorios.innerHTML = ''; // Limpiar loader
+
+        // 3. Procesar cada clase
+        for (const docClase of snapClases.docs) {
+            const clase = docClase.data();
+            
+            let telefono = "";
+            let nombreTutor = "";
+
+            // Buscar datos del alumno en colección 'students'
+            if (clase.studentId) {
+                try {
+                    const docStudent = await getDoc(doc(db, "students", clase.studentId));
+                    if (docStudent.exists()) {
+                        const sData = docStudent.data();
+                        telefono = sData.telefono;
+                        nombreTutor = sData.nombreTutor;
+                    }
+                } catch(err) { console.error("Error buscando alumno", err); }
+            }
+
+            // 4. Crear tarjeta visual
+            const card = document.createElement('div');
+            card.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#f1f8e9; padding:8px; border-radius:6px; border:1px solid #c8e6c9; margin-bottom:5px;";
+
+            if (telefono) {
+                const phoneClean = telefono.replace(/\D/g, ''); 
+                // Convertir hora 24h a 12h
+                const [h, m] = clase.time.split(':');
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                const horaAmPm = `${h%12||12}:${m} ${ampm}`;
+
+                const mensaje = `Hola ${nombreTutor || clase.studentName}, le recordamos la clase muestra de *${clase.instrument}* para *${clase.studentName}* mañana a las *${horaAmPm}* en Academia Moncayo. 🎹`;
+                const linkWhatsapp = `https://wa.me/52${phoneClean}?text=${encodeURIComponent(mensaje)}`;
+                
+                card.innerHTML = `
+                    <div style="font-size:12px;">
+                        <strong>${clase.studentName}</strong><br>
+                        <span style="color:#555;">⏰ ${clase.time} - ${clase.instrument}</span>
+                    </div>
+                    <a href="${linkWhatsapp}" target="_blank" title="Enviar WhatsApp" style="background:#25D366; color:white; text-decoration:none; padding:5px 10px; border-radius:15px; font-weight:bold; font-size:12px;">
+                        📲 Enviar
+                    </a>
+                `;
+            } else {
+                card.innerHTML = `<div style="font-size:12px; color:red;">⚠️ ${clase.studentName}: Sin teléfono.</div>`;
+            }
+            listaRecordatorios.appendChild(card);
+        }
+
+    } catch (error) {
+        console.error("Error recordatorios:", error);
+        listaRecordatorios.innerHTML = '<p style="color:red;">Error cargando.</p>';
+    }
 }

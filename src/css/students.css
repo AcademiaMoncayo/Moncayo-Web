@@ -287,3 +287,51 @@ form input, form select {
 }
 
 .hidden { display: none !important; }
+
+/* --- ACCESO / PASSWORD --- */
+.pass-hidden {
+    font-family: monospace;
+    letter-spacing: 2px;
+    color: #999;
+    margin-right: 5px;
+}
+
+.toggle-password {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 6px;
+    transition: background 0.2s;
+}
+
+.toggle-password:hover {
+    background: #f0f0f0;
+}
+
+/* ETIQUETAS DE ESTADO */
+.tag {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+/* Ciclo Ventas */
+.tag-prospecto { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; } /* Azul */
+.tag-sin_interes { background-color: #eceff1; color: #546e7a; border: 1px solid #cfd8dc; } /* Gris */
+
+/* Ciclo Académico */
+.tag-inscrito { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; } /* Verde */
+.tag-inactivo { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; } /* Naranja (Suspensión) */
+.tag-baja { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; } /* Rojo (Baja Definitiva) */
+
+/* Botones de Acción Específicos */
+.btn-state-gray { background: #78909c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+.btn-state-blue { background: #42a5f5; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+.btn-state-orange { background: #ffa726; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+.btn-state-red { background: #ef5350; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+.btn-state-green { background: #66bb6a; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
