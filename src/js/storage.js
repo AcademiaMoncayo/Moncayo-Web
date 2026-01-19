@@ -59,6 +59,13 @@ let currentCart = [];
 let currentPage = 1;
 const rowsPerPage = 20;
 
+// --- FUNCIÓN AUXILIAR PARA FECHA LOCAL (CORRECCIÓN ZONA HORARIA) ---
+function getLocalDateString(dateObj = new Date()) {
+    const offset = dateObj.getTimezoneOffset() * 60000; 
+    const localDate = new Date(dateObj - offset);
+    return localDate.toISOString().split('T')[0];
+}
+
 // 1. SEGURIDAD
 onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = "index.html";
@@ -224,7 +231,8 @@ btnAddToCart.addEventListener('click', (e) => {
             return;
         }
         existente.qty += qty;
-        existente.subtotal = existent.qty * productoReal.precio;
+        // CORRECCIÓN: variable 'existent' no existía, debe ser 'existente'
+        existente.subtotal = existente.qty * productoReal.precio;
     } else {
         currentCart.push({
             id: productoReal.id,
@@ -406,9 +414,12 @@ async function loadHistory() {
     historyBody.innerHTML = '<tr><td colspan="6" style="text-align:center">Cargando movimientos...</td></tr>';
     
     try {
-        let start = histStart.value ? new Date(histStart.value) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-        let end = histEnd.value ? new Date(histEnd.value) : new Date();
-        end.setHours(23, 59, 59);
+        // CORRECCIÓN: Fechas de filtro seguras
+        let start = histStart.value ? new Date(histStart.value + 'T00:00:00') : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        let end = histEnd.value ? new Date(histEnd.value + 'T23:59:59') : new Date();
+        
+        // Si no se especificó hora en end, aseguramos final del día
+        if(histEnd.value) end.setHours(23, 59, 59);
 
         const q = query(collection(db, "stock_movements"), orderBy("date", "desc"));
         const snapshot = await getDocs(q);
@@ -451,9 +462,8 @@ function renderHistoryTable(lista) {
 
     lista.forEach(mov => {
         const tr = document.createElement('tr');
-        // Estilo según tipo
-        if(mov.type === 'entrada') tr.style.backgroundColor = '#f1f8e9'; // Verde suave
-        else tr.style.backgroundColor = '#fff3e0'; // Naranja suave
+        if(mov.type === 'entrada') tr.style.backgroundColor = '#f1f8e9'; 
+        else tr.style.backgroundColor = '#fff3e0'; 
         
         const badge = mov.type === 'entrada' 
             ? '<span style="background:#c8e6c9; color:#2e7d32; padding:2px 6px; border-radius:4px; font-size:10px;">ENTRADA</span>' 
@@ -484,23 +494,22 @@ function renderHistoryTable(lista) {
     histValor.textContent = `$${totalValor.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
 }
 
-// 7. LISTENERS GENERALES (ESTO ERA LO QUE FALTABA)
-// Botones Apertura Modales
+// 7. LISTENERS GENERALES
 document.getElementById('btnOpenModal').addEventListener('click', () => abrirModal());
 document.getElementById('btnOpenSalida').addEventListener('click', () => {
     currentCart = [];
     renderCart();
     modalSalida.classList.remove('hidden');
 });
+
 // BOTÓN HISTORIAL: Configurar fechas y abrir
 document.getElementById('btnOpenHistory').addEventListener('click', () => {
     const hoy = new Date();
     const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
     
-    // Ajuste zona horaria manual simple para input date
-    const offset = hoy.getTimezoneOffset() * 60000;
-    histStart.value = (new Date(inicioMes - offset)).toISOString().split('T')[0];
-    histEnd.value = (new Date(hoy - offset)).toISOString().split('T')[0];
+    // CORRECCIÓN: Usar la función de ajuste de zona horaria
+    histStart.value = getLocalDateString(inicioMes);
+    histEnd.value = getLocalDateString(hoy);
 
     modalHistory.classList.remove('hidden');
     loadHistory();

@@ -6,7 +6,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 const tableBody = document.getElementById('tableBody');
 const searchInput = document.getElementById('searchInput');
 const filterPayment = document.getElementById('filterPayment');
-const filterStatus = document.getElementById('filterStatus'); // Referencia al nuevo select
+const filterStatus = document.getElementById('filterStatus');
 
 // Paginación
 const btnPrevPage = document.getElementById('btnPrevPage');
@@ -28,6 +28,14 @@ let allPayments = [];
 let currentPage = 1;
 const rowsPerPage = 20;
 
+// --- FUNCIÓN AUXILIAR PARA FECHA LOCAL ---
+// Esto soluciona el problema de que marque "mañana" a las 6pm
+function getLocalToday() {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now - offset);
+}
+
 // 1. SEGURIDAD
 onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = "index.html";
@@ -38,13 +46,11 @@ onAuthStateChanged(auth, (user) => {
 async function loadFinanceData() {
     tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">Cargando base de datos completa...</td></tr>';
     try {
-        // A) Cargar TODOS los Alumnos (ACTIVOS Y BAJAS)
         const qStudents = query(collection(db, "students"), orderBy("nombre"));
         const snapStudents = await getDocs(qStudents);
         allStudents = [];
         snapStudents.forEach((doc) => allStudents.push({ id: doc.id, ...doc.data() }));
 
-        // B) Cargar TODOS los Pagos
         const qPayments = query(collection(db, "payments"));
         const snapPayments = await getDocs(qPayments);
         allPayments = [];
@@ -61,13 +67,12 @@ async function loadFinanceData() {
 function renderTable() {
     const textoBusqueda = searchInput.value.toLowerCase();
     const filtroPago = filterPayment.value; 
-    
-    // Protección: Si el HTML del filtro no existe aun, usamos 'activos' por defecto
     const filtroEstatus = filterStatus ? filterStatus.value : 'activos'; 
     
-    const hoy = new Date();
+    // CORRECCIÓN: Usamos fecha local
+    const hoy = getLocalToday(); 
+    const diaHoy = hoy.getDate(); // 1 al 31 real de tu zona
 
-    // Procesamiento inicial
     const listaProcesada = allStudents.map(alumno => {
         const periodoActualStr = calcularPeriodoActual(alumno.fechaInicioClases);
         const estaPagado = allPayments.some(p => p.studentId === alumno.id && p.periodo === periodoActualStr);
@@ -76,36 +81,32 @@ function renderTable() {
         if (estaPagado) estadoPago = 'pagado';
         else {
             const diaCorte = alumno.diaCorte || 5;
-            if (hoy.getDate() > diaCorte) estadoPago = 'vencido';
+            // Comparamos el día de hoy local contra el día de corte
+            if (diaHoy > diaCorte) estadoPago = 'vencido';
         }
         return { ...alumno, estadoPago, periodoActualStr };
     });
 
     // --- FILTROS ---
     const listaFiltrada = listaProcesada.filter(alumno => {
-        // 1. Filtro Nombre
         const coincideNombre = alumno.nombre.toLowerCase().includes(textoBusqueda);
         
-        // 2. Filtro Pago
         let coincidePago = true;
         if (filtroPago === 'pagado') coincidePago = (alumno.estadoPago === 'pagado');
         if (filtroPago === 'pendiente') coincidePago = (alumno.estadoPago === 'pendiente' || alumno.estadoPago === 'vencido');
 
-        // 3. NUEVO: Filtro Estatus (Activo vs Baja)
         let coincideEstatus = true;
         const esBaja = alumno.status !== 'inscrito';
 
         if (filtroEstatus === 'activos') {
-            coincideEstatus = !esBaja; // Mostrar solo si NO es baja
+            coincideEstatus = !esBaja;
         } else if (filtroEstatus === 'bajas') {
-            coincideEstatus = esBaja;  // Mostrar solo si ES baja
+            coincideEstatus = esBaja;
         }
-        // Si es 'todos', dejamos pasar a todos
 
         return coincideNombre && coincidePago && coincideEstatus;
     });
 
-    // Paginación
     const totalPages = Math.ceil(listaFiltrada.length / rowsPerPage) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
@@ -113,7 +114,6 @@ function renderTable() {
     const startIndex = (currentPage - 1) * rowsPerPage;
     const alumnosPagina = listaFiltrada.slice(startIndex, startIndex + rowsPerPage);
 
-    // Dibujar
     tableBody.innerHTML = '';
     if (alumnosPagina.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">No se encontraron resultados.</td></tr>';
@@ -124,10 +124,8 @@ function renderTable() {
         const fila = document.createElement('tr');
         const esBaja = alumno.status !== 'inscrito';
         
-        // Estilo visual para bajas
         if (esBaja) fila.style.backgroundColor = '#f5f5f5'; 
 
-        // Estado Pago Visual
         let htmlEstadoPago = '';
         if (esBaja) {
             htmlEstadoPago = `<span style="color:#999; font-size:12px;">—</span>`; 
@@ -141,7 +139,6 @@ function renderTable() {
             }
         }
 
-        // Etiqueta Estado
         let htmlStatusAlumno = esBaja 
             ? `<span class="tag" style="background:#ffebee; color:#c62828; border:1px solid #ffcdd2;">BAJA</span>`
             : `<span class="tag tag-inscrito">ACTIVO</span>`;
@@ -182,7 +179,7 @@ function renderTable() {
     actualizarPaginacion(totalPages);
 }
 
-// 4. LISTENERS (MODAL PAGO Y HISTORIAL)
+// 4. LISTENERS
 function asignarListenersTabla() {
     document.querySelectorAll('.btn-cobrar').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -205,12 +202,17 @@ function abrirModalPago(id, nombre, costo, fechaInicioStr) {
     document.getElementById('pagoNombreTexto').value = nombre;
     document.getElementById('pagoMontoBase').value = `$${costo}`;
     document.getElementById('pagoMontoReal').value = costo;
-    document.getElementById('pagoFecha').valueAsDate = new Date();
+    
+    // CORRECCIÓN: Fecha del input modal
+    const hoyLocal = getLocalToday();
+    document.getElementById('pagoFecha').value = hoyLocal.toISOString().split('T')[0];
     
     selectPeriodo.innerHTML = '<option>Cargando periodos...</option>';
     modalPago.classList.remove('hidden');
 
     selectPeriodo.innerHTML = '<option value="">-- Selecciona Periodo --</option>';
+    
+    // Para calcular periodos, usamos T12:00:00 para asegurar medio día y evitar saltos
     let fechaIteracion = fechaInicioStr ? new Date(fechaInicioStr + 'T12:00:00') : new Date();
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -270,6 +272,7 @@ function abrirHistorial(alumno) {
     document.getElementById('historialAlumnoEmail').textContent = alumno.status === 'inscrito' ? emailT : `${emailT} (BAJA)`;
     
     const pagosAlumno = allPayments.filter(p => p.studentId === alumno.id);
+    // Ordenar fechas correctamente
     pagosAlumno.sort((a, b) => new Date(b.fechaPago) - new Date(a.fechaPago));
 
     const tbody = document.getElementById('historialTableBody');
@@ -326,10 +329,14 @@ window.enviarRecibo = (email, periodo, monto) => {
     if(confirm(`¿Enviar recibo a ${email}?`)) { alert("📧 Recibo enviado (Simulación)"); }
 };
 
-// UTILIDADES
+// UTILIDADES: CALCULO DE PERIODO (ZONA HORARIA SEGURA)
 function calcularPeriodoActual(fechaInicioStr) {
     if (!fechaInicioStr) return "";
-    const hoy = new Date();
+    
+    // CORRECCIÓN: Usamos fecha local en lugar de UTC
+    const hoyLocal = getLocalToday();
+    
+    // Al leer el string de inicio, forzamos T12:00:00 para evitar que se regrese un día
     const inicio = new Date(fechaInicioStr + 'T12:00:00');
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     
@@ -340,12 +347,12 @@ function calcularPeriodoActual(fechaInicioStr) {
         let finIter = new Date(fechaIter);
         finIter.setMonth(finIter.getMonth() + 1);
         
-        if (hoy >= fechaIter && hoy < finIter) {
+        if (hoyLocal >= fechaIter && hoyLocal < finIter) {
             const sInicio = `${fechaIter.getDate()} ${meses[fechaIter.getMonth()]} ${fechaIter.getFullYear()}`;
             const sFin = `${finIter.getDate()} ${meses[finIter.getMonth()]} ${finIter.getFullYear()}`;
             return `${sInicio} - ${sFin}`;
         }
-        if (hoy < inicio) {
+        if (hoyLocal < inicio) {
              const sInicio = `${inicio.getDate()} ${meses[inicio.getMonth()]} ${inicio.getFullYear()}`;
              let fin = new Date(inicio); fin.setMonth(fin.getMonth()+1);
              const sFin = `${fin.getDate()} ${meses[fin.getMonth()]} ${fin.getFullYear()}`;
@@ -371,7 +378,6 @@ document.getElementById('btnCerrarHistorial').addEventListener('click', () => mo
 searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
 filterPayment.addEventListener('change', () => { currentPage = 1; renderTable(); });
 
-// LISTENER NUEVO PARA EL FILTRO DE ESTATUS
 if(filterStatus) {
     filterStatus.addEventListener('change', () => { 
         currentPage = 1; 
@@ -391,10 +397,13 @@ const btnOpenReport = document.getElementById('btnOpenReport') || document.query
 
 if(btnOpenReport) {
     btnOpenReport.addEventListener('click', () => {
-        const hoy = new Date();
+        const hoy = getLocalToday();
         const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-        if(inputInicio) inputInicio.valueAsDate = primerDia;
-        if(inputFin) inputFin.valueAsDate = hoy;
+        
+        // Ajuste zona horaria para inputs date
+        if(inputInicio) inputInicio.value = primerDia.toISOString().split('T')[0];
+        if(inputFin) inputFin.value = hoy.toISOString().split('T')[0];
+        
         if(divFiltros) divFiltros.classList.remove('hidden');
         if(divResultados) divResultados.classList.add('hidden');
         if(modalReporte) modalReporte.classList.remove('hidden');
