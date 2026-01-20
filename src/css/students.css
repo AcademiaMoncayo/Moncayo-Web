@@ -1,9 +1,22 @@
-/* --- CONFIGURACIÓN GENERAL --- */
+/* =========================================
+   ESTILOS DE GESTIÓN DE ALUMNOS (BASE DE MÓDULOS)
+   =========================================
+   Este archivo define estilos de tablas, filtros y modales
+   que se reutilizan en Finanzas, Maestros y Almacén.
+*/
+
+/* Importar variables globales */
+@import url('variables.css');
+
+/* =========================================
+   1. LAYOUT Y CABECERAS
+   =========================================
+*/
 .main-content {
     padding: 30px;
-    background-color: #f4f6f9; /* Fondo gris muy suave */
-    min-height: 100vh;
-    font-family: sans-serif;
+    background-color: var(--color-bg-light);
+    min-height: calc(100vh - 60px);
+    font-family: var(--font-main);
 }
 
 .page-header {
@@ -19,39 +32,27 @@
     margin: 0;
 }
 
-/* Botón Primario (Nuevo Prospecto) */
-.btn-primary {
-    background-color: var(--color-accent);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: background 0.2s;
-}
-.btn-primary:hover {
-    background-color: var(--color-accent-hover);
-}
-
-/* --- TARJETA DEL CONTENIDO (Fondo Blanco) --- */
+/* Contenedor Blanco Principal */
 .content-card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    background: var(--color-white);
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--shadow-card);
     padding: 20px;
     overflow: hidden;
+    animation: fadeInUp 0.5s ease-out; /* Animación de entrada */
 }
 
-/* --- BARRA DE HERRAMIENTAS (Toolbar) --- */
+/* =========================================
+   2. BARRA DE HERRAMIENTAS (TOOLBAR)
+   =========================================
+*/
 .toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 20px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--color-border);
     flex-wrap: wrap;
     gap: 15px;
 }
@@ -59,10 +60,16 @@
 .search-box input {
     width: 300px;
     padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
     font-size: 14px;
     background-color: #f9f9f9;
+    transition: border-color 0.3s;
+}
+.search-box input:focus {
+    background-color: #fff;
+    border-color: var(--color-accent);
+    outline: none;
 }
 
 .filter-box {
@@ -70,21 +77,24 @@
     align-items: center;
     gap: 10px;
     font-size: 14px;
-    color: #555;
+    color: var(--color-text-muted);
 }
 
 .filter-box select {
     padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
     background-color: white;
     cursor: pointer;
 }
 
-/* --- TABLA --- */
+/* =========================================
+   3. TABLAS DE DATOS (ESTILO COMPARTIDO)
+   =========================================
+*/
 .table-container {
     width: 100%;
-    overflow-x: auto;
+    overflow-x: auto; /* Scroll horizontal si es necesario */
 }
 
 table {
@@ -95,7 +105,7 @@ table {
 
 thead tr {
     background-color: #f8f9fa;
-    color: #444;
+    color: var(--color-text-main);
     text-align: left;
 }
 
@@ -110,60 +120,101 @@ th {
     font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    color: var(--color-text-muted);
+}
+
+tbody tr {
+    transition: background-color 0.2s;
+    /* Animación de filas en cascada se define al final */
 }
 
 tbody tr:hover {
-    background-color: #f1f7fb;
+    background-color: #f1f7fb; /* Highlight al pasar mouse */
 }
 
-/* --- ACCIONES Y ETIQUETAS --- */
+/* =========================================
+   4. BOTONES Y ACCIONES
+   =========================================
+*/
+
+/* Botón Principal (Agregar Nuevo) */
+.btn-primary {
+    background-color: var(--color-accent);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: background 0.2s, transform 0.1s;
+}
+.btn-primary:hover { background-color: var(--color-accent-hover); transform: translateY(-1px); }
+
+/* Celda de Acciones (Iconos) */
 .actions-cell {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.btn-edit, .btn-archive, .btn-mini-email {
+/* Botones de Icono Cuadrados */
+.btn-edit, .btn-archive, .btn-mini-email, .btn-game, .btn-inscribir, .btn-delete-prospecto {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 32px;
     height: 32px;
-    border-radius: 6px;
+    border-radius: var(--border-radius-sm);
     border: none;
     cursor: pointer;
     transition: all 0.2s;
     font-size: 16px;
 }
 
-.btn-edit { background: #fff3cd; color: #856404; }
+/* Variantes de color */
+.btn-edit { background: #fff3cd; color: #856404; } /* Amarillo */
 .btn-edit:hover { background: #ffeeba; }
 
-.btn-archive { background: #f8d7da; color: #721c24; }
-.btn-archive:hover { background: #f5c6cb; }
+.btn-archive, .btn-delete-prospecto { background: #f8d7da; color: #721c24; } /* Rojo */
+.btn-archive:hover, .btn-delete-prospecto:hover { background: #f5c6cb; }
 
-.btn-mini-email { background: #d1ecf1; color: #0c5460; }
+.btn-mini-email { background: #d1ecf1; color: #0c5460; } /* Cyan */
 .btn-mini-email:hover { background: #bee5eb; }
 
-/* Botón Inscribir (Texto) */
-.btn-action {
-    background-color: #17a2b8;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
+.btn-inscribir { background: #d4edda; color: #155724; } /* Verde */
+.btn-inscribir:hover { background: #c3e6cb; }
+
+/* Botones de Cambio de Estado */
+.btn-state-gray { background: #78909c; color: white; padding: 4px 8px; border-radius: 4px; border:none; cursor: pointer;}
+.btn-state-blue { background: #42a5f5; color: white; padding: 4px 8px; border-radius: 4px; border:none; cursor: pointer;}
+.btn-state-orange { background: #ffa726; color: white; padding: 4px 8px; border-radius: 4px; border:none; cursor: pointer;}
+.btn-state-red { background: #ef5350; color: white; padding: 4px 8px; border-radius: 4px; border:none; cursor: pointer;}
+.btn-state-green { background: #66bb6a; color: white; padding: 4px 8px; border-radius: 4px; border:none; cursor: pointer;}
+
+/* =========================================
+   5. ETIQUETAS Y ESTADOS (TAGS)
+   =========================================
+*/
+.tag {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    display: inline-block;
 }
-.btn-action:hover { background-color: #138496; }
 
-/* Etiquetas de Estado */
-.tag { padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-.tag-prospecto { background: #fff3cd; color: #856404; }
-.tag-inscrito { background: #d4edda; color: #155724; }
-.tag-inactivo { background: #e2e3e5; color: #383d41; }
+.tag-prospecto { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+.tag-sin_interes { background-color: #eceff1; color: #546e7a; border: 1px solid #cfd8dc; }
+.tag-inscrito { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.tag-inactivo { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
+.tag-baja { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
 
-/* --- PAGINACIÓN --- */
+/* =========================================
+   6. PAGINACIÓN
+   =========================================
+*/
 .pagination-controls {
     display: flex;
     justify-content: center;
@@ -176,11 +227,12 @@ tbody tr:hover {
 
 .pagination-controls button {
     background-color: white;
-    border: 1px solid #ddd;
-    color: #555;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: var(--border-radius-sm);
     cursor: pointer;
+    transition: 0.2s;
 }
 .pagination-controls button:hover:not(:disabled) {
     background-color: var(--color-primary);
@@ -194,32 +246,30 @@ tbody tr:hover {
 }
 
 /* =========================================
-   ESTILOS DE MODALES (¡ESTO FALTABA!)
-   ========================================= */
+   7. MODALES (ESTILO COMPARTIDO)
+   =========================================
+*/
 .modal-overlay {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5); /* Fondo oscuro transparente */
+    background: rgba(0,0,0,0.5);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(2px);
+    transition: opacity 0.3s ease;
 }
 
 .modal-content {
     background: white;
     padding: 25px;
-    border-radius: 10px;
-    width: 450px; /* Ancho cómodo */
+    border-radius: var(--border-radius-main);
+    width: 450px;
     max-width: 90%;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+    box-shadow: var(--shadow-modal);
+    animation: zoomIn 0.3s ease;
 }
 
 .modal-header {
@@ -230,156 +280,85 @@ tbody tr:hover {
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
 }
-
 .modal-header h3 { margin: 0; color: var(--color-primary); }
 
-.close-btn {
-    cursor: pointer;
-    font-size: 24px;
-    color: #999;
-}
+.close-btn { cursor: pointer; font-size: 24px; color: #999; transition: color 0.2s; }
 .close-btn:hover { color: #333; }
 
-/* Formularios dentro del modal */
+/* Formularios */
 form label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    font-size: 13px;
-    color: #555;
+    display: block; margin-bottom: 5px; font-weight: 500; font-size: 13px; color: #555;
 }
-
-form input, form select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-sizing: border-box; /* Importante para que no se salga */
+form input, form select, form textarea {
+    width: 100%; padding: 10px; margin-bottom: 15px;
+    border: 1px solid var(--color-border); border-radius: 5px;
+    box-sizing: border-box; font-family: inherit;
 }
-
-.form-row {
-    display: flex;
-    gap: 15px;
-}
+.form-row { display: flex; gap: 15px; }
 
 .btn-save {
     width: 100%;
     background: var(--color-success);
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
+    color: white; border: none; padding: 12px;
+    border-radius: 5px; font-weight: bold;
+    cursor: pointer; margin-top: 10px;
+    transition: background 0.2s;
 }
-.btn-save:hover { opacity: 0.9; }
-
-.section-title {
-    font-weight: bold;
-    color: #666;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    font-size: 14px;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 5px;
-}
+.btn-save:hover { background-color: #218838; }
 
 .hidden { display: none !important; }
 
-/* --- ACCESO / PASSWORD --- */
-.pass-hidden {
-    font-family: monospace;
-    letter-spacing: 2px;
-    color: #999;
-    margin-right: 5px;
-}
-
-.toggle-password {
-    background: none;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    padding: 2px 6px;
-    transition: background 0.2s;
-}
-
-.toggle-password:hover {
-    background: #f0f0f0;
-}
-
-/* ETIQUETAS DE ESTADO */
-.tag {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: bold;
-    text-transform: uppercase;
-    display: inline-block;
-}
-
-/* Ciclo Ventas */
-.tag-prospecto { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; } /* Azul */
-.tag-sin_interes { background-color: #eceff1; color: #546e7a; border: 1px solid #cfd8dc; } /* Gris */
-
-/* Ciclo Académico */
-.tag-inscrito { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; } /* Verde */
-.tag-inactivo { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; } /* Naranja (Suspensión) */
-.tag-baja { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; } /* Rojo (Baja Definitiva) */
-
-/* Botones de Acción Específicos */
-.btn-state-gray { background: #78909c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
-.btn-state-blue { background: #42a5f5; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
-.btn-state-orange { background: #ffa726; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
-.btn-state-red { background: #ef5350; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
-.btn-state-green { background: #66bb6a; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+/* --- Utilidades Extra --- */
+.pass-hidden { font-family: monospace; letter-spacing: 2px; color: #999; margin-right: 5px; }
+.toggle-password { background: none; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 12px; padding: 2px 6px; }
+.toggle-password:hover { background: #f0f0f0; }
 
 /* =========================================
-   MEJORAS VISUALES (TOASTS Y ANIMACIONES)
-   ========================================= */
+   8. UI UX: ANIMACIONES, TOASTS, LOADING
+   =========================================
+*/
 
-/* 1. Animaciones de Entrada */
-.content-card {
-    animation: fadeInUp 0.5s ease-out;
+/* Animaciones */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
+/* Efecto cascada en filas de tablas */
 tbody tr {
     animation: slideIn 0.3s ease-out forwards;
     opacity: 0;
 }
-/* Efecto cascada para las filas */
 tbody tr:nth-child(1) { animation-delay: 0.05s; }
 tbody tr:nth-child(2) { animation-delay: 0.1s; }
 tbody tr:nth-child(3) { animation-delay: 0.15s; }
 tbody tr:nth-child(4) { animation-delay: 0.2s; }
 tbody tr:nth-child(5) { animation-delay: 0.25s; }
-/* ... el resto cargará normal */
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+/* Modal de Confirmación */
+#modalConfirm { z-index: 11000; }
+#modalConfirm .modal-content { text-align: center; width: 400px; }
 
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(-10px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* 2. TOASTS (Notificaciones) */
+/* Toasts (Notificaciones) */
 #toast-container {
-    position: fixed;
-    top: 20px; right: 20px;
-    z-index: 9999;
+    position: fixed; top: 20px; right: 20px; z-index: 12000;
     display: flex; flex-direction: column; gap: 10px;
 }
-
 .toast {
-    min-width: 250px;
-    padding: 15px 20px;
-    border-radius: 8px;
-    background: white;
+    min-width: 250px; padding: 15px 20px;
+    border-radius: 8px; background: white;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     display: flex; align-items: center; gap: 10px;
     font-size: 14px; font-weight: 500;
@@ -387,40 +366,20 @@ tbody tr:nth-child(5) { animation-delay: 0.25s; }
     animation: toastEnter 0.4s forwards;
     border-left: 5px solid #ccc;
 }
-
-.toast.success { border-left-color: #2e7d32; color: #1b5e20; }
-.toast.error { border-left-color: #c62828; color: #b71c1c; }
-.toast.info { border-left-color: #0288d1; color: #01579b; }
-
-.toast-icon { font-size: 18px; }
+.toast.success { border-left-color: var(--color-success); color: #1b5e20; }
+.toast.error { border-left-color: var(--color-error); color: #b71c1c; }
+.toast.info { border-left-color: var(--color-info); color: #01579b; }
 
 @keyframes toastEnter { to { opacity: 1; transform: translateX(0); } }
 @keyframes toastExit { to { opacity: 0; transform: translateX(50px); } }
 
-/* 3. MODAL DE CONFIRMACIÓN (Estilo Alerta) */
-#modalConfirm { z-index: 11000; backdrop-filter: blur(2px); }
-#modalConfirm .modal-content { text-align: center; width: 400px; }
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-/* 4. LOADING EN BOTONES */
-.btn-loading {
-    position: relative;
-    color: transparent !important;
-    pointer-events: none;
-}
+/* Botón con estado Loading */
+.btn-loading { position: relative; color: transparent !important; pointer-events: none; }
 .btn-loading::after {
-    content: "";
-    position: absolute;
-    left: 50%; top: 50%;
+    content: ""; position: absolute; left: 50%; top: 50%;
     width: 16px; height: 16px;
-    border: 2px solid white;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    border: 2px solid white; border-top-color: transparent;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
     transform: translate(-50%, -50%);
 }
 @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }

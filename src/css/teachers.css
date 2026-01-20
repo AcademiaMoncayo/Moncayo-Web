@@ -1,33 +1,42 @@
-/* Heredamos estilos base de students */
+/* =========================================
+   ESTILOS GESTIÓN DE MAESTROS
+   =========================================
+   Hereda estilos base de Alumnos y añade componentes
+   específicos para horarios e instrumentos.
+*/
+
 @import url('students.css');
 
-/* --- Estilos específicos de Maestros --- */
+/* =========================================
+   1. FORMULARIOS (SELECCIÓN MÚLTIPLE)
+   =========================================
+*/
 
-/* Contenedor Días (Gris claro, fila simple) */
+/* Contenedor de Días (Checkbox en fila) */
 .days-checkbox-container {
     display: flex;
     gap: 15px;
     background-color: #f8f9fa;
     padding: 10px;
     border-radius: 5px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--color-border);
     margin-bottom: 15px;
     flex-wrap: wrap;
 }
 
-/* NUEVO: Contenedor Instrumentos (Grid de 2 columnas) */
+/* Contenedor de Instrumentos (Grid 2 columnas) */
 .instruments-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* 2 columnas iguales */
-    gap: 8px 15px; /* Espacio vertical y horizontal */
-    background-color: #e3f2fd; /* Azul muy clarito */
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 15px;
+    background-color: #e3f2fd; /* Azul muy claro */
     padding: 12px;
     border-radius: 5px;
     border: 1px solid #90caf9;
     margin-bottom: 15px;
 }
 
-/* Estilo común de labels dentro de los contenedores */
+/* Estilos de los Labels (Textos de los checkbox) */
 .days-checkbox-container label, 
 .instruments-grid label {
     display: flex;
@@ -37,18 +46,25 @@
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;
-    color: #444;
+    color: var(--color-text-main);
 }
 
+/* Checkbox personalizado */
 input[type="checkbox"] {
     width: 16px; 
     height: 16px;
     cursor: pointer;
+    accent-color: var(--color-primary);
 }
 
-/* Badges (Etiquetas de color en la tabla) */
+/* =========================================
+   2. BADGES Y ETIQUETAS VISUALES
+   =========================================
+*/
+
+/* Etiquetas de Instrumentos (Tabla) */
 .badge-instrumento {
-    background-color: #fff3e0; /* Naranja muy suave */
+    background-color: #fff3e0; /* Naranja suave */
     color: #e65100;
     border: 1px solid #ffe0b2;
     padding: 3px 8px;
@@ -60,6 +76,7 @@ input[type="checkbox"] {
     font-weight: bold;
 }
 
+/* Círculos de Días (Lun, Mar, Mie...) */
 .badge-dia {
     background-color: #eee;
     color: #555;
@@ -73,21 +90,16 @@ input[type="checkbox"] {
     font-weight: bold;
     margin-right: 2px;
 }
+
 .badge-dia.active {
     background-color: var(--color-primary);
     color: white;
 }
 
-.toggle-password {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    color: #666;
-    margin-left: 5px;
-}
-
-/* --- ESTADÍSTICAS EN TABLA --- */
+/* =========================================
+   3. ESTADÍSTICAS EN LA TABLA
+   =========================================
+*/
 .stats-container {
     display: flex;
     flex-direction: column;
@@ -105,49 +117,50 @@ input[type="checkbox"] {
     border: 1px solid #eee;
 }
 
-/* Colores para los números */
-.num-fijos { color: #0d47a1; font-weight: bold; }       /* Azul */
-.num-pasadas { color: #388e3c; font-weight: bold; }     /* Verde */
-.num-futuras { color: #f57c00; font-weight: bold; }     /* Naranja */
-
-/* Iconos o etiquetas de texto */
 .stat-label {
-    color: #666;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    color: var(--color-text-muted);
+    display: flex; align-items: center; gap: 5px;
 }
 
+/* Colores para los números */
+.num-fijos { color: #0d47a1; font-weight: bold; }      /* Azul */
+.num-pasadas { color: #388e3c; font-weight: bold; }    /* Verde */
+.num-futuras { color: #f57c00; font-weight: bold; }    /* Naranja */
 
-/* ... (Mantén todo lo anterior) ... */
+/* =========================================
+   4. ACCIONES Y BOTONES ESPECÍFICOS
+   =========================================
+*/
 
-/* Botón Ver Alumnos (Azul Info) */
+/* Botón "Ver Clases" (Ojo/Lista) */
 .btn-view {
-    background-color: #17a2b8;
+    background-color: var(--color-info);
     color: white;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
+    width: 32px; height: 32px;
+    border-radius: var(--border-radius-sm);
     border: none;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     margin-right: 5px;
-    transition: 0.2s;
+    transition: background 0.2s;
 }
-.btn-view:hover {
-    background-color: #138496;
-}
+.btn-view:hover { background-color: #138496; }
 
-/* Estilo para las filas de clases fijas */
+/* =========================================
+   5. MODAL DE DETALLE (CLASES DEL MAESTRO)
+   =========================================
+*/
+
+/* Filas de la tabla interna del modal */
 .row-fija td {
     border-bottom: 1px solid #eee;
     padding: 8px;
-    color: #333;
+    color: var(--color-text-main);
 }
 
-/* Etiquetas pequeñas para el tipo de clase */
+/* Badges de Tipo de Clase (Muestra vs Única) */
 .badge-type {
     padding: 2px 6px;
     border-radius: 4px;
@@ -159,13 +172,13 @@ input[type="checkbox"] {
 .badge-unica { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
 
 /* =========================================
-   MEJORAS VISUALES (TOASTS Y ANIMACIONES)
-   ========================================= */
+   6. UI UX: ANIMACIONES, TOASTS Y MODALES
+   =========================================
+   (Redefinición para asegurar funcionamiento local)
+*/
 
-/* 1. Animaciones de Entrada */
-.content-card {
-    animation: fadeInUp 0.5s ease-out;
-}
+/* Animación de Entrada */
+.content-card { animation: fadeInUp 0.5s ease-out; }
 
 tbody tr {
     animation: slideIn 0.3s ease-out forwards;
@@ -178,70 +191,35 @@ tbody tr:nth-child(3) { animation-delay: 0.15s; }
 tbody tr:nth-child(4) { animation-delay: 0.2s; }
 tbody tr:nth-child(5) { animation-delay: 0.25s; }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(-10px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* 2. TOASTS (Notificaciones) */
-#toast-container {
-    position: fixed;
-    top: 20px; right: 20px;
-    z-index: 9999;
-    display: flex; flex-direction: column; gap: 10px;
-}
-
+/* Toasts */
+#toast-container { position: fixed; top: 20px; right: 20px; z-index: 12000; display: flex; flex-direction: column; gap: 10px; }
 .toast {
-    min-width: 250px;
-    padding: 15px 20px;
-    border-radius: 8px;
-    background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    display: flex; align-items: center; gap: 10px;
-    font-size: 14px; font-weight: 500;
-    opacity: 0; transform: translateX(50px);
-    animation: toastEnter 0.4s forwards;
-    border-left: 5px solid #ccc;
+    min-width: 250px; padding: 15px 20px; border-radius: 8px; background: white;
+    box-shadow: var(--shadow-modal); display: flex; align-items: center; gap: 10px;
+    font-size: 14px; font-weight: 500; opacity: 0; transform: translateX(50px);
+    animation: toastEnter 0.4s forwards; border-left: 5px solid #ccc;
 }
-
-.toast.success { border-left-color: #2e7d32; color: #1b5e20; }
-.toast.error { border-left-color: #c62828; color: #b71c1c; }
-.toast.info { border-left-color: #0288d1; color: #01579b; }
-
-.toast-icon { font-size: 18px; }
+.toast.success { border-left-color: var(--color-success); color: #1b5e20; }
+.toast.error { border-left-color: var(--color-error); color: #b71c1c; }
+.toast.info { border-left-color: var(--color-info); color: #01579b; }
 
 @keyframes toastEnter { to { opacity: 1; transform: translateX(0); } }
 @keyframes toastExit { to { opacity: 0; transform: translateX(50px); } }
 
-/* 3. MODAL DE CONFIRMACIÓN (Estilo Alerta) */
+/* Modal Confirmación */
 #modalConfirm { z-index: 11000; backdrop-filter: blur(2px); }
 #modalConfirm .modal-content { text-align: center; width: 400px; }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-/* 4. LOADING EN BOTONES */
-.btn-loading {
-    position: relative;
-    color: transparent !important;
-    pointer-events: none;
-}
+/* Loading State */
+.btn-loading { position: relative; color: transparent !important; pointer-events: none; }
 .btn-loading::after {
-    content: "";
-    position: absolute;
-    left: 50%; top: 50%;
-    width: 16px; height: 16px;
-    border: 2px solid white;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    content: ""; position: absolute; left: 50%; top: 50%; width: 16px; height: 16px;
+    border: 2px solid white; border-top-color: transparent;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
     transform: translate(-50%, -50%);
 }
 @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
