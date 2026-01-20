@@ -36,7 +36,7 @@ let allPayments = [];
 let currentPage = 1;
 const rowsPerPage = 20;
 
-// --- UTILS UI (TOASTS & CONFIRM) ---
+// --- UTILS UI ---
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     if(!container) return;
@@ -68,7 +68,6 @@ btnCancelConfirm.addEventListener('click', () => {
     confirmCallback = null;
 });
 
-// --- FUNCIÓN AUXILIAR PARA FECHA LOCAL (ARREGLO DE HORA) ---
 function getLocalToday() {
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
@@ -108,8 +107,6 @@ function renderTable() {
     const textoBusqueda = searchInput.value.toLowerCase();
     const filtroPago = filterPayment.value; 
     const filtroEstatus = filterStatus ? filterStatus.value : 'activos'; 
-    
-    // ARREGLO DE FECHA
     const hoy = getLocalToday(); 
     const diaHoy = hoy.getDate(); 
 
@@ -126,20 +123,15 @@ function renderTable() {
         return { ...alumno, estadoPago, periodoActualStr };
     });
 
-    // Filtros
     const listaFiltrada = listaProcesada.filter(alumno => {
         const coincideNombre = alumno.nombre.toLowerCase().includes(textoBusqueda);
-        
         let coincidePago = true;
         if (filtroPago === 'pagado') coincidePago = (alumno.estadoPago === 'pagado');
         if (filtroPago === 'pendiente') coincidePago = (alumno.estadoPago === 'pendiente' || alumno.estadoPago === 'vencido');
-
         let coincideEstatus = true;
         const esBaja = alumno.status !== 'inscrito';
-
         if (filtroEstatus === 'activos') coincideEstatus = !esBaja;
         else if (filtroEstatus === 'bajas') coincideEstatus = esBaja;
-
         return coincideNombre && coincidePago && coincideEstatus;
     });
 
@@ -159,33 +151,22 @@ function renderTable() {
     alumnosPagina.forEach(alumno => {
         const fila = document.createElement('tr');
         const esBaja = alumno.status !== 'inscrito';
-        
         if (esBaja) fila.style.backgroundColor = '#f9f9f9'; 
 
         let htmlEstadoPago = '';
         if (esBaja) {
             htmlEstadoPago = `<span style="color:#999; font-size:12px;">—</span>`; 
         } else {
-            if (alumno.estadoPago === 'pagado') {
-                htmlEstadoPago = `<span class="tag-pago pago-pagado">✅ PAGADO</span>`;
-            } else if (alumno.estadoPago === 'vencido') {
-                htmlEstadoPago = `<span class="tag-pago pago-vencido">⚠️ VENCIDO (Día ${alumno.diaCorte})</span>`;
-            } else {
-                htmlEstadoPago = `<span class="tag-pago pago-pendiente">⏳ PENDIENTE (Día ${alumno.diaCorte})</span>`;
-            }
+            if (alumno.estadoPago === 'pagado') htmlEstadoPago = `<span class="tag-pago pago-pagado">✅ PAGADO</span>`;
+            else if (alumno.estadoPago === 'vencido') htmlEstadoPago = `<span class="tag-pago pago-vencido">⚠️ VENCIDO (Día ${alumno.diaCorte})</span>`;
+            else htmlEstadoPago = `<span class="tag-pago pago-pendiente">⏳ PENDIENTE (Día ${alumno.diaCorte})</span>`;
         }
 
-        let htmlStatusAlumno = esBaja 
-            ? `<span class="tag" style="background:#ffebee; color:#c62828; border:1px solid #ffcdd2;">BAJA</span>`
-            : `<span class="tag tag-inscrito">ACTIVO</span>`;
-
+        let htmlStatusAlumno = esBaja ? `<span class="tag" style="background:#ffebee; color:#c62828; border:1px solid #ffcdd2;">BAJA</span>` : `<span class="tag tag-inscrito">ACTIVO</span>`;
         const costo = alumno.costoMensual ? `$${alumno.costoMensual}` : '$0';
         
         fila.innerHTML = `
-            <td>
-                <strong>${alumno.nombre}</strong>
-                ${esBaja ? '<br><small style="color:red;">(Inactivo)</small>' : ''}
-            </td>
+            <td><strong>${alumno.nombre}</strong>${esBaja ? '<br><small style="color:red;">(Inactivo)</small>' : ''}</td>
             <td>${alumno.nombreTutor || '-'}</td>
             <td style="text-align:center;">${alumno.requiereFactura ? '✅' : 'No'}</td>
             <td style="font-weight:bold; color:#2c3e50;">${costo}</td>
@@ -195,16 +176,7 @@ function renderTable() {
             <td>
                 <div style="display:flex; gap:5px;">
                     <button class="btn-history" data-id="${alumno.id}" title="Ver Historial">📜</button>
-                    ${!esBaja ? 
-                        `<button class="btn-cobrar" 
-                            data-id="${alumno.id}" 
-                            data-nombre="${alumno.nombre}" 
-                            data-costo="${alumno.costoMensual}"
-                            data-inicio="${alumno.fechaInicioClases}">
-                            💲
-                        </button>` 
-                        : '' 
-                    }
+                    ${!esBaja ? `<button class="btn-cobrar" data-id="${alumno.id}" data-nombre="${alumno.nombre}" data-costo="${alumno.costoMensual}" data-inicio="${alumno.fechaInicioClases}">💲</button>` : ''}
                 </div>
             </td>
         `;
@@ -223,7 +195,6 @@ function asignarListenersTabla() {
             abrirModalPago(d.id, d.nombre, d.costo, d.inicio);
         });
     });
-
     document.querySelectorAll('.btn-history').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.currentTarget.dataset.id;
@@ -233,23 +204,16 @@ function asignarListenersTabla() {
     });
 }
 
+// 5. MODAL PAGO & GUARDAR
 function abrirModalPago(id, nombre, costo, fechaInicioStr) {
     document.getElementById('pagoStudentId').value = id;
     document.getElementById('pagoNombreTexto').value = nombre;
     document.getElementById('pagoAlumnoNombre').value = nombre;
     document.getElementById('pagoMontoBase').value = `$${costo}`;
     document.getElementById('pagoMontoReal').value = costo;
+    document.getElementById('pagoFecha').value = getLocalToday().toISOString().split('T')[0];
     
-    // FECHA CORRECTA
-    const hoyLocal = getLocalToday();
-    document.getElementById('pagoFecha').value = hoyLocal.toISOString().split('T')[0];
-    
-    selectPeriodo.innerHTML = '<option>Cargando periodos...</option>';
-    modalPago.classList.remove('hidden');
-
     selectPeriodo.innerHTML = '<option value="">-- Selecciona Periodo --</option>';
-    
-    // Cálculo de periodos
     let fechaIteracion = fechaInicioStr ? new Date(fechaInicioStr + 'T12:00:00') : new Date();
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -257,11 +221,9 @@ function abrirModalPago(id, nombre, costo, fechaInicioStr) {
         let inicio = new Date(fechaIteracion);
         let fin = new Date(fechaIteracion);
         fin.setMonth(fin.getMonth() + 1);
-
         const strInicio = `${inicio.getDate()} ${meses[inicio.getMonth()]} ${inicio.getFullYear()}`;
         const strFin = `${fin.getDate()} ${meses[fin.getMonth()]} ${fin.getFullYear()}`;
         const valorPeriodo = `${strInicio} - ${strFin}`;
-
         const yaPagado = allPayments.some(p => p.studentId === id && p.periodo === valorPeriodo);
 
         const option = document.createElement('option');
@@ -275,9 +237,9 @@ function abrirModalPago(id, nombre, costo, fechaInicioStr) {
         selectPeriodo.add(option);
         fechaIteracion.setMonth(fechaIteracion.getMonth() + 1);
     }
+    modalPago.classList.remove('hidden');
 }
 
-// 5. GUARDAR PAGO
 formPago.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btnSubmit = formPago.querySelector('button[type="submit"]');
@@ -298,19 +260,14 @@ formPago.addEventListener('submit', async (e) => {
     try {
         await addDoc(collection(db, "payments"), data);
         await addDoc(collection(db, "finance"), { ...data, concepto: `Mensualidad: ${data.nombreAlumno}` });
-
         showToast("Pago registrado exitosamente", "success");
         modalPago.classList.add('hidden');
         loadFinanceData();
-    } catch (e) { 
-        console.error(e); 
-        showToast("Error al guardar pago", "error"); 
-    } finally {
-        btnSubmit.classList.remove('btn-loading');
-    }
+    } catch (e) { console.error(e); showToast("Error al guardar pago", "error"); }
+    finally { btnSubmit.classList.remove('btn-loading'); }
 });
 
-// 6. HISTORIAL
+// 6. HISTORIAL Y RECIBO PROFESIONAL
 function abrirHistorial(alumno) {
     document.getElementById('historialAlumnoNombre').textContent = alumno.nombre;
     const emailT = alumno.emailTutor || 'Sin correo';
@@ -333,7 +290,7 @@ function abrirHistorial(alumno) {
                 <td>$${pago.monto}</td>
                 <td>${pago.metodo}</td>
                 <td>
-                    <button class="btn-action-small btn-email-pago" onclick="enviarRecibo('${alumno.emailTutor}', '${pago.periodo}', ${pago.monto})">✉</button>
+                    <button class="btn-action-small btn-email-pago" title="Enviar/Generar Recibo" onclick="prepararRecibo('${pago.id}')">📧</button>
                     <button class="btn-action-small btn-edit-pago" onclick="editarPago('${pago.id}', ${pago.monto})">✏️</button>
                     <button class="btn-action-small btn-delete-pago" onclick="eliminarPago('${pago.id}')">🗑️</button>
                 </td>
@@ -342,6 +299,130 @@ function abrirHistorial(alumno) {
         });
     }
     modalHistorial.classList.remove('hidden');
+}
+
+// === GENERADOR DE RECIBOS ===
+window.prepararRecibo = (idPago) => {
+    const pago = allPayments.find(p => p.id === idPago);
+    if(!pago) return;
+    
+    // Buscar datos del alumno (si necesitamos el correo)
+    const alumno = allStudents.find(s => s.id === pago.studentId);
+    const email = alumno ? alumno.emailTutor : '';
+
+    showConfirm("Generar Recibo", "¿Qué deseas hacer con este recibo?", () => {
+        // Esta función se ejecuta si da "Sí" (que configuraremos como Imprimir)
+        imprimirRecibo(pago, alumno);
+    });
+
+    // Modificamos el modal al vuelo para ofrecer dos opciones
+    // Como el modal de confirmación solo tiene 2 botones, usaremos un truco:
+    // Cancelar -> Enviar Correo (Mailto)
+    // Aceptar -> Imprimir PDF
+    
+    // (O mejor, usamos botones directos en el toast si fuera más complejo, 
+    // pero aquí simplemente llamaremos a la función de imprimir y luego preguntaremos si quiere enviar mail).
+    
+    // Mejor flujo:
+    // 1. Abrir vista de impresión (PDF).
+    // 2. Ofrecer abrir correo.
+    imprimirRecibo(pago, alumno);
+    
+    setTimeout(() => {
+        if(confirm("¿Quieres abrir el correo para adjuntar el PDF?")) {
+            abrirClienteCorreo(email, pago);
+        }
+    }, 1000);
+};
+
+function imprimirRecibo(pago, alumno) {
+    const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    
+    // Diseño del Recibo HTML
+    const reciboHTML = `
+        <html>
+        <head>
+            <title>Recibo #${pago.id.slice(0,6)}</title>
+            <style>
+                body { font-family: 'Helvetica', sans-serif; padding: 40px; color: #333; max-width: 800px; margin: 0 auto; }
+                .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #2c3e50; padding-bottom: 20px; }
+                .logo { font-size: 28px; font-weight: bold; color: #2c3e50; text-transform: uppercase; letter-spacing: 2px; }
+                .sub-logo { font-size: 14px; color: #666; margin-top: 5px; }
+                .info-box { display: flex; justify-content: space-between; margin-bottom: 30px; }
+                .info-group h4 { margin: 0 0 5px 0; color: #555; font-size: 12px; text-transform: uppercase; }
+                .info-group p { margin: 0; font-size: 16px; font-weight: 500; }
+                .concept-box { background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 30px; }
+                .concept-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; }
+                .total-row { display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; color: #2c3e50; border-top: 1px solid #ddd; padding-top: 15px; margin-top: 15px; }
+                .footer { text-align: center; font-size: 12px; color: #888; margin-top: 50px; }
+                .stamp { border: 2px solid #28a745; color: #28a745; display: inline-block; padding: 5px 15px; border-radius: 4px; font-weight: bold; letter-spacing: 1px; transform: rotate(-5deg); margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="logo">Academia Moncayo</div>
+                <div class="sub-logo">Música & Arte • Recibo de Pago</div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-group">
+                    <h4>Alumno</h4>
+                    <p>${pago.nombreAlumno}</p>
+                </div>
+                <div class="info-group" style="text-align:right;">
+                    <h4>Fecha de Emisión</h4>
+                    <p>${fecha}</p>
+                    <div style="font-size:12px; color:#999; margin-top:5px;">Folio: ${pago.id.slice(0,8).toUpperCase()}</div>
+                </div>
+            </div>
+
+            <div class="concept-box">
+                <div class="concept-row">
+                    <span>Concepto</span>
+                    <span>${pago.concepto || 'Mensualidad'}</span>
+                </div>
+                <div class="concept-row">
+                    <span>Periodo</span>
+                    <span>${pago.periodo}</span>
+                </div>
+                <div class="concept-row">
+                    <span>Método de Pago</span>
+                    <span>${pago.metodo}</span>
+                </div>
+                <div class="total-row">
+                    <span>TOTAL PAGADO</span>
+                    <span>$${Number(pago.monto).toLocaleString('es-MX', {minimumFractionDigits: 2})}</span>
+                </div>
+                <div style="text-align:center;">
+                    <div class="stamp">PAGADO</div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>Gracias por tu pago puntual. Este documento sirve como comprobante oficial.</p>
+                <p>Academia Moncayo | Guadalajara, Jalisco | Tel: 33 1234 5678</p>
+            </div>
+            
+            <script>window.print();</script>
+        </body>
+        </html>
+    `;
+
+    // Abrir ventana popup
+    const ventana = window.open('', '_blank', 'width=900,height=800');
+    ventana.document.write(reciboHTML);
+    ventana.document.close();
+}
+
+function abrirClienteCorreo(email, pago) {
+    if(!email) {
+        showToast("El alumno no tiene correo registrado", "info");
+        return;
+    }
+    const subject = `Recibo de Pago - Academia Moncayo (${pago.periodo})`;
+    const body = `Hola,\n\nAdjunto encontrarás el comprobante de pago correspondiente al periodo: ${pago.periodo}.\n\nMonto: $${pago.monto}\n\nGracias por tu preferencia.\n\nAtte.\nAdministración Academia Moncayo`;
+    
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 // GLOBALES
@@ -369,27 +450,23 @@ window.editarPago = async (idPago, montoActual) => {
 };
 
 window.enviarRecibo = (email, periodo, monto) => {
-    if(!email || email === 'undefined') { showToast("Sin correo registrado", "error"); return; }
-    showConfirm("Enviar Recibo", `¿Enviar recibo de ${periodo} a ${email}?`, () => {
-        showToast("📧 Recibo enviado (Simulación)", "success");
-    });
+    // Esta función se mantiene por compatibilidad, pero la lógica fuerte está en prepararRecibo
+    const pagoSimulado = { id: 'TEMP', periodo, monto };
+    abrirClienteCorreo(email, pagoSimulado);
 };
 
 // UTILIDADES: CALCULO DE PERIODO
 function calcularPeriodoActual(fechaInicioStr) {
     if (!fechaInicioStr) return "";
-    
     const hoyLocal = getLocalToday();
     const inicio = new Date(fechaInicioStr + 'T12:00:00');
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     
     let fechaIter = new Date(inicio);
     let seguridad = 0; 
-    
     while(seguridad < 60) {
         let finIter = new Date(fechaIter);
         finIter.setMonth(finIter.getMonth() + 1);
-        
         if (hoyLocal >= fechaIter && hoyLocal < finIter) {
             const sInicio = `${fechaIter.getDate()} ${meses[fechaIter.getMonth()]} ${fechaIter.getFullYear()}`;
             const sFin = `${finIter.getDate()} ${meses[finIter.getMonth()]} ${finIter.getFullYear()}`;
@@ -420,13 +497,7 @@ document.getElementById('btnCerrarHistorial').addEventListener('click', () => mo
 
 searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
 filterPayment.addEventListener('change', () => { currentPage = 1; renderTable(); });
-
-if(filterStatus) {
-    filterStatus.addEventListener('change', () => { 
-        currentPage = 1; 
-        renderTable(); 
-    });
-}
+if(filterStatus) filterStatus.addEventListener('change', () => { currentPage = 1; renderTable(); });
 
 if(btnPrevPage) btnPrevPage.addEventListener('click', () => { if(currentPage>1) currentPage--; renderTable(); });
 if(btnNextPage) btnNextPage.addEventListener('click', () => { currentPage++; renderTable(); });
@@ -442,10 +513,8 @@ if(btnOpenReport) {
     btnOpenReport.addEventListener('click', () => {
         const hoy = getLocalToday();
         const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-        
         if(inputInicio) inputInicio.value = primerDia.toISOString().split('T')[0];
         if(inputFin) inputFin.value = hoy.toISOString().split('T')[0];
-        
         if(divFiltros) divFiltros.classList.remove('hidden');
         if(divResultados) divResultados.classList.add('hidden');
         if(modalReporte) modalReporte.classList.remove('hidden');
@@ -461,10 +530,7 @@ if(btnGenerarReporte) {
         const fechaInicio = inputInicio.value;
         const fechaFin = inputFin.value;
         if(!fechaInicio || !fechaFin) { showToast("Selecciona fechas", "error"); return; }
-        
-        const pagosFiltrados = allPayments.filter(pago => {
-            return pago.fechaPago >= fechaInicio && pago.fechaPago <= fechaFin;
-        });
+        const pagosFiltrados = allPayments.filter(pago => pago.fechaPago >= fechaInicio && pago.fechaPago <= fechaFin);
         if (pagosFiltrados.length === 0) { showToast("No hay pagos en este rango", "info"); return; }
         procesarDatosReporte(pagosFiltrados);
     });
