@@ -176,3 +176,215 @@
 }
 .mov-in { background: #c8e6c9; color: #2e7d32; border: 1px solid #a5d6a7; }
 .mov-out { background: #ffccbc; color: #bf360c; border: 1px solid #ffab91; }
+
+/* Heredamos estilos base */
+@import url('dashboard.css');
+
+/* =========================================
+   ESTILOS ESPECÍFICOS DE ALMACÉN
+   ========================================= */
+
+/* Etiquetas de Stock */
+.stock-tag {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+    min-width: 30px;
+    text-align: center;
+}
+.stock-ok { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.stock-low { background-color: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
+.stock-out { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
+/* Etiquetas de Categoría */
+.cat-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: #f0f4c3;
+    color: #827717;
+    border: 1px solid #e6ee9c;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+/* Columnas de Dinero */
+.price-col { font-family: monospace; font-weight: 600; color: #555; }
+.total-col { font-weight: bold; color: #1565c0; }
+
+/* Botón Rápido (+) */
+.stock-cell-container { display: flex; align-items: center; justify-content: center; gap: 5px; }
+
+.btn-quick-add {
+    background-color: #4caf50;
+    color: white;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.1s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.btn-quick-add:hover { background-color: #388e3c; transform: scale(1.1); }
+
+/* Carrito de Salida */
+.add-to-cart-box {
+    display: flex; gap: 10px; margin-bottom: 15px;
+    background: #f5f5f5; padding: 10px; border-radius: 6px;
+}
+.cart-summary {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #e3f2fd; padding: 10px 15px; border-radius: 6px;
+    margin-top: 10px; border: 1px solid #bbdefb;
+    font-weight: bold; color: #0d47a1;
+}
+.btn-del-row {
+    background: none; border: none; color: #d32f2f;
+    cursor: pointer; font-weight: bold; font-size: 16px;
+}
+
+/* =========================================
+   ANIMACIONES, TOASTS Y MODALES (COMUNES)
+   ========================================= */
+
+/* 1. Animaciones de Entrada */
+.content-card { animation: fadeInUp 0.5s ease-out; }
+
+tbody tr {
+    animation: slideIn 0.3s ease-out forwards;
+    opacity: 0;
+}
+tbody tr:nth-child(1) { animation-delay: 0.05s; }
+tbody tr:nth-child(2) { animation-delay: 0.1s; }
+tbody tr:nth-child(3) { animation-delay: 0.15s; }
+tbody tr:nth-child(4) { animation-delay: 0.2s; }
+tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+/* 2. TOASTS */
+#toast-container {
+    position: fixed; top: 20px; right: 20px; z-index: 12000;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.toast {
+    min-width: 250px; padding: 15px 20px; border-radius: 8px;
+    background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; font-weight: 500;
+    opacity: 0; transform: translateX(50px);
+    animation: toastEnter 0.4s forwards;
+    border-left: 5px solid #ccc;
+}
+.toast.success { border-left-color: #2e7d32; color: #1b5e20; }
+.toast.error { border-left-color: #c62828; color: #b71c1c; }
+.toast.info { border-left-color: #0288d1; color: #01579b; }
+.toast-icon { font-size: 18px; }
+
+@keyframes toastEnter { to { opacity: 1; transform: translateX(0); } }
+@keyframes toastExit { to { opacity: 0; transform: translateX(50px); } }
+
+/* 3. MODAL CONFIRMACIÓN */
+#modalConfirm { z-index: 11000; backdrop-filter: blur(2px); }
+#modalConfirm .modal-content { text-align: center; width: 400px; }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* 4. LOADING EN BOTONES */
+.btn-loading { position: relative; color: transparent !important; pointer-events: none; }
+.btn-loading::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 16px; height: 16px;
+    border: 2px solid white; border-top-color: transparent;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+    transform: translate(-50%, -50%);
+}
+@keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* =========================================
+   ESTILOS DE IMPRESIÓN (REPORTE)
+   ========================================= */
+@media print {
+    /* 1. Ocultar todo lo que no sea el reporte */
+    body * {
+        visibility: hidden;
+    }
+
+    /* 2. Hacer visible solo el contenido del modal de historial */
+    #modalHistory, #modalHistory * {
+        visibility: visible;
+    }
+
+    /* 3. Posicionar el modal como el documento principal */
+    #modalHistory {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: auto;
+        background: white !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        overflow: visible !important; /* Permitir que la tabla se expanda en varias hojas */
+    }
+
+    .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* 4. Ocultar botones y controles de filtro dentro del reporte */
+    #btnCloseHistory, 
+    #btnFilterHistory, 
+    .toolbar button, 
+    .btn-secondary, /* Botón imprimir */
+    input, select { 
+        display: none !important; 
+    }
+
+    /* 5. Mostrar los valores de los inputs como texto (para saber qué fechas se filtraron) */
+    .toolbar {
+        border: none !important;
+        margin-bottom: 20px !important;
+    }
+    .toolbar::after {
+        content: "Reporte de Movimientos de Inventario";
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    /* 6. Ajustar la tabla para papel */
+    .table-container {
+        max-height: none !important; /* Quitar scroll */
+        overflow: visible !important;
+    }
+    
+    table {
+        border: 1px solid #ddd !important;
+        width: 100% !important;
+    }
+    
+    th {
+        background-color: #eee !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact; /* Forzar color de fondo */
+    }
+
+    /* 7. Ajustar el resumen final */
+    .cart-summary {
+        border: 1px solid #000 !important;
+        background: none !important;
+        margin-top: 30px !important;
+    }
+}

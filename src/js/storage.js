@@ -10,10 +10,10 @@ const filterCategory = document.getElementById('filterCategory');
 const totalInventoryValue = document.getElementById('totalInventoryValue');
 
 // Modales
-const modalContainer = document.getElementById('modalContainer'); // Nuevo/Editar
-const modalRestock = document.getElementById('modalRestock');     // Stock Rápido
-const modalSalida = document.getElementById('modalSalida');       // Salida/Carrito
-const modalHistory = document.getElementById('modalHistory');     // Historial
+const modalContainer = document.getElementById('modalContainer'); 
+const modalRestock = document.getElementById('modalRestock');     
+const modalSalida = document.getElementById('modalSalida');       
+const modalHistory = document.getElementById('modalHistory');     
 
 // Body Tablas
 const historyBody = document.getElementById('historyBody');
@@ -28,7 +28,7 @@ const prodCantidad = document.getElementById('prodCantidad');
 const prodPrecio = document.getElementById('prodPrecio');
 const calcTotal = document.getElementById('calcTotal');
 
-// Inputs Salida (Carrito)
+// Inputs Salida
 const inputProdOut = document.getElementById('inputProdOut');
 const listProductsOut = document.getElementById('listProductsOut');
 const idProdOut = document.getElementById('idProdOut');
@@ -53,13 +53,53 @@ const btnPrevPage = document.getElementById('btnPrevPage');
 const btnNextPage = document.getElementById('btnNextPage');
 const pageIndicator = document.getElementById('pageIndicator');
 
+// CONFIRMACIÓN CUSTOM
+const modalConfirm = document.getElementById('modalConfirm');
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmMessage = document.getElementById('confirmMessage');
+const btnOkConfirm = document.getElementById('btnOkConfirm');
+const btnCancelConfirm = document.getElementById('btnCancelConfirm');
+let confirmCallback = null;
+
 // VARIABLES GLOBALES
 let allProducts = []; 
 let currentCart = []; 
 let currentPage = 1;
 const rowsPerPage = 20;
 
-// --- FUNCIÓN AUXILIAR PARA FECHA LOCAL (CORRECCIÓN ZONA HORARIA) ---
+// --- UTILS UI (TOASTS & CONFIRM) ---
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if(!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+    toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'toastExit 0.4s forwards';
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+function showConfirm(title, msg, callback) {
+    confirmTitle.textContent = title;
+    confirmMessage.textContent = msg;
+    confirmCallback = callback;
+    modalConfirm.classList.remove('hidden');
+}
+
+btnOkConfirm.addEventListener('click', () => {
+    if(confirmCallback) confirmCallback();
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
+btnCancelConfirm.addEventListener('click', () => {
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
+
+// --- FECHA LOCAL ---
 function getLocalDateString(dateObj = new Date()) {
     const offset = dateObj.getTimezoneOffset() * 60000; 
     const localDate = new Date(dateObj - offset);
@@ -87,6 +127,7 @@ async function loadInventory() {
         updateDatalist(); 
     } catch (error) {
         console.error("Error:", error);
+        showToast("Error de conexión", "error");
         tableBody.innerHTML = '<tr><td colspan="7">Error de conexión.</td></tr>';
     }
 }
@@ -191,14 +232,18 @@ function asignarEventos() {
             abrirModalRestock(prod);
         });
     });
+    
+    // ELIMINAR (CON CONFIRMACIÓN)
     document.querySelectorAll('.btn-archive').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            if(confirm("¿Eliminar este producto?")) {
+            const id = e.currentTarget.dataset.id;
+            showConfirm("Eliminar Producto", "¿Estás seguro? Se perderá el historial de este item.", async () => {
                 try { 
-                    await deleteDoc(doc(db, "inventory", e.currentTarget.dataset.id)); 
+                    await deleteDoc(doc(db, "inventory", id)); 
                     loadInventory(); 
-                } catch(err) { alert("Error al eliminar"); }
-            }
+                    showToast("Producto eliminado", "info");
+                } catch(err) { showToast("Error al eliminar", "error"); }
+            });
         });
     });
 }
@@ -216,22 +261,21 @@ btnAddToCart.addEventListener('click', (e) => {
     const id = idProdOut.value;
     const qty = Number(qtyProdOut.value);
 
-    if (!id || qty <= 0) { alert("Selecciona producto válido."); return; }
+    if (!id || qty <= 0) { showToast("Selecciona producto válido", "error"); return; }
 
     const productoReal = allProducts.find(p => p.id === id);
     if (productoReal.cantidad < qty) {
-        alert(`❌ Error: Solo hay ${productoReal.cantidad} disponibles.`);
+        showToast(`❌ Solo hay ${productoReal.cantidad} disponibles`, "error");
         return;
     }
 
     const existente = currentCart.find(item => item.id === id);
     if (existente) {
         if (productoReal.cantidad < (existente.qty + qty)) {
-            alert("❌ No hay suficiente stock total.");
+            showToast("❌ Stock insuficiente en total", "error");
             return;
         }
         existente.qty += qty;
-        // CORRECCIÓN: variable 'existent' no existía, debe ser 'existente'
         existente.subtotal = existente.qty * productoReal.precio;
     } else {
         currentCart.push({
@@ -283,8 +327,12 @@ window.removeCartItem = (index) => {
 };
 
 btnConfirmOutput.addEventListener('click', async () => {
-    if (currentCart.length === 0) { alert("Carrito vacío."); return; }
+    if (currentCart.length === 0) { showToast("Carrito vacío", "error"); return; }
     
+    // Feedback visual
+    btnConfirmOutput.textContent = "Procesando...";
+    btnConfirmOutput.classList.add('btn-loading');
+
     const motivo = document.getElementById('salidaMotivo').value;
     const referencia = document.getElementById('salidaRef').value;
 
@@ -310,7 +358,7 @@ btnConfirmOutput.addEventListener('click', async () => {
                 date: new Date()
             });
         }
-        alert("✅ Salida registrada.");
+        showToast("Salida registrada correctamente", "success");
         modalSalida.classList.add('hidden');
         currentCart = [];
         renderCart();
@@ -318,7 +366,10 @@ btnConfirmOutput.addEventListener('click', async () => {
         document.getElementById('salidaRef').value = "";
     } catch (error) {
         console.error(error);
-        alert("Error al procesar salida.");
+        showToast("Error al procesar salida", "error");
+    } finally {
+        btnConfirmOutput.textContent = "Confirmar Salida";
+        btnConfirmOutput.classList.remove('btn-loading');
     }
 });
 
@@ -333,6 +384,9 @@ function abrirModalRestock(prod) {
 
 formRestock.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const btnSubmit = formRestock.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
     const id = document.getElementById('restockId').value;
     const agregar = Number(document.getElementById('restockQty').value);
     
@@ -356,8 +410,13 @@ formRestock.addEventListener('submit', async (e) => {
 
         modalRestock.classList.add('hidden');
         loadInventory();
-        alert("Stock agregado.");
-    } catch (error) { console.error(error); alert("Error."); }
+        showToast("Stock agregado", "success");
+    } catch (error) { 
+        console.error(error); 
+        showToast("Error", "error"); 
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
 });
 
 function calcularTotalModal() {
@@ -390,6 +449,9 @@ function abrirModal(prod = null) {
 
 formProduct.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const btnSubmit = formProduct.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
     const id = document.getElementById('editId').value;
     const data = {
         nombre: document.getElementById('prodNombre').value.trim(),
@@ -405,8 +467,13 @@ formProduct.addEventListener('submit', async (e) => {
         else await addDoc(collection(db, "inventory"), data);
         modalContainer.classList.add('hidden');
         loadInventory();
-        alert("Guardado correctamente.");
-    } catch (error) { console.error(error); alert("Error al guardar."); }
+        showToast("Guardado correctamente", "success");
+    } catch (error) { 
+        console.error(error); 
+        showToast("Error al guardar", "error"); 
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
 });
 
 // 6. HISTORIAL DE MOVIMIENTOS
@@ -515,13 +582,35 @@ document.getElementById('btnOpenHistory').addEventListener('click', () => {
     loadHistory();
 });
 
-// Botones Cierre Modales
+
+
+// GENERAR REPORTE (IMPRIMIR)
+const btnPrintReport = document.getElementById('btnPrintReport');
+if(btnPrintReport) {
+    btnPrintReport.addEventListener('click', () => {
+        // 1. Validar que haya datos
+        if (document.getElementById('historyBody').children.length === 0) {
+            showToast("No hay datos para generar reporte", "error");
+            return;
+        }
+
+        // 2. Cambiar título temporalmente (para el nombre del archivo PDF)
+        const originalTitle = document.title;
+        const fechaHoy = new Date().toISOString().split('T')[0];
+        document.title = `Reporte_Inventario_${fechaHoy}`;
+
+        // 3. Imprimir
+        window.print();
+
+        // 4. Restaurar título
+        document.title = originalTitle;
+    });
+}
 document.getElementById('btnCloseModal').addEventListener('click', () => modalContainer.classList.add('hidden'));
 document.getElementById('btnCloseSalida').addEventListener('click', () => modalSalida.classList.add('hidden'));
 document.getElementById('btnCloseRestock').addEventListener('click', () => modalRestock.classList.add('hidden'));
 document.getElementById('btnCloseHistory').addEventListener('click', () => modalHistory.classList.add('hidden'));
 
-// Filtros
 searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
 filterStock.addEventListener('change', () => { currentPage = 1; renderTable(); });
 if(filterCategory) filterCategory.addEventListener('change', () => { currentPage = 1; renderTable(); });
