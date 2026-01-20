@@ -48,17 +48,17 @@
 
             <div class="table-container">
                 <table>
-<thead>
-    <tr>
-        <th>Nombre</th>
-        <th>Usuario / Acceso</th>
-        <th>Especialidad</th>
-        <th>Días</th>
-        <th style="min-width: 180px;">Estadísticas de Clases</th>
-        <th>Estado</th>
-        <th>Acciones</th>
-    </tr>
-</thead>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Usuario / Acceso</th>
+                            <th>Especialidad</th>
+                            <th>Días</th>
+                            <th style="min-width: 180px;">Estadísticas de Clases</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
                 <p id="noResults" class="hidden" style="text-align:center; padding: 20px; color:#666;">No se encontraron maestros.</p>
@@ -73,7 +73,8 @@
     </main>
 
     <div id="modalContainer" class="modal-overlay hidden">
-        <div class="modal-content" style="width: 550px;"> <div class="modal-header">
+        <div class="modal-content" style="width: 550px;"> 
+            <div class="modal-header">
                 <h3>Nuevo Maestro</h3>
                 <span id="btnCloseModal" class="close-btn">&times;</span>
             </div>
@@ -214,6 +215,7 @@
                         </tbody>
                 </table>
             </div>
+            
             <div class="pagination-controls" style="margin-top: 10px; margin-bottom: 20px; justify-content: center;">
                 <button id="btnModalPrev" disabled>❮ Anterior</button>
                 <span id="lblModalPage" style="font-size: 13px; font-weight: bold; margin: 0 10px;">Página 1</span>
@@ -225,13 +227,8 @@
             </div>
         </div>
     </div>
-            <div style="text-align: right; margin-top: 20px;">
-                <button class="btn-save" id="btnCerrarDetalle" style="width: auto; background:#6c757d;">Cerrar</button>
-            </div>
-        </div>
-    </div>
 
-<div id="modalConfirm" class="modal-overlay hidden">
+    <div id="modalConfirm" class="modal-overlay hidden">
         <div class="modal-content">
             <div style="font-size: 50px; margin-bottom: 15px; animation: bounce 1s infinite;">⚠️</div>
             <h3 id="confirmTitle" style="margin: 0; color: #333;">¿Estás seguro?</h3>
@@ -244,31 +241,42 @@
         </div>
     </div>
 
-    <div id="modalCredenciales" class="modal-overlay hidden">
-        <div class="modal-content" style="width: 400px; text-align: center;">
-            <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
-            <h3 style="margin: 0 0 5px 0; color: #333;">Datos de Acceso</h3>
-            <p style="color: #666; font-size: 13px; margin-bottom: 20px;">Credenciales para la App Móvil</p>
+    <div id="modalCredenciales" class="modal-overlay hidden" style="backdrop-filter: blur(5px);">
+        <div class="modal-content" style="background: transparent; box-shadow: none; padding: 0; width: 400px;">
             
-            <div class="cred-card">
-                <div class="cred-row">
-                    <div>
-                        <span class="cred-label">Usuario</span>
-                        <span id="viewUser" class="cred-value">usuario.ejemplo</span>
-                    </div>
-                    <button class="btn-copy" onclick="copiarTexto('viewUser')" title="Copiar Usuario">📋</button>
+            <div class="access-card">
+                <div class="card-header">
+                    <span class="brand-name">Academia Moncayo</span>
+                    <span class="card-chip">🎹</span>
                 </div>
 
-                <div class="cred-row">
-                    <div>
-                        <span class="cred-label">Contraseña</span>
-                        <span id="viewPass" class="cred-value">******</span>
+                <div class="field-group">
+                    <span class="field-label">Usuario / ID Docente</span>
+                    <div class="field-value-box">
+                        <span id="viewUser" class="field-value">usuario.profe</span>
+                        <button class="btn-copy-icon" onclick="copiarTexto('viewUser')" title="Copiar Usuario">📋</button>
                     </div>
-                    <button class="btn-copy" onclick="copiarTexto('viewPass')" title="Copiar Contraseña">📋</button>
+                </div>
+
+                <div class="field-group">
+                    <span class="field-label">Contraseña de Acceso</span>
+                    <div class="field-value-box">
+                        <span id="viewPass" class="field-value">••••••</span>
+                        <button class="btn-copy-icon" onclick="copiarTexto('viewPass')" title="Copiar Contraseña">📋</button>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px; font-size: 10px; opacity: 0.5; letter-spacing: 1px;">
+                    ACCESO DOCENTE AUTORIZADO
                 </div>
             </div>
 
-            <button class="btn-save" onclick="document.getElementById('modalCredenciales').classList.add('hidden')" style="background-color: #6c757d;">Cerrar</button>
+            <div style="text-align: center;">
+                <button class="btn-close-card" onclick="document.getElementById('modalCredenciales').classList.add('hidden')">
+                    Cerrar
+                </button>
+            </div>
+
         </div>
     </div>
 

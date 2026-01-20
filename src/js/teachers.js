@@ -11,6 +11,7 @@ const filterStatus = document.getElementById('filterStatus');
 const modalContainer = document.getElementById('modalContainer'); 
 const modalEditar = document.getElementById('modalEditar'); 
 const modalAlumnos = document.getElementById('modalAlumnos');
+const modalCredenciales = document.getElementById('modalCredenciales'); // NUEVO
 
 const formTeacher = document.getElementById('formTeacher');
 const formEditar = document.getElementById('formEditar');
@@ -169,9 +170,15 @@ function renderTable() {
             </div>
         `;
 
+        // CAMBIO AQUÍ: Botón con data attributes para abrir modal
         const passwordDisplay = `
             <span class="pass-hidden">••••••</span>
-            <button class="toggle-password" onclick="alert('Usuario: ${maestro.usuario}\\nContraseña: ${maestro.password}')">👁️</button>
+            <button class="toggle-password btn-show-creds" 
+                data-user="${maestro.usuario}" 
+                data-pass="${maestro.password}" 
+                title="Ver Credenciales">
+                👁️
+            </button>
         `;
 
         fila.innerHTML = `
@@ -230,7 +237,35 @@ function asignarEventos() {
             });
         });
     });
+
+    // NUEVO: Listener para Tarjeta de Credenciales
+    document.querySelectorAll('.btn-show-creds').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const user = e.currentTarget.dataset.user;
+            const pass = e.currentTarget.dataset.pass;
+            abrirModalCredenciales(user, pass);
+        });
+    });
 }
+
+// --- LOGICA MODAL CREDENCIALES ---
+function abrirModalCredenciales(user, pass) {
+    if(modalCredenciales) {
+        document.getElementById('viewUser').textContent = user;
+        document.getElementById('viewPass').textContent = pass;
+        modalCredenciales.classList.remove('hidden');
+    }
+}
+
+// Helper Copiar (Si no está definido globalmente)
+window.copiarTexto = (elementId) => {
+    const texto = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(texto).then(() => {
+        showToast("Copiado al portapapeles", "success");
+    }).catch(err => {
+        showToast("Error al copiar", "error");
+    });
+};
 
 // 5. GUARDAR NUEVO
 formTeacher.addEventListener('submit', async (e) => {
