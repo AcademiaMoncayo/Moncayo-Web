@@ -1,28 +1,69 @@
-/* Heredar variables del sistema */
-@import url('variables.css'); 
-/* O puedes mantener tu bloque navbar si no tienes variables.css aun, 
-   pero asumiré que usas el mismo estilo que en las otras páginas */
+/* =========================================
+   DASHBOARD - ESTILOS PRINCIPALES
+   =========================================
+   Hereda variables globales y define el layout del panel de control.
+*/
 
-/* Navbar (Mantenemos tu estilo original) */
+@import url('variables.css'); 
+
+/* =========================================
+   1. BARRA DE NAVEGACIÓN (NAVBAR)
+   =========================================
+*/
 .navbar {
     background-color: var(--color-primary);
     color: white;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0 20px; height: 60px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 0 20px; 
+    height: 60px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: sticky; /* Fija arriba */
+    top: 0;
+    z-index: 100;
 }
-.nav-center { display: flex; gap: 10px; }
+
+.nav-center { 
+    display: flex; 
+    gap: 10px; 
+}
+
 .nav-btn {
-    background: transparent; border: none; color: #b0c4d1;
-    padding: 8px 15px; font-size: 14px; cursor: pointer; border-radius: 5px;
+    background: transparent; 
+    border: none; 
+    color: #b0c4d1; /* Color inactivo */
+    padding: 8px 15px; 
+    font-size: 14px; 
+    cursor: pointer; 
+    border-radius: var(--border-radius-sm);
     transition: all 0.3s;
 }
-.nav-btn:hover, .nav-btn.active { background-color: rgba(255, 255, 255, 0.1); color: white; }
-.btn-logout { background-color: #dc3545; padding: 5px 10px; color: white; border: none; border-radius: 4px; cursor: pointer; }
 
-/* LAYOUT PRINCIPAL */
+.nav-btn:hover, .nav-btn.active { 
+    background-color: rgba(255, 255, 255, 0.1); 
+    color: white; 
+}
+
+.btn-logout { 
+    background-color: var(--color-error); 
+    padding: 6px 12px; 
+    color: white; 
+    border: none; 
+    border-radius: var(--border-radius-sm); 
+    cursor: pointer; 
+    font-size: 13px;
+    transition: background 0.2s;
+}
+.btn-logout:hover { background-color: #c82333; }
+
+/* =========================================
+   2. LAYOUT PRINCIPAL
+   =========================================
+*/
 .main-content {
     padding: 30px;
-    background-color: #f4f6f9;
+    background-color: var(--color-bg-light);
     min-height: calc(100vh - 60px);
 }
 
@@ -32,13 +73,26 @@
     align-items: center;
     margin-bottom: 25px;
 }
-.welcome-section h1 { margin: 0; color: var(--color-primary); font-size: 24px; }
-.date-display { color: #666; font-size: 14px; margin-top: 5px; }
 
-/* 1. GRID DE ESTADÍSTICAS */
+.welcome-section h1 { 
+    margin: 0; 
+    color: var(--color-primary); 
+    font-size: 24px; 
+}
+
+.date-display { 
+    color: var(--color-text-muted); 
+    font-size: 14px; 
+    margin-top: 5px; 
+}
+
+/* =========================================
+   3. TARJETAS DE ESTADÍSTICAS (KPIs)
+   =========================================
+*/
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
 }
@@ -46,98 +100,106 @@
 .stat-card {
     background: white;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--shadow-card);
     display: flex;
     align-items: center;
     gap: 15px;
+    transition: transform 0.2s;
 }
+.stat-card:hover { transform: translateY(-3px); }
 
 .stat-icon {
     width: 50px; height: 50px;
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     font-size: 24px;
 }
 
-.stat-info h3 { margin: 0; font-size: 22px; color: #333; }
-.stat-info p { margin: 0; color: #777; font-size: 13px; }
+.stat-info h3 { margin: 0; font-size: 22px; color: var(--color-text-main); }
+.stat-info p { margin: 0; color: var(--color-text-muted); font-size: 13px; }
 .link-text { color: var(--color-primary) !important; cursor: pointer; text-decoration: underline; }
 
-/* 2. PANELES (NOTAS Y AGENDA) */
+/* =========================================
+   4. PANELES INTERACTIVOS (Notas y Agenda)
+   =========================================
+*/
 .dashboard-panels {
     display: grid;
     grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
     gap: 25px;
 }
 
+/* Ajuste responsive para móviles */
+@media (max-width: 768px) {
+    .dashboard-panels { grid-template-columns: 1fr; }
+}
+
 .panel-card {
     background: white;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    height: 400px; /* Altura fija con scroll */
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--shadow-card);
+    height: 400px; /* Altura fija */
     display: flex;
     flex-direction: column;
 }
 
 .notes-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;
+    margin-bottom: 15px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;
 }
 .notes-header h3 { margin: 0; color: var(--color-primary); font-size: 16px; }
 
-/* LISTA DE NOTAS */
+/* Listas con Scroll */
 .notes-list, .today-list {
     overflow-y: auto;
     flex: 1;
     padding-right: 5px;
 }
 
+/* Items de Notas */
 .note-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: flex; align-items: center; gap: 10px;
     background: #f8f9fa;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 6px;
-    border-left: 3px solid #ccc;
+    padding: 10px; margin-bottom: 8px;
+    border-radius: 6px; border-left: 3px solid #ccc;
     transition: 0.2s;
 }
-
 .note-item.completed {
-    opacity: 0.6;
-    text-decoration: line-through;
-    background: #fff;
-    border-left-color: #28a745;
+    opacity: 0.6; text-decoration: line-through;
+    background: #fff; border-left-color: var(--color-success);
 }
-
 .note-text { flex: 1; font-size: 14px; color: #444; }
-.btn-delete-note { background: none; border: none; cursor: pointer; font-size: 16px; color: #dc3545; opacity: 0.5; }
+.btn-delete-note { 
+    background: none; border: none; cursor: pointer; 
+    font-size: 16px; color: var(--color-error); opacity: 0.5; 
+}
 .btn-delete-note:hover { opacity: 1; }
 
-/* BOTONES MINI */
-.btn-add-note { background: var(--color-primary); color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-.btn-save-mini { background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
-.btn-cancel-mini { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
-.hidden { display: none; }
-
-/* AGENDA DE HOY */
+/* Items de Agenda */
 .today-item {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    padding: 10px; border-bottom: 1px solid #eee;
+    display: flex; justify-content: space-between; align-items: center;
 }
 .today-time { font-weight: bold; color: var(--color-primary); font-size: 13px; }
 .today-info { font-size: 13px; color: #444; }
 .today-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #e3f2fd; color: #0d47a1; }
 
-/* --- ANIMACIONES Y UI DINÁMICA --- */
+/* Botones Pequeños */
+.btn-add-note { background: var(--color-primary); color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.btn-save-mini { background: var(--color-success); color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
+.btn-cancel-mini { background: var(--color-error); color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
 
-/* 1. Animación de Entrada (Fade In Up) */
+/* Utilidades */
+.hidden { display: none !important; }
+
+/* =========================================
+   5. UI / UX AVANZADO (ANIMACIONES Y MODALES)
+   =========================================
+*/
+
+/* Animación de Entrada (Fade Up) */
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -145,143 +207,68 @@
 
 .stat-card, .notification-panel, .panel-card {
     animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0; /* Inicio invisible */
 }
 
-/* Retrasos para efecto cascada */
+/* Cascada de aparición */
 .stat-card:nth-child(1) { animation-delay: 0.1s; }
 .stat-card:nth-child(2) { animation-delay: 0.2s; }
 .stat-card:nth-child(3) { animation-delay: 0.3s; }
 .notification-panel { animation-delay: 0.4s; }
 .dashboard-panels { animation-delay: 0.5s; }
 
-/* 2. Animación al agregar Nota */
-.note-item {
-    animation: slideIn 0.3s ease-out;
-}
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(-10px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* 3. TOASTS (Notificaciones Flotantes) */
+/* --- TOASTS (Notificaciones Flotantes) --- */
 #toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    position: fixed; top: 20px; right: 20px; z-index: 12000;
+    display: flex; flex-direction: column; gap: 10px;
 }
 
 .toast {
-    min-width: 250px;
-    padding: 15px 20px;
-    border-radius: 8px;
-    background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    opacity: 0;
-    transform: translateX(50px);
+    min-width: 250px; padding: 15px 20px; border-radius: 8px;
+    background: white; box-shadow: var(--shadow-modal);
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; font-weight: 500;
+    opacity: 0; transform: translateX(50px);
     animation: toastEnter 0.4s forwards;
     border-left: 5px solid #ccc;
 }
 
-.toast.success { border-left-color: #2e7d32; color: #1b5e20; }
-.toast.error { border-left-color: #c62828; color: #b71c1c; }
-.toast.info { border-left-color: #0288d1; color: #01579b; }
-
+.toast.success { border-left-color: var(--color-success); color: #1b5e20; }
+.toast.error { border-left-color: var(--color-error); color: #b71c1c; }
+.toast.info { border-left-color: var(--color-info); color: #01579b; }
 .toast-icon { font-size: 18px; }
 
-@keyframes toastEnter {
-    to { opacity: 1; transform: translateX(0); }
-}
+@keyframes toastEnter { to { opacity: 1; transform: translateX(0); } }
+@keyframes toastExit { to { opacity: 0; transform: translateX(50px); } }
 
-@keyframes toastExit {
-    to { opacity: 0; transform: translateX(50px); }
-}
-
-/* 4. Estado Loading en Botones */
-.btn-loading {
-    opacity: 0.7;
-    cursor: wait !important;
-    pointer-events: none;
-}
-
-/* Animación para el icono de alerta */
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-/* Asegurar que el modal de confirmación esté por encima de todo */
-#modalConfirm {
-    backdrop-filter: blur(2px); /* Efecto borroso en el fondo */
-}
-
-/* --- ESTILOS DEL MODAL (Faltaban estos) --- */
+/* --- MODAL CONFIRMACIÓN --- */
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro transparente */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000; /* Muy por encima de todo */
-    backdrop-filter: blur(3px); /* Efecto borroso bonito */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 10000; backdrop-filter: blur(2px);
     transition: opacity 0.3s ease;
 }
 
 .modal-content {
-    background-color: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-    width: 400px;
-    max-width: 90%;
-    animation: zoomIn 0.3s ease;
-    text-align: center;
+    background-color: white; padding: 25px; border-radius: 12px;
+    box-shadow: var(--shadow-modal); width: 400px; max-width: 90%;
+    animation: zoomIn 0.3s ease; text-align: center;
 }
 
-/* Animación de entrada del modal */
 @keyframes zoomIn {
     from { transform: scale(0.8); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
 
-/* Clase para ocultar (ya la tenías, pero asegúrate que esté así) */
-.hidden {
-    display: none !important;
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
-/* Botones del modal de confirmación */
-#btnCancelConfirm {
-    background-color: #e0e0e0;
-    color: #333;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-#btnOkConfirm {
-    background-color: #d32f2f; /* Rojo alerta */
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    box-shadow: 0 2px 5px rgba(211, 47, 47, 0.3);
-}
-
+#btnCancelConfirm { background-color: #e0e0e0; color: #333; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+#btnOkConfirm { background-color: var(--color-error); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 5px rgba(211, 47, 47, 0.3); }
 #btnOkConfirm:hover { background-color: #b71c1c; }
-#btnCancelConfirm:hover { background-color: #d5d5d5; }
+
+/* Estado Loading */
+.btn-loading { opacity: 0.7; cursor: wait !important; pointer-events: none; }
