@@ -1,7 +1,10 @@
-/* Heredamos estilos base */
+/* Heredamos estilos base de la sección de estudiantes (tablas, botones, etc.) */
 @import url('students.css');
 
-/* --- CONTROL DE FECHA --- */
+/* =========================================
+   1. CONTROL DE FECHA (HEADER)
+   =========================================
+*/
 .date-selector {
     display: flex;
     align-items: center;
@@ -20,8 +23,10 @@
     color: #2c3e50;
     cursor: pointer;
     font-family: inherit;
+    outline: none;
 }
 
+/* Flechas de navegación (< >) */
 .nav-arrow {
     background: white;
     border: 1px solid #ddd;
@@ -34,6 +39,7 @@
     justify-content: center;
     transition: 0.2s;
     color: #555;
+    padding: 0; /* Reset */
 }
 .nav-arrow:hover { background: #f0f0f0; }
 
@@ -48,18 +54,23 @@
     font-weight: bold;
 }
 
-/* --- GRID DEL CALENDARIO --- */
+/* =========================================
+   2. ESTRUCTURA PRINCIPAL DEL CALENDARIO
+   =========================================
+*/
 .calendar-card {
     padding: 0;
-    height: 78vh; /* Altura fija para scroll */
+    height: 78vh; /* Altura fija para permitir scroll interno */
     display: flex;
     flex-direction: column;
     background: white;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-card);
     overflow: hidden;
+    animation: fadeInZoom 0.5s ease-out; /* Animación de entrada */
 }
 
+/* Leyenda de Colores (Disponible, Ocupado) */
 .calendar-legend {
     padding: 10px 20px;
     border-bottom: 1px solid #eee;
@@ -80,9 +91,10 @@
 .dot.occupied { background: #2196f3; }
 .dot.trial { background: #9c27b0; }
 
+/* Contenedor con Scroll */
 .calendar-wrapper {
     flex: 1;
-    overflow: auto;
+    overflow: auto; /* Scroll automático */
     position: relative;
     background: #fff;
 }
@@ -93,10 +105,15 @@
     min-width: 100%;
 }
 
-/* ENCABEZADOS Y CELDAS */
+/* =========================================
+   3. CELDAS Y ENCABEZADOS (STICKY)
+   =========================================
+*/
+
+/* Encabezados de Maestros (Fila Superior) */
 #calendarTable th {
     background: #ffffff;
-    position: sticky;
+    position: sticky; /* Se queda fijo al hacer scroll */
     top: 0;
     z-index: 10;
     padding: 12px 5px;
@@ -110,15 +127,17 @@
     box-shadow: 0 2px 2px rgba(0,0,0,0.02);
 }
 
+/* Celda "Horario" (Esquina Superior Izquierda) */
 .time-col-header {
     position: sticky;
     left: 0;
-    z-index: 20 !important;
+    z-index: 20 !important; /* Capa superior */
     background: #ffffff;
     border-right: 1px solid #eee;
     width: 70px;
 }
 
+/* Columna de Horas (Izquierda) */
 .time-cell {
     position: sticky;
     left: 0;
@@ -133,6 +152,7 @@
     padding-top: 10px;
 }
 
+/* Celdas de Clases (El cuerpo) */
 .slot-cell {
     border-right: 1px solid #f9f9f9;
     border-bottom: 1px solid #f9f9f9;
@@ -144,22 +164,29 @@
 }
 .slot-cell:hover { background-color: #fbfbfb; }
 
-/* --- TARJETAS DE CLASE (DISEÑO MEJORADO) --- */
+/* =========================================
+   4. TARJETAS DE CLASE (EVENTOS)
+   =========================================
+*/
 .class-card {
     padding: 6px 8px;
-    border-radius: 6px; /* Bordes un poco más redondeados */
+    border-radius: 6px;
     height: 100%;
-    min-height: 75px; /* Altura mínima para que quepa la info */
+    min-height: 75px;
     font-size: 12px;
     position: relative;
     transition: all 0.2s ease;
     cursor: default;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* Alinear arriba */
+    justify-content: flex-start;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     border: 1px solid rgba(0,0,0,0.05);
-    overflow: hidden; /* Para que nada se salga */
+    overflow: hidden;
+    
+    /* Animación "Pop" al cargar */
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transform-origin: center;
 }
 
 .class-card:hover {
@@ -168,30 +195,21 @@
     z-index: 5;
 }
 
-/* Colores por Tipo (Manteniendo tu paleta) */
+/* --- Variantes de Color por Tipo --- */
 .class-card.type-fija { 
-    background-color: #e3f2fd; 
-    border-left: 4px solid #2196f3; 
-    color: #0d47a1; 
+    background-color: #e3f2fd; border-left: 4px solid #2196f3; color: #0d47a1; 
 }
 .class-card.type-muestra { 
-    background-color: #f3e5f5; 
-    border-left: 4px solid #ab47bc; 
-    color: #4a148c; 
+    background-color: #f3e5f5; border-left: 4px solid #ab47bc; color: #4a148c; 
 }
 .class-card.type-unica { 
-    background-color: #fff3e0; 
-    border-left: 4px solid #ff9800; 
-    color: #e65100; 
+    background-color: #fff3e0; border-left: 4px solid #ff9800; color: #e65100; 
 }
 .class-card.type-junta { 
-    background-color: #e0f2f1; 
-    border-left: 4px solid #009688; 
-    color: #004d40; 
+    background-color: #e0f2f1; border-left: 4px solid #009688; color: #004d40; 
 }
 
-/* ELEMENTOS INTERNOS DE LA TARJETA */
-
+/* Contenido de la Tarjeta */
 .card-type {
     font-size: 9px;
     text-transform: uppercase;
@@ -221,7 +239,7 @@
 }
 
 .card-note {
-    margin-top: auto; /* Empuja la nota hacia abajo si hay espacio */
+    margin-top: auto; /* Empuja al fondo */
     font-size: 10px;
     font-style: italic;
     background-color: rgba(255, 255, 255, 0.6);
@@ -234,12 +252,11 @@
     border-left: 2px solid rgba(0,0,0,0.1);
 }
 
-/* Acciones (Botones flotantes) */
+/* --- Botones de Acción (Flotantes) --- */
 .card-actions {
-    display: none;
+    display: none; /* Oculto por defecto */
     position: absolute;
-    top: 4px; 
-    right: 4px;
+    top: 4px; right: 4px;
     gap: 3px;
     background: rgba(255,255,255,0.95);
     border-radius: 4px;
@@ -247,37 +264,7 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.class-card:hover .card-actions { display: flex; }
-
-/* Colores */
-.class-card.type-fija { background-color: #e3f2fd; border-left: 3px solid #2196f3; color: #0d47a1; }
-.class-card.type-muestra { background-color: #f3e5f5; border-left: 3px solid #ab47bc; color: #4a148c; }
-.class-card.type-unica { background-color: #fff3e0; border-left: 3px solid #ff9800; color: #e65100; }
-.class-card.type-junta { background-color: #e0f2f1; border-left: 3px solid #009688; color: #004d40; }
-
-.class-card strong {
-    display: block;
-    font-size: 13px;
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.class-info { font-size: 11px; opacity: 0.8; }
-
-/* --- BOTONES DE ACCIÓN (HOVER) --- */
-.card-actions {
-    display: none;
-    position: absolute;
-    top: 2px; right: 2px;
-    gap: 2px;
-    background: rgba(255,255,255,0.8);
-    border-radius: 4px;
-    padding: 2px;
-}
-
-.class-card:hover .card-actions { display: flex; }
+.class-card:hover .card-actions { display: flex; } /* Mostrar al pasar mouse */
 
 .btn-mini-action {
     width: 20px; height: 20px;
@@ -291,53 +278,42 @@
 .act-delete-all { background: #b71c1c; color: white; }
 .act-edit { background: #ffe0b2; color: #ef6c00; }
 
-/* Tooltips básicos */
 .act-delete-day:hover { background: #ef5350; color: white; }
 .act-edit:hover { background: #ff9800; color: white; }
 
-/* Formulario deshabilitado */
-select:disabled, input:disabled { background-color: #f5f5f5; cursor: not-allowed; color: #999; }
-
-
 /* =========================================
-   MEJORAS VISUALES (TOASTS Y ANIMACIONES)
-   ========================================= */
+   5. UI UX: ANIMACIONES Y MODALES
+   =========================================
+*/
 
-/* 1. Animaciones de Entrada */
-.calendar-card {
-    animation: fadeInZoom 0.5s ease-out;
-}
-
-/* Las tarjetas de clase aparecen "pop" */
-.class-card {
-    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    transform-origin: center;
-}
-
+/* Animación Entrada Calendario */
 @keyframes fadeInZoom {
     from { opacity: 0; transform: scale(0.98); }
     to { opacity: 1; transform: scale(1); }
 }
 
+/* Animación Entrada Tarjetas */
 @keyframes popIn {
     from { opacity: 0; transform: scale(0.8); }
     to { opacity: 1; transform: scale(1); }
 }
 
-/* 2. TOASTS (Notificaciones) */
+/* Animación Modal Alerta */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Toasts (Notificaciones) */
 #toast-container {
-    position: fixed;
-    top: 20px; right: 20px;
-    z-index: 9999;
+    position: fixed; top: 20px; right: 20px; z-index: 9999;
     display: flex; flex-direction: column; gap: 10px;
 }
 
 .toast {
-    min-width: 250px;
-    padding: 15px 20px;
-    border-radius: 8px;
-    background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 250px; padding: 15px 20px;
+    border-radius: 8px; background: white;
+    box-shadow: var(--shadow-modal);
     display: flex; align-items: center; gap: 10px;
     font-size: 14px; font-weight: 500;
     opacity: 0; transform: translateX(50px);
@@ -345,39 +321,31 @@ select:disabled, input:disabled { background-color: #f5f5f5; cursor: not-allowed
     border-left: 5px solid #ccc;
 }
 
-.toast.success { border-left-color: #2e7d32; color: #1b5e20; }
-.toast.error { border-left-color: #c62828; color: #b71c1c; }
-.toast.info { border-left-color: #0288d1; color: #01579b; }
-
-.toast-icon { font-size: 18px; }
+.toast.success { border-left-color: var(--color-success); color: #1b5e20; }
+.toast.error { border-left-color: var(--color-error); color: #b71c1c; }
+.toast.info { border-left-color: var(--color-info); color: #01579b; }
 
 @keyframes toastEnter { to { opacity: 1; transform: translateX(0); } }
 @keyframes toastExit { to { opacity: 0; transform: translateX(50px); } }
 
-/* 3. MODAL DE CONFIRMACIÓN */
-#modalConfirm { z-index: 11000; backdrop-filter: blur(2px); }
-#modalConfirm .modal-content { text-align: center; width: 400px; }
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-/* 4. LOADING EN BOTONES */
-.btn-loading {
-    position: relative;
-    color: transparent !important;
-    pointer-events: none;
-}
+/* Loading State */
+.btn-loading { position: relative; color: transparent !important; pointer-events: none; }
 .btn-loading::after {
-    content: "";
-    position: absolute;
-    left: 50%; top: 50%;
+    content: ""; position: absolute; left: 50%; top: 50%;
     width: 16px; height: 16px;
-    border: 2px solid white;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    border: 2px solid white; border-top-color: transparent;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
     transform: translate(-50%, -50%);
 }
 @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* Estilos de Modal Confirmación */
+#modalConfirm { z-index: 11000; backdrop-filter: blur(2px); }
+#modalConfirm .modal-content { text-align: center; width: 400px; }
+
+/* Estados deshabilitados en forms */
+select:disabled, input:disabled { 
+    background-color: #f5f5f5; 
+    cursor: not-allowed; 
+    color: #999; 
+}

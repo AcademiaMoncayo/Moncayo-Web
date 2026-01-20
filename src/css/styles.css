@@ -1,20 +1,33 @@
-/* Reset básico */
+/* Importar variables primero */
+@import url('src/css/variables.css');
+
+/* =========================================
+   RESET BÁSICO Y LAYOUT GENERAL
+   =========================================
+*/
 body {
     font-family: var(--font-main);
-    background-color: var(--color-primary);
+    background-color: var(--color-primary); /* Fondo del Login */
     margin: 0;
     padding: 0;
-    display: flex;             /* Centrado perfecto */
+    display: flex;             /* Centrado perfecto para Login */
     justify-content: center;
     align-items: center;
     height: 100vh;             /* Altura completa de la pantalla */
+    color: var(--color-text-main);
 }
 
-/* Contenedor Principal (Carga) */
+/* =========================================
+   PANTALLA DE LOGIN (TARJETA)
+   =========================================
+*/
+
+/* Contenedor Principal (Centrado) */
 .Carga {
     text-align: center;
     width: 100%;
     max-width: 350px;
+    padding: 20px;
 }
 
 /* Imagen del Logo */
@@ -27,34 +40,41 @@ body {
     margin-right: auto;
 }
 
-/* Tarjeta Blanca del Login */
+/* Tarjeta Blanca del Formulario */
 .container {
     background-color: var(--color-white);
     padding: 30px;
     border-radius: var(--border-radius-main);
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--shadow-modal); /* Sombra fuerte para destacar */
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Espacio entre elementos */
+    gap: 15px; /* Espacio uniforme entre inputs */
 }
 
 h2 {
     color: var(--color-text-main);
     margin-top: 0;
     margin-bottom: 10px;
+    text-align: center;
 }
 
-/* Inputs */
+/* --- FORMULARIOS (Inputs) --- */
 input {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box; /* Para que el padding no rompa el ancho */
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    box-sizing: border-box; /* Evita que el padding rompa el ancho */
     font-size: 14px;
+    transition: border-color 0.3s;
 }
 
-/* Botones */
+input:focus {
+    outline: none;
+    border-color: var(--color-accent); /* Resaltar al escribir */
+}
+
+/* --- BOTONES GENÉRICOS --- */
 button {
     width: 100%;
     padding: 12px;
@@ -62,29 +82,36 @@ button {
     background-color: var(--color-accent);
     color: var(--color-white);
     font-weight: bold;
-    border-radius: 5px;
+    border-radius: var(--border-radius-sm);
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background 0.3s, transform 0.1s;
 }
 
 button:hover {
     background-color: var(--color-accent-hover);
 }
 
-/* Botón secundario (opcional, para diferenciar Registro) */
-button#btnRegister {
+button:active {
+    transform: scale(0.98); /* Efecto de clic */
+}
+
+/* Botón secundario (Registro / Cancelar) */
+button#btnRegister, .btn-secondary {
     background-color: transparent;
     border: 1px solid var(--color-accent);
     color: var(--color-accent);
+    margin-top: 10px;
 }
 
-button#btnRegister:hover {
-    background-color: #eef7ff;
+button#btnRegister:hover, .btn-secondary:hover {
+    background-color: #eef7ff; /* Fondo azul muy claro */
 }
 
-/* Mensajes de error/éxito */
+/* Mensajes de error/éxito dinámicos */
 #message {
-    font-size: 14px;
+    font-size: 13px;
     margin-top: 10px;
     min-height: 20px;
+    text-align: center;
+    color: var(--color-error);
 }

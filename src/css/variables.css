@@ -1,17 +1,41 @@
+/* =========================================
+   VARIABLES GLOBALES DEL SISTEMA
+   =========================================
+   Define la paleta de colores, tipografía y espaciado base.
+*/
+
 :root {
-    /* Paleta de Colores */
-    --color-primary: #1E394A;    /* Fondo oscuro principal */
-    --color-accent: #007bff;     /* Azul botones */
-    --color-accent-hover: #0056b3;
+    /* --- PALETA DE COLORES --- */
+    
+    /* Principal (Navbar, Títulos, Enfasis) */
+    --color-primary: #1E394A;       /* Azul Petróleo Oscuro */
+    
+    /* Acentos (Botones, Links) */
+    --color-accent: #007bff;        /* Azul Brillante */
+    --color-accent-hover: #0056b3;  /* Azul Oscuro (Hover) */
+    
+    /* Estados (Éxito, Error, Info) */
+    --color-success: #28a745;       /* Verde */
+    --color-error: #dc3545;         /* Rojo */
+    --color-warning: #ffc107;       /* Amarillo */
+    --color-info: #17a2b8;          /* Cyan */
+
+    /* Neutros (Fondos, Texto) */
     --color-white: #ffffff;
-    --color-text-main: #333333;
-    --color-error: #dc3545;
-    --color-success: #28a745;
+    --color-bg-light: #f4f6f9;      /* Fondo General de la App */
+    --color-text-main: #333333;     /* Texto Principal */
+    --color-text-muted: #666666;    /* Texto Secundario */
+    --color-border: #dddddd;        /* Bordes de inputs/tablas */
 
-    /* Espaciado y Bordes */
-    --border-radius-main: 10px;
-    --shadow-card: 0 10px 25px rgba(0, 0, 0, 0.2);
+    /* --- TIPOGRAFÍA --- */
+    --font-main: 'Arial', sans-serif; /* Puedes cambiar a Roboto o Lato */
 
-    /* Fuentes */
-    --font-main: 'Arial', sans-serif;
+    /* --- ESPACIADO Y BORDES --- */
+    --border-radius-main: 10px;     /* Bordes redondeados estándar */
+    --border-radius-sm: 6px;        /* Bordes pequeños (botones) */
+    
+    /* --- SOMBRAS (Elevación) --- */
+    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 6px 15px rgba(0, 0, 0, 0.1);
+    --shadow-modal: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
