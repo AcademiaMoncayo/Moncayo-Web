@@ -244,6 +244,34 @@
         </div>
     </div>
 
+    <div id="modalCredenciales" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 400px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
+            <h3 style="margin: 0 0 5px 0; color: #333;">Datos de Acceso</h3>
+            <p style="color: #666; font-size: 13px; margin-bottom: 20px;">Credenciales para la App Móvil</p>
+            
+            <div class="cred-card">
+                <div class="cred-row">
+                    <div>
+                        <span class="cred-label">Usuario</span>
+                        <span id="viewUser" class="cred-value">usuario.ejemplo</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiarTexto('viewUser')" title="Copiar Usuario">📋</button>
+                </div>
+
+                <div class="cred-row">
+                    <div>
+                        <span class="cred-label">Contraseña</span>
+                        <span id="viewPass" class="cred-value">******</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiarTexto('viewPass')" title="Copiar Contraseña">📋</button>
+                </div>
+            </div>
+
+            <button class="btn-save" onclick="document.getElementById('modalCredenciales').classList.add('hidden')" style="background-color: #6c757d;">Cerrar</button>
+        </div>
+    </div>
+
     <div id="toast-container"></div>
 
     <script type="module" src="src/js/teachers.js"></script>

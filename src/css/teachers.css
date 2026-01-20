@@ -223,3 +223,60 @@ tbody tr:nth-child(5) { animation-delay: 0.25s; }
     transform: translate(-50%, -50%);
 }
 @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* =========================================
+   MODAL DE CREDENCIALES (ACCESO)
+   ========================================= */
+.cred-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.cred-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.cred-row:last-child { margin-bottom: 0; }
+
+.cred-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #6c757d;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.cred-value {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c3e50;
+    letter-spacing: 1px;
+}
+
+.btn-copy {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-accent);
+    font-size: 18px;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+.btn-copy:hover {
+    background-color: #e3f2fd;
+}

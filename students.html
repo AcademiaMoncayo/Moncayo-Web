@@ -297,6 +297,43 @@
             </div>
         </div>
     </div>
+<div id="modalCredenciales" class="modal-overlay hidden" style="backdrop-filter: blur(5px);">
+        <div class="modal-content">
+            
+            <div class="access-card">
+                <div class="card-header">
+                    <span class="brand-name">Academia Moncayo</span>
+                    <span class="card-chip">🎹</span> </div>
+
+                <div class="field-group">
+                    <span class="field-label">Usuario / ID</span>
+                    <div class="field-value-box">
+                        <span id="viewUser" class="field-value">usuario.app</span>
+                        <button class="btn-copy-icon" onclick="copiarTexto('viewUser')" title="Copiar Usuario">📋</button>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <span class="field-label">Contraseña de Acceso</span>
+                    <div class="field-value-box">
+                        <span id="viewPass" class="field-value">••••••</span> <button class="btn-copy-icon" onclick="copiarTexto('viewPass')" title="Copiar Contraseña">📋</button>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px; font-size: 10px; opacity: 0.5;">
+                    ACCESO EXCLUSIVO PARA ALUMNOS
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <button class="btn-close-card" onclick="document.getElementById('modalCredenciales').classList.add('hidden')">
+                    Cerrar
+                </button>
+            </div>
+
+        </div>
+    </div>
+    
 
     <div id="toast-container"></div>
 

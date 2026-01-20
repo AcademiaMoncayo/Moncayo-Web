@@ -383,3 +383,114 @@ tbody tr:nth-child(5) { animation-delay: 0.25s; }
     transform: translate(-50%, -50%);
 }
 @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* =========================================
+   TARJETA DE ACCESO (DISEÑO PREMIUM)
+   ========================================= */
+
+/* Fondo del modal más limpio */
+#modalCredenciales .modal-content {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    width: 400px;
+}
+
+/* La Tarjeta en sí */
+.access-card {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #162a36 100%);
+    border-radius: 16px;
+    padding: 25px;
+    color: white;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Efecto de brillo de fondo */
+.access-card::before {
+    content: "";
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    transform: rotate(30deg);
+    pointer-events: none;
+}
+
+/* Encabezado de la tarjeta */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.brand-name {
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.card-chip {
+    font-size: 24px;
+    opacity: 0.8;
+}
+
+/* Campos de datos */
+.field-group {
+    margin-bottom: 15px;
+}
+
+.field-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.field-value-box {
+    background: rgba(0,0,0,0.25);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.field-value {
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    letter-spacing: 1px;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Botones de acción dentro de la tarjeta */
+.btn-copy-icon {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    width: 30px; height: 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.btn-copy-icon:hover {
+    background: white;
+    color: var(--color-primary);
+    transform: scale(1.1);
+}
+
+/* Botón de Cerrar (Fuera de la tarjeta)

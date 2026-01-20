@@ -12,6 +12,8 @@ const modalContainer = document.getElementById('modalContainer');
 const modalInscripcion = document.getElementById('modalInscripcion');
 const modalEditar = document.getElementById('modalEditar');
 const modalPerfil = document.getElementById('modalPerfil');
+// Referencia al nuevo modal de credenciales (asegúrate que esté en tu HTML)
+const modalCredenciales = document.getElementById('modalCredenciales');
 
 // Forms
 const formStudent = document.getElementById('formStudent');
@@ -133,7 +135,12 @@ function renderTable() {
             const password = alumno.password || '...';
             accessDisplay = `
                 <div style="font-size:11px; font-weight:bold; color:#0d47a1;">${usuario}</div>
-                <button class="toggle-password" onclick="alert('Usuario: ${usuario}\\nContraseña: ${password}')">🔑</button>
+                <button class="toggle-password btn-show-creds" 
+                    data-user="${usuario}" 
+                    data-pass="${password}" 
+                    title="Ver Contraseña">
+                    🔑 Ver
+                </button>
             `;
         }
 
@@ -192,7 +199,7 @@ function renderTable() {
     btnNextPage.disabled = currentPage === totalPages;
 }
 
-// 4. LISTENERS
+// 4. LISTENERS (UNIFICADOS)
 function asignarEventos() {
     // CAMBIO DE ESTADO (Con Modal Bonito)
     document.querySelectorAll('.btn-cambiar-estado').forEach(btn => {
@@ -255,6 +262,15 @@ function asignarEventos() {
                     loadStudents();
                 } catch(err) { showToast("Error al eliminar", "error"); }
             });
+        });
+    });
+
+    // NUEVO: Listener para ver credenciales (Integrado aquí)
+    document.querySelectorAll('.btn-show-creds').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const user = e.currentTarget.dataset.user;
+            const pass = e.currentTarget.dataset.pass;
+            abrirModalCredenciales(user, pass);
         });
     });
 }
@@ -466,3 +482,26 @@ searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); })
 filterStatus.addEventListener('change', () => { currentPage = 1; renderTable(); });
 btnPrevPage.addEventListener('click', () => { if(currentPage>1) currentPage--; renderTable(); });
 btnNextPage.addEventListener('click', () => { currentPage++; renderTable(); });
+
+// --- LÓGICA DE CREDENCIALES ---
+
+// Función para abrir el modal
+function abrirModalCredenciales(user, pass) {
+    if(modalCredenciales) { // Check por si no se ha puesto el HTML aún
+        document.getElementById('viewUser').textContent = user;
+        document.getElementById('viewPass').textContent = pass;
+        modalCredenciales.classList.remove('hidden');
+    } else {
+        alert(`Usuario: ${user}\nContraseña: ${pass}`); // Fallback
+    }
+}
+
+// Función global para copiar al portapapeles
+window.copiarTexto = (elementId) => {
+    const texto = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(texto).then(() => {
+        showToast("Copiado al portapapeles", "success");
+    }).catch(err => {
+        showToast("Error al copiar", "error");
+    });
+};
