@@ -23,24 +23,63 @@ const eventStudentId = document.getElementById('eventStudentId');
 const eventDate = document.getElementById('eventDate');
 const eventTime = document.getElementById('eventTime');
 
+// CONFIRMACIÓN CUSTOM
+const modalConfirm = document.getElementById('modalConfirm');
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmMessage = document.getElementById('confirmMessage');
+const btnOkConfirm = document.getElementById('btnOkConfirm');
+const btnCancelConfirm = document.getElementById('btnCancelConfirm');
+let confirmCallback = null;
+
 // DATOS EN MEMORIA
 let allTeachers = [];
 let allStudents = [];
 let allEvents = []; 
 
-// --- FUNCIÓN AUXILIAR PARA CORREGIR ZONA HORARIA ---
+// --- UTILS UI (TOASTS & CONFIRM) ---
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if(!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+    toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'toastExit 0.4s forwards';
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+function showConfirm(title, msg, callback) {
+    confirmTitle.textContent = title;
+    confirmMessage.textContent = msg;
+    confirmCallback = callback;
+    modalConfirm.classList.remove('hidden');
+}
+
+btnOkConfirm.addEventListener('click', () => {
+    if(confirmCallback) confirmCallback();
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
+btnCancelConfirm.addEventListener('click', () => {
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
+
+// --- FUNCIÓN AUXILIAR ZONA HORARIA ---
 function getLocalDateString() {
     const now = new Date();
-    const offset = now.getTimezoneOffset() * 60000; // Desfase en milisegundos
+    const offset = now.getTimezoneOffset() * 60000; 
     const localDate = new Date(now - offset);
-    return localDate.toISOString().split('T')[0]; // Devuelve YYYY-MM-DD local
+    return localDate.toISOString().split('T')[0];
 }
 
 // 1. SEGURIDAD E INICIO
 onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = "index.html";
     else {
-        // CORRECCIÓN AQUÍ: Usamos la fecha local string, no el objeto Date UTC
         calendarDate.value = getLocalDateString(); 
         loadInitialData();
     }
@@ -49,31 +88,28 @@ onAuthStateChanged(auth, (user) => {
 // 2. CARGA DE DATOS
 async function loadInitialData() {
     try {
-        // A) Maestros
         const qTeachers = query(collection(db, "teachers"), where("status", "==", "activo"));
         const snapTeachers = await getDocs(qTeachers);
         allTeachers = [];
         snapTeachers.forEach(doc => allTeachers.push({ id: doc.id, ...doc.data() }));
         allTeachers.sort((a,b) => a.nombre.localeCompare(b.nombre));
 
-        // B) Alumnos
         const qStudents = query(collection(db, "students")); 
         const snapStudents = await getDocs(qStudents);
         allStudents = [];
         snapStudents.forEach(doc => allStudents.push({ id: doc.id, ...doc.data() }));
 
-        // C) Eventos en tiempo real
         onSnapshot(collection(db, "classes"), (snapshot) => {
             allEvents = [];
             snapshot.forEach(doc => allEvents.push({ id: doc.id, ...doc.data() }));
             renderCalendar();
-            // Actualizar validación si el modal está abierto
             if (!modalEvent.classList.contains('hidden')) actualizarHorariosDisponibles();
         });
 
         renderCalendarStructure();
     } catch (error) {
-        console.error("Error cargando datos:", error);
+        console.error("Error:", error);
+        showToast("Error de conexión", "error");
     }
 }
 
@@ -109,7 +145,6 @@ function renderCalendarStructure() {
 
 // 4. RENDERIZAR EVENTOS
 function renderCalendar() {
-    // Limpiar celdas
     document.querySelectorAll('.slot-cell').forEach(td => td.innerHTML = '');
 
     const fechaActualStr = calendarDate.value; 
@@ -120,11 +155,9 @@ function renderCalendar() {
     allEvents.forEach(evento => {
         let mostrar = false;
 
-        // Filtros de cancelación/fecha
         if (evento.cancelaciones && evento.cancelaciones.includes(fechaActualStr)) return;
         if (evento.fechaFin && fechaActualStr > evento.fechaFin) return;
 
-        // Lógica de visualización
         if (evento.type === 'fija') {
             if (evento.dayOfWeek === diaSemanaTexto) mostrar = true;
         } else {
@@ -139,7 +172,6 @@ function renderCalendar() {
                 const card = document.createElement('div');
                 card.className = `class-card type-${evento.type}`;
                 
-                // Botones
                 let botonesHtml = '';
                 if (evento.type === 'fija') {
                     botonesHtml = `
@@ -233,7 +265,7 @@ function actualizarHorariosDisponibles() {
     });
 }
 
-// 6. FUNCIONES GLOBALES
+// 6. FUNCIONES GLOBALES (CON MODALES)
 window.editarEvento = (idEvento) => {
     const evento = allEvents.find(e => e.id === idEvento);
     if (!evento) return;
@@ -242,7 +274,6 @@ window.editarEvento = (idEvento) => {
     document.querySelector('#modalEvent h3').textContent = "✏️ Editar Evento"; 
     
     eventDate.value = evento.date; 
-    
     eventType.value = evento.type;
     eventType.dispatchEvent(new Event('change')); 
 
@@ -265,10 +296,12 @@ window.editarEvento = (idEvento) => {
 
 window.cancelarSoloHoy = async (idEvento) => {
     const fechaActual = calendarDate.value;
-    if(!confirm(`¿Cancelar clase del ${fechaActual}?`)) return;
-    try {
-        await updateDoc(doc(db, "classes", idEvento), { cancelaciones: arrayUnion(fechaActual) });
-    } catch(e) { alert("Error al cancelar"); }
+    showConfirm("Cancelar Clase", `¿Cancelar la clase del ${fechaActual}?`, async () => {
+        try {
+            await updateDoc(doc(db, "classes", idEvento), { cancelaciones: arrayUnion(fechaActual) });
+            showToast("Clase cancelada por hoy", "info");
+        } catch(e) { showToast("Error al cancelar", "error"); }
+    });
 };
 
 window.bajaHorario = async (idEvento) => {
@@ -277,10 +310,12 @@ window.bajaHorario = async (idEvento) => {
     hoy.setDate(hoy.getDate() - 1); 
     const fechaAyer = hoy.toISOString().split('T')[0];
 
-    if(!confirm(`¿Dar de baja horario desde hoy?`)) return;
-    try {
-        await updateDoc(doc(db, "classes", idEvento), { fechaFin: fechaAyer });
-    } catch(e) { alert("Error al dar de baja"); }
+    showConfirm("⚠️ Baja Definitiva", "¿Eliminar este horario de forma permanente?", async () => {
+        try {
+            await updateDoc(doc(db, "classes", idEvento), { fechaFin: fechaAyer });
+            showToast("Horario dado de baja", "success");
+        } catch(e) { showToast("Error al dar de baja", "error"); }
+    });
 };
 
 // 7. LISTENERS FORMULARIO
@@ -345,11 +380,22 @@ eventStudentInput.addEventListener('input', () => {
 
 formEvent.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const btnSubmit = formEvent.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
     const idEdicion = document.getElementById('editEventId').value;
     const type = eventType.value;
     
-    if (type !== 'junta' && !eventStudentId.value) { alert("Selecciona alumno."); return; }
-    if (eventTime.options[eventTime.selectedIndex].disabled) { alert("Horario ocupado."); return; }
+    if (type !== 'junta' && !eventStudentId.value) { 
+        showToast("Selecciona un alumno válido", "error"); 
+        btnSubmit.classList.remove('btn-loading');
+        return; 
+    }
+    if (eventTime.options[eventTime.selectedIndex].disabled) { 
+        showToast("Horario ocupado", "error"); 
+        btnSubmit.classList.remove('btn-loading');
+        return; 
+    }
 
     const fechaObj = new Date(eventDate.value + 'T12:00:00');
     const diasMap = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -373,18 +419,23 @@ formEvent.addEventListener('submit', async (e) => {
     try {
         if (idEdicion) {
             await updateDoc(doc(db, "classes", idEdicion), datosEvento);
-            alert("Evento actualizado.");
+            showToast("Evento actualizado", "success");
         } else {
             datosEvento.cancelaciones = [];
             datosEvento.fechaFin = null;
             datosEvento.createdAt = new Date();
             await addDoc(collection(db, "classes"), datosEvento);
-            alert("Evento creado.");
+            showToast("Clase agendada", "success");
         }
         modalEvent.classList.add('hidden');
         formEvent.reset();
         document.getElementById('editEventId').value = ""; 
-    } catch (error) { console.error(error); alert("Error al guardar."); }
+    } catch (error) { 
+        console.error(error); 
+        showToast("Error al guardar", "error"); 
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
 });
 
 function formatTime(hora24) {
@@ -410,7 +461,7 @@ btnNewEvent.addEventListener('click', () => {
 
 btnCloseEvent.addEventListener('click', () => modalEvent.classList.add('hidden'));
 
-// NAVEGACIÓN DE FECHA CORREGIDA
+// NAVEGACIÓN
 calendarDate.addEventListener('change', renderCalendar);
 
 document.getElementById('btnPrevDay').addEventListener('click', () => { 
@@ -423,8 +474,7 @@ document.getElementById('btnNextDay').addEventListener('click', () => {
     calendarDate.dispatchEvent(new Event('change')); 
 });
 
-// CORRECCIÓN BOTÓN HOY
 document.getElementById('btnToday').addEventListener('click', () => { 
-    calendarDate.value = getLocalDateString(); // Usar la función local, no new Date()
+    calendarDate.value = getLocalDateString(); 
     calendarDate.dispatchEvent(new Event('change')); 
 });
