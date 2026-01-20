@@ -1,17 +1,20 @@
-/* Importamos el estilo base de estudiantes para mantener la identidad */
+/* Heredamos estilos base */
 @import url('students.css');
 
-/* --- ESTILOS ESPECÍFICOS DE FINANZAS --- */
+/* =========================================
+   ESTILOS ESPECÍFICOS DE FINANZAS
+   ========================================= */
 
 /* Etiquetas de Estado de Pago */
 .tag-pago {
     padding: 6px 12px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    text-transform: uppercase;
 }
 
 .pago-pendiente {
@@ -32,7 +35,7 @@
     border: 1px solid #c3e6cb;
 }
 
-/* Botón de cobrar ($) */
+/* Botones de Acción */
 .btn-cobrar {
     background-color: #28a745;
     color: white;
@@ -40,25 +43,24 @@
     padding: 6px 12px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     display: flex;
     align-items: center;
     gap: 5px;
     transition: background 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+.btn-cobrar:hover { background-color: #218838; transform: translateY(-1px); }
 
-.btn-cobrar:hover {
-    background-color: #218838;
-}
-/* Botón Historial (Reloj) en la tabla principal */
 .btn-history {
-    background-color: #17a2b8; /* Cyan */
+    background-color: #17a2b8;
     color: white;
     border: none;
     padding: 6px 10px;
     border-radius: 4px;
     cursor: pointer;
     margin-right: 5px;
+    transition: 0.2s;
 }
 .btn-history:hover { background-color: #138496; }
 
@@ -70,30 +72,119 @@
     cursor: pointer;
     font-size: 14px;
     margin-right: 3px;
+    transition: 0.2s;
 }
 
-.btn-email-pago { background-color: #ffc107; color: #333; } /* Amarillo */
-.btn-edit-pago { background-color: #6c757d; color: white; } /* Gris */
-.btn-delete-pago { background-color: #dc3545; color: white; } /* Rojo */
+.btn-email-pago { background-color: #ffc107; color: #333; }
+.btn-edit-pago { background-color: #6c757d; color: white; }
+.btn-delete-pago { background-color: #dc3545; color: white; }
 
 .btn-email-pago:hover { background-color: #e0a800; }
+.btn-edit-pago:hover { background-color: #5a6268; }
 .btn-delete-pago:hover { background-color: #c82333; }
 
-/* Estilos para el reporte */
+/* Reporte */
 #listaDesglose li {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
     border-bottom: 1px dashed #eee;
     color: #444;
+    font-size: 13px;
 }
-
-#listaDesglose li strong {
-    color: #2c3e50;
-}
+#listaDesglose li strong { color: #2c3e50; }
 
 .metodo-row {
     display: flex;
     justify-content: space-between;
-    padding: 5px 0;
+    padding: 6px 10px;
+    background: #f9f9f9;
+    margin-bottom: 5px;
+    border-radius: 4px;
 }
+
+/* =========================================
+   ANIMACIONES, TOASTS Y MODALES (COMUNES)
+   ========================================= */
+
+/* 1. Animaciones de Entrada */
+.content-card { animation: fadeInUp 0.5s ease-out; }
+
+tbody tr {
+    animation: slideIn 0.3s ease-out forwards;
+    opacity: 0;
+}
+/* Efecto cascada */
+tbody tr:nth-child(1) { animation-delay: 0.05s; }
+tbody tr:nth-child(2) { animation-delay: 0.1s; }
+tbody tr:nth-child(3) { animation-delay: 0.15s; }
+tbody tr:nth-child(4) { animation-delay: 0.2s; }
+tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* 2. TOASTS */
+#toast-container {
+    position: fixed;
+    top: 20px; right: 20px;
+    z-index: 12000;
+    display: flex; flex-direction: column; gap: 10px;
+}
+
+.toast {
+    min-width: 250px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; font-weight: 500;
+    opacity: 0; transform: translateX(50px);
+    animation: toastEnter 0.4s forwards;
+    border-left: 5px solid #ccc;
+}
+
+.toast.success { border-left-color: #2e7d32; color: #1b5e20; }
+.toast.error { border-left-color: #c62828; color: #b71c1c; }
+.toast.info { border-left-color: #0288d1; color: #01579b; }
+
+.toast-icon { font-size: 18px; }
+
+@keyframes toastEnter { to { opacity: 1; transform: translateX(0); } }
+@keyframes toastExit { to { opacity: 0; transform: translateX(50px); } }
+
+/* 3. MODAL CONFIRMACIÓN */
+#modalConfirm { z-index: 11000; backdrop-filter: blur(2px); }
+#modalConfirm .modal-content { text-align: center; width: 400px; }
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* 4. LOADING EN BOTONES */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+.btn-loading::after {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 16px; height: 16px;
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    transform: translate(-50%, -50%);
+}
+@keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }

@@ -22,14 +22,53 @@ const modalReporte = document.getElementById('modalReporte');
 const formPago = document.getElementById('formPago');
 const selectPeriodo = document.getElementById('pagoPeriodo');
 
+// CONFIRMACIÓN CUSTOM
+const modalConfirm = document.getElementById('modalConfirm');
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmMessage = document.getElementById('confirmMessage');
+const btnOkConfirm = document.getElementById('btnOkConfirm');
+const btnCancelConfirm = document.getElementById('btnCancelConfirm');
+let confirmCallback = null;
+
 // Estado Global
 let allStudents = []; 
 let allPayments = []; 
 let currentPage = 1;
 const rowsPerPage = 20;
 
-// --- FUNCIÓN AUXILIAR PARA FECHA LOCAL ---
-// Esto soluciona el problema de que marque "mañana" a las 6pm
+// --- UTILS UI (TOASTS & CONFIRM) ---
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if(!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+    toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'toastExit 0.4s forwards';
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+function showConfirm(title, msg, callback) {
+    confirmTitle.textContent = title;
+    confirmMessage.textContent = msg;
+    confirmCallback = callback;
+    modalConfirm.classList.remove('hidden');
+}
+
+btnOkConfirm.addEventListener('click', () => {
+    if(confirmCallback) confirmCallback();
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
+btnCancelConfirm.addEventListener('click', () => {
+    modalConfirm.classList.add('hidden');
+    confirmCallback = null;
+});
+
+// --- FUNCIÓN AUXILIAR PARA FECHA LOCAL (ARREGLO DE HORA) ---
 function getLocalToday() {
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
@@ -44,7 +83,7 @@ onAuthStateChanged(auth, (user) => {
 
 // 2. CARGAR DATOS
 async function loadFinanceData() {
-    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">Cargando base de datos completa...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">Cargando datos...</td></tr>';
     try {
         const qStudents = query(collection(db, "students"), orderBy("nombre"));
         const snapStudents = await getDocs(qStudents);
@@ -59,7 +98,8 @@ async function loadFinanceData() {
         renderTable();
     } catch (error) {
         console.error("Error:", error);
-        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">Error al cargar datos.</td></tr>';
+        showToast("Error al cargar datos", "error");
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">Error de conexión.</td></tr>';
     }
 }
 
@@ -69,9 +109,9 @@ function renderTable() {
     const filtroPago = filterPayment.value; 
     const filtroEstatus = filterStatus ? filterStatus.value : 'activos'; 
     
-    // CORRECCIÓN: Usamos fecha local
+    // ARREGLO DE FECHA
     const hoy = getLocalToday(); 
-    const diaHoy = hoy.getDate(); // 1 al 31 real de tu zona
+    const diaHoy = hoy.getDate(); 
 
     const listaProcesada = allStudents.map(alumno => {
         const periodoActualStr = calcularPeriodoActual(alumno.fechaInicioClases);
@@ -81,13 +121,12 @@ function renderTable() {
         if (estaPagado) estadoPago = 'pagado';
         else {
             const diaCorte = alumno.diaCorte || 5;
-            // Comparamos el día de hoy local contra el día de corte
             if (diaHoy > diaCorte) estadoPago = 'vencido';
         }
         return { ...alumno, estadoPago, periodoActualStr };
     });
 
-    // --- FILTROS ---
+    // Filtros
     const listaFiltrada = listaProcesada.filter(alumno => {
         const coincideNombre = alumno.nombre.toLowerCase().includes(textoBusqueda);
         
@@ -98,11 +137,8 @@ function renderTable() {
         let coincideEstatus = true;
         const esBaja = alumno.status !== 'inscrito';
 
-        if (filtroEstatus === 'activos') {
-            coincideEstatus = !esBaja;
-        } else if (filtroEstatus === 'bajas') {
-            coincideEstatus = esBaja;
-        }
+        if (filtroEstatus === 'activos') coincideEstatus = !esBaja;
+        else if (filtroEstatus === 'bajas') coincideEstatus = esBaja;
 
         return coincideNombre && coincidePago && coincideEstatus;
     });
@@ -116,7 +152,7 @@ function renderTable() {
 
     tableBody.innerHTML = '';
     if (alumnosPagina.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">No se encontraron resultados.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#888;">No se encontraron resultados.</td></tr>';
         return;
     }
 
@@ -124,7 +160,7 @@ function renderTable() {
         const fila = document.createElement('tr');
         const esBaja = alumno.status !== 'inscrito';
         
-        if (esBaja) fila.style.backgroundColor = '#f5f5f5'; 
+        if (esBaja) fila.style.backgroundColor = '#f9f9f9'; 
 
         let htmlEstadoPago = '';
         if (esBaja) {
@@ -165,7 +201,7 @@ function renderTable() {
                             data-nombre="${alumno.nombre}" 
                             data-costo="${alumno.costoMensual}"
                             data-inicio="${alumno.fechaInicioClases}">
-                            💲 Pagar
+                            💲
                         </button>` 
                         : '' 
                     }
@@ -200,10 +236,11 @@ function asignarListenersTabla() {
 function abrirModalPago(id, nombre, costo, fechaInicioStr) {
     document.getElementById('pagoStudentId').value = id;
     document.getElementById('pagoNombreTexto').value = nombre;
+    document.getElementById('pagoAlumnoNombre').value = nombre;
     document.getElementById('pagoMontoBase').value = `$${costo}`;
     document.getElementById('pagoMontoReal').value = costo;
     
-    // CORRECCIÓN: Fecha del input modal
+    // FECHA CORRECTA
     const hoyLocal = getLocalToday();
     document.getElementById('pagoFecha').value = hoyLocal.toISOString().split('T')[0];
     
@@ -212,7 +249,7 @@ function abrirModalPago(id, nombre, costo, fechaInicioStr) {
 
     selectPeriodo.innerHTML = '<option value="">-- Selecciona Periodo --</option>';
     
-    // Para calcular periodos, usamos T12:00:00 para asegurar medio día y evitar saltos
+    // Cálculo de periodos
     let fechaIteracion = fechaInicioStr ? new Date(fechaInicioStr + 'T12:00:00') : new Date();
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -243,6 +280,9 @@ function abrirModalPago(id, nombre, costo, fechaInicioStr) {
 // 5. GUARDAR PAGO
 formPago.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const btnSubmit = formPago.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
     const data = {
         studentId: document.getElementById('pagoStudentId').value,
         nombreAlumno: document.getElementById('pagoNombreTexto').value,
@@ -259,10 +299,15 @@ formPago.addEventListener('submit', async (e) => {
         await addDoc(collection(db, "payments"), data);
         await addDoc(collection(db, "finance"), { ...data, concepto: `Mensualidad: ${data.nombreAlumno}` });
 
-        alert("Pago registrado exitosamente");
+        showToast("Pago registrado exitosamente", "success");
         modalPago.classList.add('hidden');
         loadFinanceData();
-    } catch (e) { console.error(e); alert("Error al guardar pago"); }
+    } catch (e) { 
+        console.error(e); 
+        showToast("Error al guardar pago", "error"); 
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
 });
 
 // 6. HISTORIAL
@@ -272,14 +317,13 @@ function abrirHistorial(alumno) {
     document.getElementById('historialAlumnoEmail').textContent = alumno.status === 'inscrito' ? emailT : `${emailT} (BAJA)`;
     
     const pagosAlumno = allPayments.filter(p => p.studentId === alumno.id);
-    // Ordenar fechas correctamente
     pagosAlumno.sort((a, b) => new Date(b.fechaPago) - new Date(a.fechaPago));
 
     const tbody = document.getElementById('historialTableBody');
     tbody.innerHTML = '';
 
     if (pagosAlumno.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">No hay pagos registrados.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888;">No hay pagos registrados.</td></tr>';
     } else {
         pagosAlumno.forEach(pago => {
             const row = document.createElement('tr');
@@ -302,14 +346,14 @@ function abrirHistorial(alumno) {
 
 // GLOBALES
 window.eliminarPago = async (idPago) => {
-    if(confirm("¿Seguro que deseas eliminar este pago?")) {
+    showConfirm("Eliminar Pago", "¿Seguro que deseas eliminar este registro de pago?", async () => {
         try {
             await deleteDoc(doc(db, "payments", idPago));
-            alert("Pago eliminado.");
+            showToast("Pago eliminado", "info");
             modalHistorial.classList.add('hidden');
             loadFinanceData();
-        } catch(e) { alert("Error al eliminar"); }
-    }
+        } catch(e) { showToast("Error al eliminar", "error"); }
+    });
 };
 
 window.editarPago = async (idPago, montoActual) => {
@@ -317,26 +361,25 @@ window.editarPago = async (idPago, montoActual) => {
     if(nuevoMonto && !isNaN(nuevoMonto)) {
         try {
             await updateDoc(doc(db, "payments", idPago), { monto: Number(nuevoMonto) });
-            alert("Monto actualizado.");
+            showToast("Monto actualizado", "success");
             modalHistorial.classList.add('hidden');
             loadFinanceData();
-        } catch(e) { alert("Error al editar"); }
+        } catch(e) { showToast("Error al editar", "error"); }
     }
 };
 
 window.enviarRecibo = (email, periodo, monto) => {
-    if(!email || email === 'undefined') { alert("Sin correo registrado."); return; }
-    if(confirm(`¿Enviar recibo a ${email}?`)) { alert("📧 Recibo enviado (Simulación)"); }
+    if(!email || email === 'undefined') { showToast("Sin correo registrado", "error"); return; }
+    showConfirm("Enviar Recibo", `¿Enviar recibo de ${periodo} a ${email}?`, () => {
+        showToast("📧 Recibo enviado (Simulación)", "success");
+    });
 };
 
-// UTILIDADES: CALCULO DE PERIODO (ZONA HORARIA SEGURA)
+// UTILIDADES: CALCULO DE PERIODO
 function calcularPeriodoActual(fechaInicioStr) {
     if (!fechaInicioStr) return "";
     
-    // CORRECCIÓN: Usamos fecha local en lugar de UTC
     const hoyLocal = getLocalToday();
-    
-    // Al leer el string de inicio, forzamos T12:00:00 para evitar que se regrese un día
     const inicio = new Date(fechaInicioStr + 'T12:00:00');
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     
@@ -393,14 +436,13 @@ const inputInicio = document.getElementById('reporteInicio');
 const inputFin = document.getElementById('reporteFin');
 const divFiltros = document.getElementById('reporteFiltros');
 const divResultados = document.getElementById('reporteResultados');
-const btnOpenReport = document.getElementById('btnOpenReport') || document.querySelector('.btn-primary'); 
+const btnOpenReport = document.getElementById('btnOpenReport');
 
 if(btnOpenReport) {
     btnOpenReport.addEventListener('click', () => {
         const hoy = getLocalToday();
         const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
         
-        // Ajuste zona horaria para inputs date
         if(inputInicio) inputInicio.value = primerDia.toISOString().split('T')[0];
         if(inputFin) inputFin.value = hoy.toISOString().split('T')[0];
         
@@ -418,12 +460,12 @@ if(btnGenerarReporte) {
     btnGenerarReporte.addEventListener('click', () => {
         const fechaInicio = inputInicio.value;
         const fechaFin = inputFin.value;
-        if(!fechaInicio || !fechaFin) { alert("Selecciona fechas"); return; }
+        if(!fechaInicio || !fechaFin) { showToast("Selecciona fechas", "error"); return; }
         
         const pagosFiltrados = allPayments.filter(pago => {
             return pago.fechaPago >= fechaInicio && pago.fechaPago <= fechaFin;
         });
-        if (pagosFiltrados.length === 0) { alert("No hay pagos en estas fechas."); return; }
+        if (pagosFiltrados.length === 0) { showToast("No hay pagos en este rango", "info"); return; }
         procesarDatosReporte(pagosFiltrados);
     });
 }
