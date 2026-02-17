@@ -4,151 +4,206 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario - Academia Moncayo</title>
+
     <link rel="stylesheet" href="src/css/variables.css">
     <link rel="stylesheet" href="src/css/dashboard.css">
     <link rel="stylesheet" href="src/css/calendar.css">
 </head>
 <body>
 
-    <header class="navbar">
-        <div class="nav-left"><h3>Academia Moncayo</h3></div>
-        <nav class="nav-center">
-            <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
-            <button class="nav-btn" onclick="window.location.href='students.html'">Alumnos</button>
-            <button class="nav-btn" onclick="window.location.href='teachers.html'">Maestros</button>
-            <button class="nav-btn active">Calendario</button>
-            <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
-            <button class="nav-btn" onclick="window.location.href='almacen.html'">Almacen</button>
-        </nav>
-        <div class="nav-right">
-            <span id="userDisplay">Admin</span>
+  <!-- ===== NAVBAR IGUAL AL DASHBOARD ===== -->
+  <header class="navbar">
+    <div class="navbar-shell">
+
+      <div class="nav-left">
+        <div class="brand">
+          <div class="brand-logo">
+            <img src="logo.png" alt="Academia Moncayo" />
+          </div>
+          <div class="brand-text">
+            <div class="brand-title">Academia Moncayo</div>
+            <div class="brand-subtitle">Panel de Administración</div>
+          </div>
         </div>
-    </header>
+      </div>
 
-    <main class="main-content">
-        
-        <div class="page-header">
-            <h1>Calendario de Clases</h1>
-            <div style="display:flex; gap:15px; align-items:center;">
-                <button id="btnNewEvent" class="btn-primary" style="background-color: var(--color-accent);">
-                    📅 Agregar Evento
-                </button>
-                
-                <div class="date-selector">
-                    <button id="btnPrevDay" class="nav-arrow">❮</button>
-                    <input type="date" id="calendarDate">
-                    <button id="btnNextDay" class="nav-arrow">❯</button>
-                    <button id="btnToday" class="btn-today">Hoy</button>
-                </div>
-            </div>
+      <nav class="nav-center">
+        <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
+        <button class="nav-btn" onclick="window.location.href='students.html'">Alumnos</button>
+        <button class="nav-btn" onclick="window.location.href='teachers.html'">Maestros</button>
+        <button class="nav-btn active">Calendario</button>
+        <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
+        <button class="nav-btn" onclick="window.location.href='almacen.html'">Almacen</button>
+      </nav>
+
+      <div class="nav-right">
+        <div class="user-chip">
+          <div class="user-dot"></div>
+          <span id="userDisplay">Cargando...</span>
         </div>
+        <button id="btnLogout" class="btn-logout">Salir</button>
+      </div>
 
-        <div class="content-card calendar-card">
-            <div class="calendar-legend">
-                <span class="legend-item"><span class="dot available"></span> Disponible</span>
-                <span class="legend-item"><span class="dot occupied"></span> Ocupado (Fija)</span>
-                <span class="legend-item"><span class="dot trial"></span> Clase Muestra</span>
-            </div>
+    </div>
+  </header>
 
-            <div class="calendar-wrapper">
-                <table id="calendarTable">
-                    <thead>
-                        <tr id="headerRow">
-                            <th class="time-col-header">Horario</th>
-                            </tr>
-                    </thead>
-                    <tbody id="calendarBody">
-                        </tbody>
-                </table>
-            </div>
-        </div> 
-    </main>
 
-    <div id="modalEvent" class="modal-overlay hidden">
-        <div class="modal-content" style="width: 500px;">
-            <div class="modal-header">
-                <h3>Nuevo Evento / Clase</h3>
-                <span id="btnCloseEvent" class="close-btn">&times;</span>
-            </div>
-            <form id="formEvent">
-                <input type="hidden" id="editEventId">
+  <!-- ===== CONTENIDO ===== -->
+  <main class="main-content">
 
-                <label>1. Tipo de Evento:</label>
-                <select id="eventType" required>
-                    <option value="">-- Selecciona --</option>
-                    <option value="fija">🔄 Clase Fija (Semanal)</option>
-                    <option value="muestra">✨ Clase Muestra (Prospectos)</option>
-                    <option value="unica">📅 Clase Única / Reposición</option>
-                    <option value="junta">🤝 Junta / Otro</option>
-                </select>
+    <section class="welcome-section" style="margin-bottom:22px;">
+      <div class="welcome-left">
+        <h1 style="margin:0;">Calendario de Clases</h1>
+        <p class="date-display" style="margin-top:6px;">
+          Administra clases fijas, muestras y eventos únicos.
+        </p>
+      </div>
 
-                <label>2. Especialidad / Instrumento:</label>
-                <select id="eventInstrument" required disabled>
-                    <option value="">-- Primero selecciona tipo --</option>
-                    <option value="Canto">Canto</option>
-                    <option value="Piano">Piano</option>
-                    <option value="Batería">Batería</option>
-                    <option value="Violín">Violín</option>
-                    <option value="Guitarra Eléctrica">Guitarra Eléctrica</option>
-                    <option value="Guitarra Acústica">Guitarra Acústica</option>
-                    <option value="Bajo">Bajo</option>
-                    <option value="Ukulele">Ukulele</option>
-                    <option value="Otro">Otro / Junta</option>
-                </select>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+        <button id="btnNewEvent" class="btn-primary" style="background-color: var(--color-accent);">
+          📅 Agregar Evento
+        </button>
 
-                <label>3. Maestro:</label>
-                <select id="eventTeacher" required disabled>
-                    <option value="">-- Selecciona especialidad --</option>
-                </select>
-
-                <div class="form-row">
-                    <div style="flex:1">
-                        <label>Fecha Inicio:</label>
-                        <input type="date" id="eventDate" required>
-                    </div>
-                    <div style="flex:1">
-                        <label>Hora (2pm - 8pm):</label>
-                        <select id="eventTime" required>
-                            <option value="14:00">2:00 PM</option>
-                            <option value="15:00">3:00 PM</option>
-                            <option value="16:00">4:00 PM</option>
-                            <option value="17:00">5:00 PM</option>
-                            <option value="18:00">6:00 PM</option>
-                            <option value="19:00">7:00 PM</option>
-                            <option value="20:00">8:00 PM</option>
-                        </select>
-                    </div>
-                </div>
-
-                <label>5. Alumno:</label>
-                <input list="listStudents" id="eventStudentInput" placeholder="Escribe nombre..." disabled style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
-                <datalist id="listStudents">
-                    </datalist>
-                <input type="hidden" id="eventStudentId"> 
-                
-                <label>Nota / Detalles:</label>
-                <textarea id="eventNote" rows="2" placeholder="Ej. Traer partituras..."></textarea>
-
-                <button type="submit" class="btn-save" style="margin-top:15px;">Guardar Evento</button>
-            </form>
+        <div class="date-selector">
+          <button id="btnPrevDay" class="nav-arrow">❮</button>
+          <input type="date" id="calendarDate">
+          <button id="btnNextDay" class="nav-arrow">❯</button>
+          <button id="btnToday" class="btn-today">Hoy</button>
         </div>
+      </div>
+    </section>
+
+
+    <div class="content-card calendar-card">
+      <div class="calendar-legend">
+        <span class="legend-item">
+          <span class="dot available"></span> Disponible
+        </span>
+        <span class="legend-item">
+          <span class="dot occupied"></span> Ocupado (Fija)
+        </span>
+        <span class="legend-item">
+          <span class="dot trial"></span> Clase Muestra
+        </span>
+      </div>
+
+      <div class="calendar-wrapper">
+        <table id="calendarTable">
+          <thead>
+            <tr id="headerRow">
+              <th class="time-col-header">Horario</th>
+            </tr>
+          </thead>
+          <tbody id="calendarBody"></tbody>
+        </table>
+      </div>
     </div>
 
-<div id="modalConfirm" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div style="font-size: 50px; margin-bottom: 15px; animation: bounce 1s infinite;">⚠️</div>
-            <h3 id="confirmTitle" style="margin: 0; color: #333;">¿Estás seguro?</h3>
-            <p id="confirmMessage" style="color: #666; margin: 10px 0 25px;">Esta acción es irreversible.</p>
-            
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="btnCancelConfirm" style="background:#e0e0e0; color:#333; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">Cancelar</button>
-                <button id="btnOkConfirm" style="background:#c62828; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:bold;">Sí, Continuar</button>
-            </div>
+  </main>
+
+
+  <!-- ===== MODAL EVENTO ===== -->
+  <div id="modalEvent" class="modal-overlay hidden">
+    <div class="modal-content" style="width: 500px;">
+      <div class="modal-header">
+        <h3>Nuevo Evento / Clase</h3>
+        <span id="btnCloseEvent" class="close-btn">&times;</span>
+      </div>
+
+      <form id="formEvent">
+        <input type="hidden" id="editEventId">
+
+        <label>1. Tipo de Evento:</label>
+        <select id="eventType" required>
+          <option value="">-- Selecciona --</option>
+          <option value="fija">🔄 Clase Fija (Semanal)</option>
+          <option value="muestra">✨ Clase Muestra (Prospectos)</option>
+          <option value="unica">📅 Clase Única / Reposición</option>
+          <option value="junta">🤝 Junta / Otro</option>
+        </select>
+
+        <label>2. Especialidad / Instrumento:</label>
+        <select id="eventInstrument" required disabled>
+          <option value="">-- Primero selecciona tipo --</option>
+          <option value="Canto">Canto</option>
+          <option value="Piano">Piano</option>
+          <option value="Batería">Batería</option>
+          <option value="Violín">Violín</option>
+          <option value="Guitarra Eléctrica">Guitarra Eléctrica</option>
+          <option value="Guitarra Acústica">Guitarra Acústica</option>
+          <option value="Bajo">Bajo</option>
+          <option value="Ukulele">Ukulele</option>
+          <option value="Otro">Otro / Junta</option>
+        </select>
+
+        <label>3. Maestro:</label>
+        <select id="eventTeacher" required disabled>
+          <option value="">-- Selecciona especialidad --</option>
+        </select>
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Fecha Inicio:</label>
+            <input type="date" id="eventDate" required>
+          </div>
+          <div style="flex:1">
+            <label>Hora (2pm - 8pm):</label>
+            <select id="eventTime" required>
+              <option value="14:00">2:00 PM</option>
+              <option value="15:00">3:00 PM</option>
+              <option value="16:00">4:00 PM</option>
+              <option value="17:00">5:00 PM</option>
+              <option value="18:00">6:00 PM</option>
+              <option value="19:00">7:00 PM</option>
+              <option value="20:00">8:00 PM</option>
+            </select>
+          </div>
         </div>
+
+        <label>5. Alumno:</label>
+        <input list="listStudents" id="eventStudentInput"
+               placeholder="Escribe nombre..." disabled
+               style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
+        <datalist id="listStudents"></datalist>
+        <input type="hidden" id="eventStudentId">
+
+        <label>Nota / Detalles:</label>
+        <textarea id="eventNote" rows="2"
+                  placeholder="Ej. Traer partituras..."></textarea>
+
+        <button type="submit" class="btn-save" style="margin-top:15px;">
+          Guardar Evento
+        </button>
+      </form>
     </div>
+  </div>
 
-    <div id="toast-container"></div>
 
-    <script type="module" src="src/js/calendar.js"></script>
+  <!-- ===== MODAL CONFIRM ===== -->
+  <div id="modalConfirm" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div style="font-size:50px; margin-bottom:15px; animation:bounce 1s infinite;">⚠️</div>
+      <h3 id="confirmTitle" style="margin:0; color:#333;">¿Estás seguro?</h3>
+      <p id="confirmMessage" style="color:#666; margin:10px 0 25px;">
+        Esta acción es irreversible.
+      </p>
+
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button id="btnCancelConfirm"
+                style="background:#e0e0e0; color:#333; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">
+          Cancelar
+        </button>
+        <button id="btnOkConfirm"
+                style="background:#c62828; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:bold;">
+          Sí, Continuar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script type="module" src="src/js/calendar.js"></script>
+
 </body>
 </html>

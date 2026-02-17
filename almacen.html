@@ -11,19 +11,39 @@
 <body>
 
     <header class="navbar">
-        <div class="nav-left"><h3>Academia Moncayo</h3></div>
-        <nav class="nav-center">
-            <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
-            <button class="nav-btn" onclick="window.location.href='students.html'">Alumnos</button>
-            <button class="nav-btn" onclick="window.location.href='teachers.html'">Maestros</button>
-            <button class="nav-btn" onclick="window.location.href='calendar.html'">Calendario</button>
-            <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
-            <button class="nav-btn active">Almacén</button>
-        </nav>
-        <div class="nav-right">
-            <span id="userDisplay">Admin</span>
+  <div class="navbar-shell">
+
+    <div class="nav-left">
+      <div class="brand">
+        <div class="brand-logo">
+          <img src="logo.png" alt="Academia Moncayo">
         </div>
-    </header>
+        <div class="brand-text">
+          <div class="brand-title">Academia Moncayo</div>
+          <div class="brand-subtitle">Panel de Administración</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav-center">
+      <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
+      <button class="nav-btn" onclick="window.location.href='students.html'">Alumnos</button>
+      <button class="nav-btn" onclick="window.location.href='teachers.html'">Maestros</button>
+      <button class="nav-btn" onclick="window.location.href='calendar.html'">Calendario</button>
+      <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
+      <button class="nav-btn active" onclick="window.location.href='almacen.html'">Almacén</button>
+    </nav>
+
+    <div class="nav-right">
+      <div class="user-chip">
+        <div class="user-dot"></div>
+        <span id="userDisplay">Cargando...</span>
+      </div>
+      <button id="btnLogout" class="btn-logout">Salir</button>
+    </div>
+
+  </div>
+</header>
 
     <main class="main-content">
         <div class="page-header">

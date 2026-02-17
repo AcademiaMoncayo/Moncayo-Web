@@ -1,342 +1,392 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alumnos - Academia Moncayo</title>
-    <link rel="stylesheet" href="src/css/variables.css">
-    <link rel="stylesheet" href="src/css/dashboard.css">
-    <link rel="stylesheet" href="src/css/students.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alumnos - Academia Moncayo</title>
+
+  <link rel="stylesheet" href="src/css/variables.css">
+  <link rel="stylesheet" href="src/css/dashboard.css">
+  <link rel="stylesheet" href="src/css/students.css">
 </head>
 <body>
 
-    <header class="navbar">
-        <div class="nav-left"><h3>Academia Moncayo</h3></div>
-        <nav class="nav-center">
-            <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
-            <button class="nav-btn active">Alumnos</button>
-            <button class="nav-btn" onclick="window.location.href='teachers.html'">Maestros</button>
-            <button class="nav-btn" onclick="window.location.href='calendar.html'">Calendario</button>
-            <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
-            <button class="nav-btn" onclick="window.location.href='almacen.html'">Almacén</button>
-        </nav>
-        <div class="nav-right">
-            <span id="userDisplay">Admin</span>
+  <!-- ✅ HEADER PREMIUM (IGUAL AL DASHBOARD) -->
+  <header class="navbar">
+    <div class="navbar-shell">
+      <div class="nav-left">
+        <div class="brand">
+          <div class="brand-logo">
+            <img src="logo.png" alt="Academia Moncayo" />
+          </div>
+          <div class="brand-text">
+            <div class="brand-title">Academia Moncayo</div>
+            <div class="brand-subtitle">Panel de Administración</div>
+          </div>
         </div>
-    </header>
+      </div>
 
-    <main class="main-content">
-        
-        <div class="page-header">
-            <h1>Gestión de Alumnos</h1>
-            <button id="btnOpenModal" class="btn-primary" style="box-shadow: 0 4px 6px rgba(0,0,0,0.1);">+ Nuevo Prospecto</button>
+      <nav class="nav-center">
+        <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
+        <button class="nav-btn active" onclick="window.location.href='students.html'">Alumnos</button>
+        <button class="nav-btn" onclick="window.location.href='teachers.html'">Maestros</button>
+        <button class="nav-btn" onclick="window.location.href='calendar.html'">Calendario</button>
+        <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
+        <button class="nav-btn" onclick="window.location.href='almacen.html'">Almacén</button>
+      </nav>
+
+      <div class="nav-right">
+        <div class="user-chip">
+          <div class="user-dot"></div>
+          <span id="userDisplay">Cargando...</span>
         </div>
-
-        <div class="content-card">
-            
-            <div class="toolbar">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="🔍 Buscar alumno...">
-                </div>
-                
-<div class="filter-box">
-    <label>Estado:</label>
-    <select id="filterStatus">
-        <option value="todos">📂 Ver Todos</option>
-        
-        <optgroup label="Ciclo Académico">
-            <option value="inscrito">✅ Inscritos (Activos)</option>
-            <option value="inactivo">⏸️ Inactivos (Suspendidos)</option>
-            <option value="baja">❌ Bajas Definitivas</option>
-        </optgroup>
-
-        <optgroup label="Ciclo Ventas">
-            <option value="prospecto">📞 Prospectos</option>
-            <option value="sin_interes">💤 Sin Interés</option>
-        </optgroup>
-    </select>
-</div>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre Alumno</th>
-                            <th>Usuario App</th>
-                            <th style="min-width: 180px;">Datos Tutor / Contacto</th>
-                            <th style="text-align: center;">Factura</th>
-                            <th>Costo</th>
-                            <th>Status</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        </tbody>
-                </table>
-                <p id="noResults" class="hidden" style="text-align:center; padding: 20px; color:#666;">No se encontraron alumnos.</p>
-            </div>
-
-            <div class="pagination-controls">
-                <button id="btnPrevPage" disabled>❮ Anterior</button>
-                <span id="pageIndicator" style="font-size: 14px; color: #666;">Página 1</span>
-                <button id="btnNextPage">Siguiente ❯</button>
-            </div>
-
-        </div> 
-    </main>
-
-    <div id="modalContainer" class="modal-overlay hidden">
-        <div class="modal-content" style="width: 500px;">
-            <div class="modal-header">
-                <h3>Nuevo Prospecto</h3>
-                <span id="btnCloseModal" class="close-btn">&times;</span>
-            </div>
-            <form id="formStudent">
-                <p style="color:#666; font-size:13px; margin-bottom:15px;">
-                    Registra los datos de contacto iniciales. Podrás completar la inscripción después.
-                </p>
-
-                <label>Nombre del Interesado:</label>
-                <input type="text" id="stuNombre" required placeholder="Ej. Miguel Ángel Moncayo">
-
-                <div class="form-row">
-                    <div style="flex:1">
-                        <label>Nombre del Tutor:</label>
-                        <input type="text" id="stuTutor" required placeholder="Padre/Madre">
-                    </div>
-                    <div style="flex:1">
-                        <label>Teléfono (WhatsApp):</label>
-                        <input type="tel" id="stuTel" required placeholder="33 1234 5678">
-                    </div>
-                </div>
-
-                <label>Correo Electrónico:</label>
-                <input type="email" id="stuEmail" placeholder="correo@ejemplo.com">
-
-                <label>Instrumento de Interés:</label>
-                <input type="text" id="stuInteres" placeholder="Ej. Piano, Canto, Violín..." style="width:100%;">
-
-                <button type="submit" class="btn-save">Guardar Prospecto</button>
-            </form>
-        </div>
+        <button id="btnLogout" class="btn-logout">Salir</button>
+      </div>
     </div>
-<div id="modalInscripcion" class="modal-overlay hidden">
-        <div class="modal-content" style="width: 600px;">
-            <div class="modal-header" style="background-color: #e8f5e9;">
-                <h3 style="color:#2e7d32;">✅ Formalizar Inscripción</h3>
-                <span id="btnCloseInscripcion" class="close-btn">&times;</span>
-            </div>
-            <form id="formInscripcion">
-                <input type="hidden" id="insId">
-                
-                <div style="margin-bottom:15px;">
-                    <label>Alumno:</label>
-                    <input type="text" id="insNombre" disabled style="background:#f9f9f9; font-weight:bold;">
-                </div>
+  </header>
 
-                <div style="background: #fff8e1; padding: 10px; border: 1px solid #ffecb3; border-radius: 6px; margin-bottom: 15px;">
-                    <label style="color:#f57f17; font-weight:bold;">💰 Pago de Inscripción ($):</label>
-                    <input type="number" id="insMontoInscripcion" required placeholder="Ej. 500.00" style="font-size: 16px; font-weight: bold;">
-                    <small style="color:#888;">Este pago se registrará automáticamente en Finanzas.</small>
-                </div>
+  <!-- ✅ MAIN CON MISMO LAYOUT -->
+  <main class="main-content">
 
-                <div class="form-row" style="background: #e3f2fd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #bbdefb;">
-                    <div style="flex:1">
-                        <label style="color:#0d47a1; font-weight:bold;">Usuario App:</label>
-                        <input type="text" id="insUsuario" required placeholder="usuario.app">
-                    </div>
-                    <div style="flex:1">
-                        <label style="color:#0d47a1; font-weight:bold;">Contraseña:</label>
-                        <input type="text" id="insPassword" required placeholder="******">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div style="flex:1">
-                        <label>Fecha Nacimiento:</label>
-                        <input type="date" id="insFechaNac" required>
-                    </div>
-                    <div style="flex:1; display:flex; align-items:center; margin-top:25px;">
-                        <input type="checkbox" id="insFactura" style="width:auto; margin-right:10px;">
-                        <label for="insFactura" style="margin:0;">Requiere Factura</label>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div style="flex:1">
-                        <label>Costo Mensualidad ($):</label>
-                        <input type="number" id="insCosto" required placeholder="0.00">
-                    </div>
-                    <div style="flex:1">
-                        <label>Inicio Clases:</label>
-                        <input type="date" id="insInicio" required>
-                        <small style="color:#666; font-size:11px;">El día de inicio será el día de corte.</small>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-save" style="background-color:#2e7d32;">Confirmar Inscripción y Cobrar</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalEditar" class="modal-overlay hidden">
-        <div class="modal-content" style="width: 600px;">
-            <div class="modal-header">
-                <h3>Editar Alumno</h3>
-                <span id="btnCloseEditar" class="close-btn">&times;</span>
-            </div>
-            <form id="formEditar">
-                <input type="hidden" id="editId">
-                
-                <label>Nombre Completo:</label>
-                <input type="text" id="editNombre" required>
-
-                <div class="form-row" style="background: #fff3e0; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #ffe0b2;">
-                    <div style="flex:1">
-                        <label style="color:#e65100; font-weight:bold;">Usuario (App):</label>
-                        <input type="text" id="editStuUsuario" required style="border:1px solid #ffcc80;">
-                    </div>
-                    <div style="flex:1">
-                        <label style="color:#e65100; font-weight:bold;">Contraseña:</label>
-                        <input type="text" id="editStuPassword" required style="border:1px solid #ffcc80;">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div style="flex:1">
-                        <label>Tutor:</label>
-                        <input type="text" id="editTutor" required>
-                    </div>
-                    <div style="flex:1">
-                        <label>Teléfono:</label>
-                        <input type="tel" id="editTel" required>
-                    </div>
-                </div>
-
-                <label>Correo Electrónico:</label>
-                <input type="email" id="editEmail">
-
-                <div class="form-row">
-                    <div style="flex:1">
-                        <label>Fecha Nacimiento:</label>
-                        <input type="date" id="editFechaNac" required>
-                    </div>
-                    <div style="flex:1; display:flex; align-items:center; margin-top:25px;">
-                        <input type="checkbox" id="editFactura" style="width:auto; margin-right:10px;">
-                        <label for="editFactura" style="margin:0;">Requiere Factura</label>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div style="flex:1">
-                        <label>Costo ($):</label>
-                        <input type="number" id="editCosto" required>
-                    </div>
-                    <div style="flex:1">
-                        <label>Inicio / Corte:</label>
-                        <input type="date" id="editInicio">
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-save" style="background-color: #ffc107; color: #333;">Actualizar Datos</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalPerfil" class="modal-overlay hidden">
-        <div class="modal-content" style="width: 450px; text-align: center; border-radius: 20px; overflow: hidden;">
-            <div class="modal-header" style="border:none; justify-content: flex-end;">
-                <span id="btnClosePerfil" class="close-btn" style="font-size: 24px;">&times;</span>
-            </div>
-            
-            <div style="margin-top: -20px; margin-bottom: 20px;">
-                <div style="width: 100px; height: 100px; background: #ffc107; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 50px; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
-                    🎸
-                </div>
-                <h2 id="gamerName" style="margin: 10px 0 5px; color: #333;">Nombre Alumno</h2>
-                <div style="color: #666; font-weight: bold; font-size: 14px;">Nivel <span id="gamerLevel" style="color: #2196f3; font-size: 18px;">1</span>: <span id="gamerRank">Novato Musical</span></div>
-            </div>
-
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; font-weight: bold; color: #555;">
-                    <span>XP (Experiencia)</span>
-                    <span id="gamerXP">0 / 1000</span>
-                </div>
-                <div style="background: #e0e0e0; height: 12px; border-radius: 10px; overflow: hidden; margin-bottom: 20px;">
-                    <div id="barXP" style="background: #4caf50; width: 0%; height: 100%; transition: width 1s ease;"></div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div style="background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <div style="font-size: 20px;">🔥</div>
-                        <div style="font-weight: bold; font-size: 18px;" id="gamerStreak">0</div>
-                        <div style="font-size: 11px; color: #888;">Racha de Clases</div>
-                    </div>
-                    <div style="background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <div style="font-size: 20px;">📚</div>
-                        <div style="font-weight: bold; font-size: 18px;" id="gamerClasses">0</div>
-                        <div style="font-size: 11px; color: #888;">Clases Totales</div>
-                    </div>
-                </div>
-            </div>
-
-            <button class="btn-primary" onclick="document.getElementById('modalPerfil').classList.add('hidden')" style="width: 100%; border-radius: 10px;">¡Genial!</button>
-        </div>
-    </div>
-
-<div id="modalConfirm" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div style="font-size: 50px; margin-bottom: 15px; animation: bounce 1s infinite;">⚠️</div>
-            <h3 id="confirmTitle" style="margin: 0; color: #333;">¿Estás seguro?</h3>
-            <p id="confirmMessage" style="color: #666; margin: 10px 0 25px;">Esta acción es irreversible.</p>
-            
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="btnCancelConfirm" style="background:#e0e0e0; color:#333; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">Cancelar</button>
-                <button id="btnOkConfirm" style="background:#c62828; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:bold;">Sí, Continuar</button>
-            </div>
-        </div>
-    </div>
-<div id="modalCredenciales" class="modal-overlay hidden" style="backdrop-filter: blur(5px);">
-        <div class="modal-content">
-            
-            <div class="access-card">
-                <div class="card-header">
-                    <span class="brand-name">Academia Moncayo</span>
-                    <span class="card-chip">🎹</span> </div>
-
-                <div class="field-group">
-                    <span class="field-label">Usuario / ID</span>
-                    <div class="field-value-box">
-                        <span id="viewUser" class="field-value">usuario.app</span>
-                        <button class="btn-copy-icon" onclick="copiarTexto('viewUser')" title="Copiar Usuario">📋</button>
-                    </div>
-                </div>
-
-                <div class="field-group">
-                    <span class="field-label">Contraseña de Acceso</span>
-                    <div class="field-value-box">
-                        <span id="viewPass" class="field-value">••••••</span> <button class="btn-copy-icon" onclick="copiarTexto('viewPass')" title="Copiar Contraseña">📋</button>
-                    </div>
-                </div>
-                
-                <div style="text-align: center; margin-top: 15px; font-size: 10px; opacity: 0.5;">
-                    ACCESO EXCLUSIVO PARA ALUMNOS
-                </div>
-            </div>
-
-            <div style="text-align: center;">
-                <button class="btn-close-card" onclick="document.getElementById('modalCredenciales').classList.add('hidden')">
-                    Cerrar
-                </button>
-            </div>
-
-        </div>
-    </div>
+  <div class="welcome-section" style="margin-bottom: 25px;">
     
+    <div>
+        <h1 style="margin:0;">Gestión de Alumnos</h1>
+        <p class="date-display" style="margin-top:5px;">
+            Administra alumnos, prospectos e inscripciones.
+        </p>
+    </div>
 
-    <div id="toast-container"></div>
+    <button id="btnOpenModal"
+            class="btn-primary"
+            style="height: fit-content;">
+        + Nuevo Prospecto
+    </button>
 
-    <script type="module" src="src/js/students.js"></script>
+</div>
+
+    <div class="content-card">
+
+      <div class="toolbar">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="🔍 Buscar alumno...">
+        </div>
+
+        <div class="filter-box">
+          <label>Estado:</label>
+          <select id="filterStatus">
+            <option value="todos">📂 Ver Todos</option>
+
+            <optgroup label="Ciclo Académico">
+              <option value="inscrito">✅ Inscritos (Activos)</option>
+              <option value="inactivo">⏸️ Inactivos (Suspendidos)</option>
+              <option value="baja">❌ Bajas Definitivas</option>
+            </optgroup>
+
+            <optgroup label="Ciclo Ventas">
+              <option value="prospecto">📞 Prospectos</option>
+              <option value="sin_interes">💤 Sin Interés</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre Alumno</th>
+              <th>Usuario App</th>
+              <th style="min-width: 180px;">Datos Tutor / Contacto</th>
+              <th style="text-align: center;">Factura</th>
+              <th>Costo</th>
+              <th>Status</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+
+        <p id="noResults" class="hidden" style="text-align:center; padding: 20px; color:#666;">
+          No se encontraron alumnos.
+        </p>
+      </div>
+
+      <div class="pagination-controls">
+        <button id="btnPrevPage" disabled>❮ Anterior</button>
+        <span id="pageIndicator" style="font-size: 14px; color: #666;">Página 1</span>
+        <button id="btnNextPage">Siguiente ❯</button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- =======================
+       MODALES (NO TOCADOS)
+       ======================= -->
+
+  <div id="modalContainer" class="modal-overlay hidden">
+    <div class="modal-content" style="width: 500px;">
+      <div class="modal-header">
+        <h3>Nuevo Prospecto</h3>
+        <span id="btnCloseModal" class="close-btn">&times;</span>
+      </div>
+
+      <form id="formStudent">
+        <p style="color:#666; font-size:13px; margin-bottom:15px;">
+          Registra los datos de contacto iniciales. Podrás completar la inscripción después.
+        </p>
+
+        <label>Nombre del Interesado:</label>
+        <input type="text" id="stuNombre" required placeholder="Ej. Miguel Ángel Moncayo">
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Nombre del Tutor:</label>
+            <input type="text" id="stuTutor" required placeholder="Padre/Madre">
+          </div>
+          <div style="flex:1">
+            <label>Teléfono (WhatsApp):</label>
+            <input type="tel" id="stuTel" required placeholder="33 1234 5678">
+          </div>
+        </div>
+
+        <label>Correo Electrónico:</label>
+        <input type="email" id="stuEmail" placeholder="correo@ejemplo.com">
+
+        <label>Instrumento de Interés:</label>
+        <input type="text" id="stuInteres" placeholder="Ej. Piano, Canto, Violín..." style="width:100%;">
+
+        <button type="submit" class="btn-save">Guardar Prospecto</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalInscripcion" class="modal-overlay hidden">
+    <div class="modal-content" style="width: 600px;">
+      <div class="modal-header" style="background-color: #e8f5e9;">
+        <h3 style="color:#2e7d32;">✅ Formalizar Inscripción</h3>
+        <span id="btnCloseInscripcion" class="close-btn">&times;</span>
+      </div>
+
+      <form id="formInscripcion">
+        <input type="hidden" id="insId">
+
+        <div style="margin-bottom:15px;">
+          <label>Alumno:</label>
+          <input type="text" id="insNombre" disabled style="background:#f9f9f9; font-weight:bold;">
+        </div>
+
+        <div style="background: #fff8e1; padding: 10px; border: 1px solid #ffecb3; border-radius: 6px; margin-bottom: 15px;">
+          <label style="color:#f57f17; font-weight:bold;">💰 Pago de Inscripción ($):</label>
+          <input type="number" id="insMontoInscripcion" required placeholder="Ej. 500.00" style="font-size: 16px; font-weight: bold;">
+          <small style="color:#888;">Este pago se registrará automáticamente en Finanzas.</small>
+        </div>
+
+        <div class="form-row" style="background: #e3f2fd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #bbdefb;">
+          <div style="flex:1">
+            <label style="color:#0d47a1; font-weight:bold;">Usuario App:</label>
+            <input type="text" id="insUsuario" required placeholder="usuario.app">
+          </div>
+          <div style="flex:1">
+            <label style="color:#0d47a1; font-weight:bold;">Contraseña:</label>
+            <input type="text" id="insPassword" required placeholder="******">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Fecha Nacimiento:</label>
+            <input type="date" id="insFechaNac" required>
+          </div>
+          <div style="flex:1; display:flex; align-items:center; margin-top:25px;">
+            <input type="checkbox" id="insFactura" style="width:auto; margin-right:10px;">
+            <label for="insFactura" style="margin:0;">Requiere Factura</label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Costo Mensualidad ($):</label>
+            <input type="number" id="insCosto" required placeholder="0.00">
+          </div>
+          <div style="flex:1">
+            <label>Inicio Clases:</label>
+            <input type="date" id="insInicio" required>
+            <small style="color:#666; font-size:11px;">El día de inicio será el día de corte.</small>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-save" style="background-color:#2e7d32;">Confirmar Inscripción y Cobrar</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalEditar" class="modal-overlay hidden">
+    <div class="modal-content" style="width: 600px;">
+      <div class="modal-header">
+        <h3>Editar Alumno</h3>
+        <span id="btnCloseEditar" class="close-btn">&times;</span>
+      </div>
+
+      <form id="formEditar">
+        <input type="hidden" id="editId">
+
+        <label>Nombre Completo:</label>
+        <input type="text" id="editNombre" required>
+
+        <div class="form-row" style="background: #fff3e0; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #ffe0b2;">
+          <div style="flex:1">
+            <label style="color:#e65100; font-weight:bold;">Usuario (App):</label>
+            <input type="text" id="editStuUsuario" required style="border:1px solid #ffcc80;">
+          </div>
+          <div style="flex:1">
+            <label style="color:#e65100; font-weight:bold;">Contraseña:</label>
+            <input type="text" id="editStuPassword" required style="border:1px solid #ffcc80;">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Tutor:</label>
+            <input type="text" id="editTutor" required>
+          </div>
+          <div style="flex:1">
+            <label>Teléfono:</label>
+            <input type="tel" id="editTel" required>
+          </div>
+        </div>
+
+        <label>Correo Electrónico:</label>
+        <input type="email" id="editEmail">
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Fecha Nacimiento:</label>
+            <input type="date" id="editFechaNac" required>
+          </div>
+          <div style="flex:1; display:flex; align-items:center; margin-top:25px;">
+            <input type="checkbox" id="editFactura" style="width:auto; margin-right:10px;">
+            <label for="editFactura" style="margin:0;">Requiere Factura</label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Costo ($):</label>
+            <input type="number" id="editCosto" required>
+          </div>
+          <div style="flex:1">
+            <label>Inicio / Corte:</label>
+            <input type="date" id="editInicio">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-save" style="background-color: #ffc107; color: #333;">Actualizar Datos</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalPerfil" class="modal-overlay hidden">
+    <div class="modal-content" style="width: 450px; text-align: center; border-radius: 20px; overflow: hidden;">
+      <div class="modal-header" style="border:none; justify-content: flex-end;">
+        <span id="btnClosePerfil" class="close-btn" style="font-size: 24px;">&times;</span>
+      </div>
+
+      <div style="margin-top: -20px; margin-bottom: 20px;">
+        <div style="width: 100px; height: 100px; background: #ffc107; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 50px; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+          🎸
+        </div>
+        <h2 id="gamerName" style="margin: 10px 0 5px; color: #333;">Nombre Alumno</h2>
+        <div style="color: #666; font-weight: bold; font-size: 14px;">
+          Nivel <span id="gamerLevel" style="color: #2196f3; font-size: 18px;">1</span>:
+          <span id="gamerRank">Novato Musical</span>
+        </div>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; font-weight: bold; color: #555;">
+          <span>XP (Experiencia)</span>
+          <span id="gamerXP">0 / 1000</span>
+        </div>
+        <div style="background: #e0e0e0; height: 12px; border-radius: 10px; overflow: hidden; margin-bottom: 20px;">
+          <div id="barXP" style="background: #4caf50; width: 0%; height: 100%; transition: width 1s ease;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div style="background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <div style="font-size: 20px;">🔥</div>
+            <div style="font-weight: bold; font-size: 18px;" id="gamerStreak">0</div>
+            <div style="font-size: 11px; color: #888;">Racha de Clases</div>
+          </div>
+          <div style="background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <div style="font-size: 20px;">📚</div>
+            <div style="font-weight: bold; font-size: 18px;" id="gamerClasses">0</div>
+            <div style="font-size: 11px; color: #888;">Clases Totales</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="document.getElementById('modalPerfil').classList.add('hidden')" style="width: 100%; border-radius: 10px;">
+        ¡Genial!
+      </button>
+    </div>
+  </div>
+
+  <div id="modalConfirm" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div style="font-size: 50px; margin-bottom: 15px; animation: bounce 1s infinite;">⚠️</div>
+      <h3 id="confirmTitle" style="margin: 0; color: #333;">¿Estás seguro?</h3>
+      <p id="confirmMessage" style="color: #666; margin: 10px 0 25px;">Esta acción es irreversible.</p>
+
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button id="btnCancelConfirm" style="background:#e0e0e0; color:#333; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">Cancelar</button>
+        <button id="btnOkConfirm" style="background:#c62828; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:bold;">Sí, Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalCredenciales" class="modal-overlay hidden" style="backdrop-filter: blur(5px);">
+    <div class="modal-content">
+
+      <div class="access-card">
+        <div class="card-header">
+          <span class="brand-name">Academia Moncayo</span>
+          <span class="card-chip">🎹</span>
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">Usuario / ID</span>
+          <div class="field-value-box">
+            <span id="viewUser" class="field-value">usuario.app</span>
+            <button class="btn-copy-icon" onclick="copiarTexto('viewUser')" title="Copiar Usuario">📋</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">Contraseña de Acceso</span>
+          <div class="field-value-box">
+            <span id="viewPass" class="field-value">••••••</span>
+            <button class="btn-copy-icon" onclick="copiarTexto('viewPass')" title="Copiar Contraseña">📋</button>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 15px; font-size: 10px; opacity: 0.5;">
+          ACCESO EXCLUSIVO PARA ALUMNOS
+        </div>
+      </div>
+
+      <div style="text-align: center;">
+        <button class="btn-close-card" onclick="document.getElementById('modalCredenciales').classList.add('hidden')">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script type="module" src="src/js/students.js"></script>
 </body>
 </html>
