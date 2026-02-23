@@ -11,44 +11,9 @@
 </head>
 <body>
 
-  <!-- ===== NAVBAR IGUAL AL DASHBOARD ===== -->
-  <header class="navbar">
-    <div class="navbar-shell">
-
-      <div class="nav-left">
-        <div class="brand">
-          <div class="brand-logo">
-            <img src="logo.png" alt="Academia Moncayo" />
-          </div>
-          <div class="brand-text">
-            <div class="brand-title">Academia Moncayo</div>
-            <div class="brand-subtitle">Panel de Administración</div>
-          </div>
-        </div>
-      </div>
-
-      <nav class="nav-center">
-        <button class="nav-btn" onclick="window.location.href='dashboard.html'">Inicio</button>
-        <button class="nav-btn" onclick="window.location.href='students.html'">Alumnos</button>
-        <button class="nav-btn" onclick="window.location.href='teachers.html'">Maestros</button>
-        <button class="nav-btn active">Calendario</button>
-        <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
-        <button class="nav-btn" onclick="window.location.href='almacen.html'">Almacen</button>
-      </nav>
-
-      <div class="nav-right">
-        <div class="user-chip">
-          <div class="user-dot"></div>
-          <span id="userDisplay">Cargando...</span>
-        </div>
-        <button id="btnLogout" class="btn-logout">Salir</button>
-      </div>
-
-    </div>
-  </header>
+<div id="app-header"></div>
 
 
-  <!-- ===== CONTENIDO ===== -->
   <main class="main-content">
 
     <section class="welcome-section" style="margin-bottom:22px;">
@@ -204,6 +169,6 @@
   <div id="toast-container"></div>
 
   <script type="module" src="src/js/calendar.js"></script>
-
+  <script src="common.js"></script>
 </body>
 </html>

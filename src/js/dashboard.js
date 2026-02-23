@@ -6,9 +6,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 
 // DOM References
 const dateDisplay = document.getElementById('dateDisplay');
-const userDisplay = document.getElementById('userDisplay');
-const btnLogout = document.getElementById('btnLogout');
-
+// ¡Hemos quitado userDisplay y btnLogout de aquí arriba para buscarlos dinámicamente luego!
 
 // Notes DOM
 const notesList = document.getElementById('notesList');
@@ -31,7 +29,7 @@ const confirmMessage = document.getElementById('confirmMessage');
 const btnOkConfirm = document.getElementById('btnOkConfirm');
 const btnCancelConfirm = document.getElementById('btnCancelConfirm');
 
-let confirmCallback = null; // Variable para guardar la acción pendiente
+let confirmCallback = null;
 
 // --- SISTEMA DE NOTIFICACIONES (TOASTS) ---
 function showToast(message, type = 'success') {
@@ -57,15 +55,14 @@ function showToast(message, type = 'success') {
 // --- SISTEMA DE CONFIRMACIÓN CUSTOM ---
 function showConfirm(mensaje, accionSi) {
     confirmMessage.textContent = mensaje;
-    confirmCallback = accionSi; // Guardamos la función a ejecutar
+    confirmCallback = accionSi; 
     modalConfirm.classList.remove('hidden');
 }
 
-// Listeners del Modal de Confirmación
 btnOkConfirm.addEventListener('click', () => {
-    if (confirmCallback) confirmCallback(); // Ejecutar la acción guardada
+    if (confirmCallback) confirmCallback(); 
     modalConfirm.classList.add('hidden');
-    confirmCallback = null; // Limpiar
+    confirmCallback = null; 
 });
 
 btnCancelConfirm.addEventListener('click', () => {
@@ -74,18 +71,34 @@ btnCancelConfirm.addEventListener('click', () => {
 });
 
 
-// 1. SEGURIDAD Y CARGA INICIAL
+// ==========================================
+// 1. SEGURIDAD Y CARGA INICIAL (CORREGIDO)
+// ==========================================
 onAuthStateChanged(auth, (user) => {
     if (!user) {
         window.location.href = "index.html";
     } else {
-        userDisplay.textContent = user.email.split('@')[0]; 
+        // Le damos un respiro de 300ms para que common.js dibuje el Navbar
+        setTimeout(() => {
+            const userDisplay = document.getElementById('userDisplay');
+            if(userDisplay) userDisplay.textContent = user.email.split('@')[0]; 
+            
+            const oldBtnLogout = document.getElementById('btnLogout');
+            if(oldBtnLogout) {
+                // Truco maestro: Clonamos el botón para borrar la configuración de tu compañera
+                // y asegurarnos de que cierre sesión de Firebase correctamente.
+                const newBtnLogout = oldBtnLogout.cloneNode(true);
+                oldBtnLogout.parentNode.replaceChild(newBtnLogout, oldBtnLogout);
+                
+                newBtnLogout.addEventListener('click', () => {
+                    signOut(auth).then(() => window.location.href = "index.html");
+                });
+            }
+        }, 300);
+
+        // ¡Ahora sí! Cargamos todos los datos
         initDashboard();
     }
-});
-
-btnLogout.addEventListener('click', () => {
-    signOut(auth).then(() => window.location.href = "index.html");
 });
 
 function initDashboard() {
@@ -135,7 +148,6 @@ function cargarNotas() {
             const btnDel = document.createElement('button');
             btnDel.className = 'btn-delete-note';
             btnDel.textContent = '×';
-            // CAMBIO: Ahora llama a nuestra función wrapper, no borra directo
             btnDel.onclick = () => solicitarBorrarNota(id); 
 
             div.appendChild(check);
@@ -146,10 +158,8 @@ function cargarNotas() {
     });
 }
 
-// Función Intermedia para activar el Modal
 function solicitarBorrarNota(id) {
     showConfirm("¿Deseas eliminar esta nota permanentemente?", async () => {
-        // Esta es la 'accionSi' que se ejecuta al dar click en "Sí, Eliminar"
         try { 
             await deleteDoc(doc(db, "notes", id)); 
             showToast("Nota eliminada", "info");

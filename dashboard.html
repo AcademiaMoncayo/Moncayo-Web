@@ -1,119 +1,113 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard - Academia Moncayo</title>
-  <link rel="stylesheet" href="src/css/variables.css" />
-  <link rel="stylesheet" href="src/css/dashboard.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Academia Moncayo</title>
+    <link rel="stylesheet" href="src/css/variables.css" />
+    <link rel="stylesheet" href="src/css/dashboard.css" />
 </head>
 <body>
 
-  <header class="navbar">
-    <div class="navbar-shell">
-      <div class="nav-left">
-        <div class="brand">
-          <div class="brand-logo">
-            <img src="logo.png" alt="Academia Moncayo" />
-          </div>
-          <div class="brand-text">
-            <div class="brand-title">Academia Moncayo</div>
-            <div class="brand-subtitle">Panel de Administración</div>
-          </div>
-        </div>
-      </div>
+    <div id="app-header"></div>
 
-      <nav class="nav-center">
-        <button class="nav-btn active">Inicio</button>
-        <button class="nav-btn" onclick="window.location.href='students.html'">Alumnos</button>
-        <button class="nav-btn" onclick="window.location.href='teachers.html'">Maestros</button>
-        <button class="nav-btn" onclick="window.location.href='calendar.html'">Calendario</button>
-        <button class="nav-btn" onclick="window.location.href='finanzas.html'">Finanzas</button>
-        <button class="nav-btn" onclick="window.location.href='almacen.html'">Almacen</button>
-      </nav>
+    <main class="main-content">
 
-      <div class="nav-right">
-        <div class="user-chip">
-          <div class="user-dot"></div>
-          <span id="userDisplay">Cargando...</span>
+        <section class="welcome-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div class="welcome-left">
+                <h1>Hola Administrador 👋</h1>
+                <p class="date-display" id="dateDisplay">Cargando fecha...</p>
+            </div>
+            <button onclick="window.location.href='calendar.html'" class="btn-primary" style="height: fit-content;">📅 Ver Agenda Completa</button>
+        </section>
+
+        <section class="notification-panel" style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #2e7d32;">
+            <h3 style="margin-top:0; color:#2c3e50;">🔔 Recordatorios para Mañana</h3>
+            <p style="color:#666; font-size:13px; margin-bottom:15px;">
+                Lista de prospectos con clase muestra agendada para el día siguiente.
+            </p>
+            <div id="listaRecordatorios" style="display:flex; flex-direction:column; gap:10px;">
+                <p style="color:#999; font-style:italic;">Cargando...</p>
+            </div>
+        </section>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#e3f2fd; color:#1565c0;">👥</div>
+                <div class="stat-info">
+                    <h3 id="statAlumnos">0</h3>
+                    <p>Alumnos Inscritos</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#fff3e0; color:#ef6c00;">📅</div>
+                <div class="stat-info">
+                    <h3 id="statClasesHoy">0</h3>
+                    <p>Clases Hoy</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#e8f5e9; color:#2e7d32;">💵</div>
+                <div class="stat-info">
+                    <h3>Finanzas</h3>
+                    <p class="link-text" onclick="window.location.href='finanzas.html'" style="cursor: pointer; color: var(--color-accent); font-weight: bold;">Ir a Cobros</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-panels">
+            
+            <div class="panel-card panel-notes">
+                <div class="notes-header">
+                    <h3>📝 Pendientes / Notas</h3>
+                    <button id="btnAddNoteToggle" class="btn-add-note">+ Nueva</button>
+                </div>
+
+                <div id="newNoteForm" class="hidden" style="margin-bottom: 15px; background: #f9f9f9; padding:10px; border-radius:5px;">
+                    <input type="text" id="noteInput" placeholder="Escribir pendiente..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 5px;" />
+                    <div class="mini-actions" style="text-align: right; margin-top: 5px;">
+                        <button id="btnSaveNote" class="btn-save-mini" style="padding: 6px 12px; border: none; background: #28a745; color: white; border-radius: 4px; cursor: pointer;">Guardar</button>
+                        <button id="btnCancelNote" class="btn-cancel-mini" style="padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                    </div>
+                </div>
+
+                <div class="notes-list" id="notesList">
+                    <div class="empty-state" style="text-align:center; color:#999; padding:20px;">Cargando notas...</div>
+                </div>
+            </div>
+
+            <div class="panel-card panel-today">
+                <div class="notes-header">
+                    <h3>📅 Clases de Hoy</h3>
+                    <span id="todayLabel" style="font-size:12px; color:#666;">...</span>
+                </div>
+
+                <div class="today-list" id="todayList">
+                    <div class="empty-state" style="text-align:center; color:#999; padding:20px;">Buscando clases...</div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="modalConfirm" class="modal-overlay hidden" style="z-index: 10000;">
+        <div class="modal-content" style="width: 400px; text-align: center; padding: 30px;">
+            <div style="font-size: 50px; margin-bottom: 15px; animation: bounce 1s infinite;">⚠️</div>
+            <h3 id="confirmTitle" style="margin: 0; color: #333;">¿Estás seguro?</h3>
+            <p id="confirmMessage" style="color: #666; margin: 10px 0 25px;">Esta acción no se puede deshacer.</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="btnCancelConfirm" class="btn-cancel-mini" style="padding: 10px 20px; font-size: 14px; cursor: pointer;">Cancelar</button>
+                <button id="btnOkConfirm" class="btn-save-mini" style="background: #c62828; color: white; border: none; padding: 10px 20px; font-size: 14px; cursor: pointer; border-radius: 4px;">Sí, Eliminar</button>
+            </div>
         </div>
-        <button id="btnLogout" class="btn-logout">Salir</button>
-      </div>
     </div>
-  </header>
 
-  <main class="main-content">
+    <div id="toast-container"></div>
 
-    <section class="welcome-section">
-      <div class="welcome-left">
-        <h1>Hola Administrador </h1>
-        <p class="date-display" id="dateDisplay">Cargando fecha...</p>
-      </div>
-      <button onclick="window.location.href='calendar.html'" class="btn-primary">📅 Ver Agenda Completa</button>
-    </section>
-
-    <section class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#e3f2fd; color:#1565c0;">👥</div>
-        <div class="stat-info">
-          <h3 id="statAlumnos">0</h3>
-          <p>Alumnos Inscritos</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#fff3e0; color:#ef6c00;">📅</div>
-        <div class="stat-info">
-          <h3 id="statClasesHoy">0</h3>
-          <p>Clases Hoy</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#e8f5e9; color:#2e7d32;">💵</div>
-        <div class="stat-info">
-          <h3>Finanzas</h3>
-          <p class="link-text" onclick="window.location.href='finanzas.html'">Ir a Cobros</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="dashboard-panels">
-
-      <div class="panel-card panel-notes">
-        <div class="notes-header">
-          <h3>📝 Pendientes / Notas</h3>
-          <button id="btnAddNoteToggle" class="btn-add-note">+ Nueva</button>
-        </div>
-
-        <div id="newNoteForm" class="hidden">
-          <input type="text" id="noteInput" placeholder="Escribir pendiente..." />
-          <div class="mini-actions">
-            <button id="btnSaveNote" class="btn-save-mini">Guardar</button>
-            <button id="btnCancelNote" class="btn-cancel-mini">Cancelar</button>
-          </div>
-        </div>
-
-        <div class="notes-list" id="notesList">
-          <div class="empty-state">Cargando notas...</div>
-        </div>
-      </div>
-
-      <div class="panel-card panel-today">
-        <div class="notes-header">
-          <h3>📅 Clases de Hoy</h3>
-          <span id="todayLabel">...</span>
-        </div>
-
-        <div class="today-list" id="todayList">
-          <div class="empty-state">Buscando clases...</div>
-        </div>
-      </div>
-
-    </section>
-
-  </main>
-
-  <script type="module" src="src/js/dashboard.js"></script>
+    <script src="common.js"></script>
+    <script type="module" src="src/js/dashboard.js"></script>
 </body>
 </html>

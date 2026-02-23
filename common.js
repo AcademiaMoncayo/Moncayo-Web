@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { label: "Almacen", href: "almacen.html" },
   ];
 
-  const userName = localStorage.getItem("userName") || "vania";
+  const userName = localStorage.getItem("userName") || "Admin";
 
   const buttons = menu.map(m => {
     const isActive = current === m.href.toLowerCase();
@@ -29,26 +29,33 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }).join("");
 
+  // Usamos exactamente la estructura HTML que ella puso en su commit
   host.innerHTML = `
     <header class="navbar">
-      <div class="brand">
-        <img src="logo.png" alt="Logo Academia Moncayo">
-        <div class="brand-text">
-          <h3 class="brand-title">Academia Moncayo</h3>
-          <p class="brand-subtitle">Panel de Administración</p>
+      <div class="navbar-shell">
+        <div class="nav-left">
+          <div class="brand">
+            <div class="brand-logo">
+              <img src="src/assets/imagenes/Logo.png" alt="Academia Moncayo" style="max-width: 100%; height: auto;" />
+            </div>
+            <div class="brand-text">
+              <div class="brand-title">Academia Moncayo</div>
+              <div class="brand-subtitle">Panel de Administración</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <nav class="nav-center">
-        ${buttons}
-      </nav>
+        <nav class="nav-center">
+          ${buttons}
+        </nav>
 
-      <div class="nav-right">
-        <div class="user-pill">
-          <span class="user-dot"></span>
-          <span id="userDisplay">${userName}</span>
+        <div class="nav-right">
+          <div class="user-chip">
+            <div class="user-dot"></div>
+            <span id="userDisplay">${userName}</span>
+          </div>
+          <button id="btnLogout" class="btn-logout" style="margin-left: 10px;">Salir</button>
         </div>
-        <button class="btn-logout" id="btnLogout">Salir</button>
       </div>
     </header>
   `;
