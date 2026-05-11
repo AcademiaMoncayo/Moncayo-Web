@@ -439,35 +439,67 @@ import { query as fQuery, where as fWhere } from "https://www.gstatic.com/fireba
 
 window.abrirPerfilGamer = async function(alumno) {
     const modalPerfil = document.getElementById('modalPerfil');
+    const pathImagenes = "src/assets/imagenes/"; 
+    
+    // 1. Foto de Perfil (Avatar)
+    const imgAvatar = document.getElementById('gamerAvatar');
+    // Si alumno.avatar es "alumno2", cargará "src/assets/imagenes/alumno2.png"
+    imgAvatar.src = alumno.avatar ? `${pathImagenes}${alumno.avatar}.png` : `${pathImagenes}Logo.png`;
+
+    // 2. Información básica
     document.getElementById('gamerName').textContent = alumno.nombre;
-    document.getElementById('gamerRank').textContent = "Calculando...";
     
-    const q = fQuery(collection(db, "classes"), fWhere("studentId", "==", alumno.id));
-    const querySnapshot = await getDocs(q);
-    
-    let totalClases = 0;
-    querySnapshot.forEach(doc => totalClases++);
+    // 3. XP y Nivel
+    const xpTotal = alumno.expTotal || 0;
+    const nivelActual = alumno.nivel || 1;
+    const xpSiguienteNivel = 500;
+    const xpEnNivelActual = xpTotal % xpSiguienteNivel;
+    const porcentajeBarra = (xpEnNivelActual / xpSiguienteNivel) * 100;
 
-    const xpPorClase = 100;
-    const xpTotal = totalClases * xpPorClase;
-    const xpParaSiguienteNivel = 500;
-    const nivelActual = Math.floor(xpTotal / xpParaSiguienteNivel) + 1;
-    const xpEnNivelActual = xpTotal % xpParaSiguienteNivel;
-    const porcentajeBarra = (xpEnNivelActual / xpParaSiguienteNivel) * 100;
-
-    let rango = "Novato Musical 🌱";
-    if (nivelActual > 5) rango = "Aprendiz Constante 🎵";
-    
     document.getElementById('gamerLevel').textContent = nivelActual;
-    document.getElementById('gamerRank').textContent = rango;
-    document.getElementById('gamerXP').textContent = `${xpEnNivelActual} / ${xpParaSiguienteNivel} XP`;
+    document.getElementById('gamerXP').textContent = `${xpEnNivelActual} / ${xpSiguienteNivel} XP`;
     document.getElementById('barXP').style.width = `${porcentajeBarra}%`;
-    document.getElementById('gamerClasses').textContent = totalClases;
-    document.getElementById('gamerStreak').textContent = Math.floor(totalClases / 2);
+    document.getElementById('gamerRank').textContent = nivelActual > 10 ? "Maestro Musical 🎹" : "Novato Musical 🌱";
+
+    // 4. Racha y Clases
+    document.getElementById('gamerStreak').textContent = alumno.racha || 0;
+    document.getElementById('gamerClasses').textContent = alumno.totalClases || 0;
+
+    // 5. 🔥 CARGA DE INSIGNIAS (NOMBRE DIRECTO + NIVEL)
+    const containerBadges = document.getElementById('gamerBadges');
+    containerBadges.innerHTML = '';
+
+    if (alumno.insignias_progreso) {
+        Object.entries(alumno.insignias_progreso).forEach(([nombreInsignia, nivel]) => {
+            if (nivel > 0) {
+                const badgeDiv = document.createElement('div');
+                badgeDiv.className = 'badge-slot';
+
+                // 🔥 Construcción directa: nombre de la clave + nivel
+                // Ejemplo: "conocimientomusical" + "1" -> conocimientomusical1.png
+                const nombreArchivoFinal = `${nombreInsignia}${nivel}`; 
+
+                if (nivel === 3) {
+                    badgeDiv.style.borderColor = "#ffc107"; // Dorado para nivel 3
+                    badgeDiv.style.boxShadow = "0 0 8px rgba(255, 193, 7, 0.4)";
+                }
+
+                badgeDiv.innerHTML = `
+                    <img src="${pathImagenes}${nombreArchivoFinal}.png" 
+                         title="${nombreInsignia} - Nivel ${nivel}"
+                         onerror="this.src='${pathImagenes}Logo.png'"
+                         style="width: 30px; height: 30px; object-fit: contain;">
+                `;
+                
+                containerBadges.appendChild(badgeDiv);
+            }
+        });
+    } else {
+        containerBadges.innerHTML = '<span style="color:#ccc; font-size:12px;">Sin medallas aún</span>';
+    }
 
     modalPerfil.classList.remove('hidden');
 }
-
 // UI Listeners
 document.getElementById('btnOpenModal').addEventListener('click', () => modalContainer.classList.remove('hidden'));
 document.getElementById('btnCloseModal').addEventListener('click', () => modalContainer.classList.add('hidden'));

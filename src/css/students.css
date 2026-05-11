@@ -493,4 +493,39 @@ tbody tr:nth-child(5) { animation-delay: 0.25s; }
     transform: scale(1.1);
 }
 
-/* Botón de Cerrar (Fuera de la tarjeta)
+/* Estilo para las medallas en el perfil */
+.badge-item {
+    width: 45px;
+    height: 45px;
+    background: #f0f0f0;
+    border-radius: 50%;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ddd;
+    transition: transform 0.2s;
+}
+.badge-item img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+.badge-item:hover { transform: scale(1.1); }
+.badge-slot {
+    width: 45px;
+    height: 45px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.badge-slot img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}

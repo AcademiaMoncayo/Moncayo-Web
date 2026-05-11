@@ -254,51 +254,59 @@
     </div>
   </div>
 
-  <div id="modalPerfil" class="modal-overlay hidden">
-    <div class="modal-content" style="width: 450px; text-align: center; border-radius: 20px; overflow: hidden;">
-      <div class="modal-header" style="border:none; justify-content: flex-end;">
-        <span id="btnClosePerfil" class="close-btn" style="font-size: 24px;">&times;</span>
-      </div>
-
-      <div style="margin-top: -20px; margin-bottom: 20px;">
-        <div style="width: 100px; height: 100px; background: #ffc107; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 50px; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
-          🎸
-        </div>
-        <h2 id="gamerName" style="margin: 10px 0 5px; color: #333;">Nombre Alumno</h2>
-        <div style="color: #666; font-weight: bold; font-size: 14px;">
-          Nivel <span id="gamerLevel" style="color: #2196f3; font-size: 18px;">1</span>:
-          <span id="gamerRank">Novato Musical</span>
-        </div>
-      </div>
-
-      <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; font-weight: bold; color: #555;">
-          <span>XP (Experiencia)</span>
-          <span id="gamerXP">0 / 1000</span>
-        </div>
-        <div style="background: #e0e0e0; height: 12px; border-radius: 10px; overflow: hidden; margin-bottom: 20px;">
-          <div id="barXP" style="background: #4caf50; width: 0%; height: 100%; transition: width 1s ease;"></div>
+<div id="modalPerfil" class="modal-overlay hidden">
+    <div class="modal-content" style="width: 450px; text-align: center; border-radius: 20px; overflow: hidden; background: white;">
+        <div class="modal-header" style="border:none; justify-content: flex-end;">
+            <span id="btnClosePerfil" class="close-btn" style="font-size: 24px;">&times;</span>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-          <div style="background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-            <div style="font-size: 20px;">🔥</div>
-            <div style="font-weight: bold; font-size: 18px;" id="gamerStreak">0</div>
-            <div style="font-size: 11px; color: #888;">Racha de Clases</div>
-          </div>
-          <div style="background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-            <div style="font-size: 20px;">📚</div>
-            <div style="font-weight: bold; font-size: 18px;" id="gamerClasses">0</div>
-            <div style="font-size: 11px; color: #888;">Clases Totales</div>
-          </div>
+        <div style="margin-top: -20px; margin-bottom: 20px;">
+            <div style="position: relative; width: 110px; height: 110px; margin: 0 auto;">
+                <img id="gamerAvatar" src="src/img/logo.png" 
+                     style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.2); background: #eee;">
+            </div>
+            
+            <h2 id="gamerName" style="margin: 10px 0 5px; color: #333;">Nombre Alumno</h2>
+            <div style="color: #666; font-weight: bold; font-size: 14px;">
+                Nivel <span id="gamerLevel" style="color: #2196f3; font-size: 18px;">1</span>:
+                <span id="gamerRank">Novato Musical</span>
+            </div>
         </div>
-      </div>
 
-      <button class="btn-primary" onclick="document.getElementById('modalPerfil').classList.add('hidden')" style="width: 100%; border-radius: 10px;">
-        ¡Genial!
-      </button>
+        <div style="padding: 0 20px 15px;">
+            <p style="font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">Medallas Obtenidas</p>
+            <div id="gamerBadges" style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; min-height: 40px;">
+                </div>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin: 0 20px 20px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; font-weight: bold; color: #555;">
+                <span>XP (Experiencia)</span>
+                <span id="gamerXP">0 / 500</span>
+            </div>
+            <div style="background: #e0e0e0; height: 12px; border-radius: 10px; overflow: hidden; margin-bottom: 20px;">
+                <div id="barXP" style="background: #4caf50; width: 0%; height: 100%; transition: width 1s ease;"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <div style="font-size: 20px;">🔥</div>
+                    <div style="font-weight: bold; font-size: 18px;" id="gamerStreak">0</div>
+                    <div style="font-size: 11px; color: #888;">Racha</div>
+                </div>
+                <div style="background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <div style="font-size: 20px;">📚</div>
+                    <div style="font-weight: bold; font-size: 18px;" id="gamerClasses">0</div>
+                    <div style="font-size: 11px; color: #888;">Clases Totales</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="document.getElementById('modalPerfil').classList.add('hidden')" style="width: calc(100% - 40px); border-radius: 10px; margin-bottom: 20px;">
+            ¡Genial!
+        </button>
     </div>
-  </div>
+</div>
 
   <div id="modalConfirm" class="modal-overlay hidden">
     <div class="modal-content">
