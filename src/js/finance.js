@@ -284,15 +284,17 @@ function abrirHistorial(alumno) {
     } else {
         pagosAlumno.forEach(pago => {
             const row = document.createElement('tr');
-            row.innerHTML = `
+row.innerHTML = `
                 <td>${pago.periodo}</td>
                 <td>${pago.fechaPago}</td>
-                <td>$${pago.monto}</td>
+                <td style="font-weight:bold; color:#2c3e50;">$${pago.monto}</td>
                 <td>${pago.metodo}</td>
                 <td>
-                    <button class="btn-action-small btn-email-pago" title="Enviar/Generar Recibo" onclick="prepararRecibo('${pago.id}')">📧</button>
-                    <button class="btn-action-small btn-edit-pago" onclick="editarPago('${pago.id}', ${pago.monto})">✏️</button>
-                    <button class="btn-action-small btn-delete-pago" onclick="eliminarPago('${pago.id}')">🗑️</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-action-small btn-email-pago" title="Generar Recibo" onclick="prepararRecibo('${pago.id}')">🧾</button>
+                        <button class="btn-action-small btn-edit-pago" title="Editar Monto" onclick="editarPago('${pago.id}', ${pago.monto})">✏️</button>
+                        <button class="btn-action-small btn-delete-pago" title="Eliminar Pago" onclick="eliminarPago('${pago.id}')">🗑️</button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(row);

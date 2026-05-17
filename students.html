@@ -88,10 +88,6 @@
     </div>
   </main>
 
-  <!-- =======================
-       MODALES (NO TOCADOS)
-       ======================= -->
-
   <div id="modalContainer" class="modal-overlay hidden">
     <div class="modal-content" style="width: 500px;">
       <div class="modal-header">
@@ -139,9 +135,15 @@
       <form id="formInscripcion">
         <input type="hidden" id="insId">
 
-        <div style="margin-bottom:15px;">
-          <label>Alumno:</label>
-          <input type="text" id="insNombre" disabled style="background:#f9f9f9; font-weight:bold;">
+        <div class="form-row" style="margin-bottom:15px;">
+          <div style="flex:2">
+            <label>Alumno:</label>
+            <input type="text" id="insNombre" disabled style="background:#f9f9f9; font-weight:bold;">
+          </div>
+          <div style="flex:1">
+            <label>Clase/Instrumento:</label>
+            <input type="text" id="insInteres" placeholder="Ej. Piano">
+          </div>
         </div>
 
         <div style="background: #fff8e1; padding: 10px; border: 1px solid #ffecb3; border-radius: 6px; margin-bottom: 15px;">
@@ -199,8 +201,16 @@
       <form id="formEditar">
         <input type="hidden" id="editId">
 
-        <label>Nombre Completo:</label>
-        <input type="text" id="editNombre" required>
+        <div class="form-row" style="margin-bottom:15px;">
+          <div style="flex:2">
+            <label>Nombre Completo:</label>
+            <input type="text" id="editNombre" required>
+          </div>
+          <div style="flex:1">
+            <label>Clase/Instrumento:</label>
+            <input type="text" id="editInteres" placeholder="Ej. Piano">
+          </div>
+        </div>
 
         <div class="form-row" style="background: #fff3e0; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #ffe0b2;">
           <div style="flex:1">

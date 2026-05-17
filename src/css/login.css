@@ -1,0 +1,228 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #020813; /* Azul casi negro */
+    color: #ffffff;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* =========================================
+   EFECTOS DE FONDO (GLOW Y MÚSICA)
+   ========================================= */
+.bg-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(13, 71, 161, 0.3) 0%, rgba(2, 8, 19, 0) 70%);
+    z-index: -2;
+    border-radius: 50%;
+    filter: blur(50px);
+}
+.left-glow { top: -100px; left: -100px; }
+.right-glow { bottom: -200px; right: -100px; }
+
+.music-note-bg {
+    position: absolute;
+    right: 5%;
+    top: 20%;
+    font-size: 400px;
+    color: rgba(24, 119, 242, 0.15);
+    z-index: -1;
+    transform: rotate(15deg);
+    text-shadow: 0 0 50px rgba(24, 119, 242, 0.4);
+    animation: floatNote 6s ease-in-out infinite;
+}
+
+@keyframes floatNote {
+    0%, 100% { transform: translateY(0) rotate(15deg); }
+    50% { transform: translateY(-30px) rotate(10deg); }
+}
+
+/* =========================================
+   LAYOUT PRINCIPAL
+   ========================================= */
+.login-layout {
+    display: flex;
+    width: 100%;
+    max-width: 1200px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    z-index: 10;
+}
+
+/* =========================================
+   COLUMNA IZQUIERDA (CARACTERÍSTICAS)
+   ========================================= */
+.features-sidebar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding-left: 20px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.icon-box {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+}
+.icon-box.blue { color: #4dabf7; border-color: #4dabf7; box-shadow: 0 0 10px rgba(77, 171, 247, 0.3); }
+.icon-box.gold { color: #ffc107; border-color: #ffc107; box-shadow: 0 0 10px rgba(255, 193, 7, 0.3); }
+.icon-box.green { color: #69db7c; border-color: #69db7c; box-shadow: 0 0 10px rgba(105, 219, 124, 0.3); }
+.icon-box.purple { color: #da77f2; border-color: #da77f2; box-shadow: 0 0 10px rgba(218, 119, 242, 0.3); }
+
+.feature-text h4 { font-size: 14px; color: #4dabf7; margin-bottom: 2px; }
+.feature-text p { font-size: 12px; color: #8892b0; }
+
+/* =========================================
+   CENTRO (LOGIN Y LOGO)
+   ========================================= */
+.login-center {
+    flex: 1.5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.brand-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.brand-header .logo {
+    width: 120px;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.5));
+}
+
+.brand-header h2 { font-size: 18px; font-weight: 300; color: #b0c4de; letter-spacing: 1px; }
+.brand-header h1 { font-size: 32px; font-weight: 600; letter-spacing: 2px; margin-bottom: 10px;}
+
+.divider {
+    display: flex; align-items: center; justify-content: center;
+    color: #ffc107; font-size: 12px;
+}
+.divider::before, .divider::after {
+    content: ""; flex: 1; border-bottom: 1px solid rgba(255, 193, 7, 0.3);
+    margin: 0 15px; max-width: 50px;
+}
+
+/* LA TARJETA DE CRISTAL (Glassmorphism) */
+.login-card {
+    background: rgba(10, 25, 47, 0.6);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.login-card h3 { font-size: 24px; margin-bottom: 5px; }
+.login-card .subtitle { font-size: 13px; color: #8892b0; margin-bottom: 30px; }
+
+/* Inputs */
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8892b0;
+    font-size: 14px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8892b0;
+    cursor: pointer;
+    font-size: 14px;
+    transition: color 0.3s;
+}
+.toggle-password:hover { color: #fff; }
+
+.login-card input {
+    width: 100%;
+    background: rgba(2, 8, 19, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 14px 40px 14px 45px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.login-card input:focus {
+    border-color: #1877f2;
+    box-shadow: 0 0 10px rgba(24, 119, 242, 0.3);
+}
+
+/* BOTÓN DE LOGIN */
+.btn-login {
+    width: 100%;
+    background: linear-gradient(90deg, #0d47a1, #1877f2);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    box-shadow: 0 5px 15px rgba(24, 119, 242, 0.4);
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(24, 119, 242, 0.6);
+}
+
+.btn-login:active { transform: translateY(0); }
+
+/* Espacio derecho vacío para balance */
+.right-sidebar { flex: 1; }
+
+/* Responsivo para móviles */
+@media (max-width: 900px) {
+    .features-sidebar, .right-sidebar { display: none; }
+    .music-note-bg { font-size: 250px; right: -50px; opacity: 0.5; }
+    .login-center { width: 100%; padding: 0 20px; }
+}

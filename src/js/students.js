@@ -12,7 +12,6 @@ const modalContainer = document.getElementById('modalContainer');
 const modalInscripcion = document.getElementById('modalInscripcion');
 const modalEditar = document.getElementById('modalEditar');
 const modalPerfil = document.getElementById('modalPerfil');
-// Referencia al nuevo modal de credenciales (asegúrate que esté en tu HTML)
 const modalCredenciales = document.getElementById('modalCredenciales');
 
 // Forms
@@ -97,7 +96,6 @@ function renderTable() {
     const filtro = filterStatus.value;
 
     const listaFiltrada = allStudents.filter(alumno => {
-        // Búsqueda inteligente (Nombre, Tutor, Status)
         const coincideTexto = 
             alumno.nombre.toLowerCase().includes(texto) ||
             (alumno.nombreTutor && alumno.nombreTutor.toLowerCase().includes(texto)) ||
@@ -134,50 +132,53 @@ function renderTable() {
             const usuario = alumno.usuario || '?';
             const password = alumno.password || '...';
             accessDisplay = `
-                <div style="font-size:11px; font-weight:bold; color:#0d47a1;">${usuario}</div>
-                <button class="toggle-password btn-show-creds" 
+                <div style="font-size:11px; font-weight:bold; color:#0d47a1; margin-bottom:4px;">${usuario}</div>
+                <button class="btn-show-creds btn-action-small btn-soft-blue" 
                     data-user="${usuario}" 
                     data-pass="${password}" 
-                    title="Ver Contraseña">
-                    🔑 Ver
+                    title="Ver Contraseña"
+                    style="width: auto; padding: 0 10px; height: 24px; font-size: 11px; font-weight: bold;">
+                    🔑 Pass
                 </button>
             `;
         }
 
-        // Acciones Dinámicas
         let botonesAccion = '';
         if (st === 'prospecto') {
             botonesAccion = `
-                <button class="btn-inscribir" data-id="${alumno.id}" title="Inscribir" style="background:#2e7d32; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">✅</button>
-                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="sin_interes" title="Mover a Sin Interés" class="btn-state-gray">💤</button>
-                <button class="btn-edit" data-id="${alumno.id}" title="Editar">✏️</button>
+                <button class="btn-inscribir btn-action-small btn-soft-green" data-id="${alumno.id}" title="Inscribir">✅</button>
+                <button class="btn-cambiar-estado btn-action-small btn-soft-gray" data-id="${alumno.id}" data-nuevo="sin_interes" title="Mover a Sin Interés">💤</button>
+                <button class="btn-edit btn-action-small btn-soft-blue" data-id="${alumno.id}" title="Editar">✏️</button>
             `;
         } else if (st === 'sin_interes') {
             botonesAccion = `
-                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="prospecto" title="Reactivar" class="btn-state-blue">⬆️</button>
-                <button class="btn-delete-prospecto" data-id="${alumno.id}" title="Eliminar">🗑️</button>
+                <button class="btn-cambiar-estado btn-action-small btn-soft-blue" data-id="${alumno.id}" data-nuevo="prospecto" title="Reactivar">⬆️</button>
+                <button class="btn-delete-prospecto btn-action-small btn-soft-red" data-id="${alumno.id}" title="Eliminar">🗑️</button>
             `;
         } else if (st === 'inscrito') {
             botonesAccion = `
-                <button class="btn-game" data-id="${alumno.id}" title="Gamer" style="background:#ffc107; border:none; padding:4px; border-radius:4px; cursor:pointer;">🎮</button>
-                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="inactivo" title="Suspender" class="btn-state-orange">⏸️</button>
-                <button class="btn-edit" data-id="${alumno.id}" title="Editar">✏️</button>
+                <button class="btn-game btn-action-small btn-soft-yellow" data-id="${alumno.id}" title="Gamer">🎮</button>
+                <button class="btn-cambiar-estado btn-action-small btn-soft-orange" data-id="${alumno.id}" data-nuevo="inactivo" title="Suspender">⏸️</button>
+                <button class="btn-edit btn-action-small btn-soft-blue" data-id="${alumno.id}" title="Editar">✏️</button>
             `;
         } else if (st === 'inactivo') {
             botonesAccion = `
-                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="inscrito" title="Reactivar" class="btn-state-green">▶️</button>
-                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="baja" title="Dar de Baja" class="btn-state-red">❌</button>
+                <button class="btn-cambiar-estado btn-action-small btn-soft-green" data-id="${alumno.id}" data-nuevo="inscrito" title="Reactivar">▶️</button>
+                <button class="btn-cambiar-estado btn-action-small btn-soft-red" data-id="${alumno.id}" data-nuevo="baja" title="Dar de Baja">❌</button>
             `;
         } else if (st === 'baja') {
             botonesAccion = `
-                <button class="btn-cambiar-estado" data-id="${alumno.id}" data-nuevo="inscrito" title="Re-Inscribir" class="btn-state-green">♻️</button>
+                <button class="btn-cambiar-estado btn-action-small btn-soft-green" data-id="${alumno.id}" data-nuevo="inscrito" title="Re-Inscribir">♻️</button>
             `;
         }
+
+        // Lógica visual: Si es prospecto dice "Int: Piano", si ya está inscrito dice "🎵 Piano"
+        const etiquetaInteres = st === 'prospecto' || st === 'sin_interes' ? 'Int:' : '🎵';
 
         fila.innerHTML = `
             <td>
                 <strong>${alumno.nombre}</strong>
-                ${alumno.interes ? `<br><small style="color:#666;">Int: ${alumno.interes}</small>` : ''}
+                ${alumno.interes ? `<br><small style="color:#666; font-weight:bold;">${etiquetaInteres} ${alumno.interes}</small>` : ''}
             </td>
             <td>${accessDisplay}</td>
             <td>
@@ -188,7 +189,7 @@ function renderTable() {
             <td style="text-align:center;">${alumno.requiereFactura ? '✅' : '-'}</td>
             <td>${alumno.costoMensual ? '$'+alumno.costoMensual : '-'}</td>
             <td style="text-align:center;">${tagHtml}</td>
-            <td><div class="actions-cell" style="display:flex; gap:5px;">${botonesAccion}</div></td>
+            <td><div class="actions-cell" style="display:flex; gap:8px;">${botonesAccion}</div></td>
         `;
         tableBody.appendChild(fila);
     });
@@ -201,7 +202,6 @@ function renderTable() {
 
 // 4. LISTENERS (UNIFICADOS)
 function asignarEventos() {
-    // CAMBIO DE ESTADO (Con Modal Bonito)
     document.querySelectorAll('.btn-cambiar-estado').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.currentTarget.dataset.id;
@@ -227,7 +227,6 @@ function asignarEventos() {
         });
     });
 
-    // Inscribir
     document.querySelectorAll('.btn-inscribir').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const alumno = allStudents.find(s => s.id === e.currentTarget.dataset.id);
@@ -235,7 +234,6 @@ function asignarEventos() {
         });
     });
 
-    // Editar
     document.querySelectorAll('.btn-edit').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const alumno = allStudents.find(s => s.id === e.currentTarget.dataset.id);
@@ -243,7 +241,6 @@ function asignarEventos() {
         });
     });
 
-    // Gamer
     document.querySelectorAll('.btn-game').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const alumno = allStudents.find(s => s.id === e.currentTarget.dataset.id);
@@ -251,7 +248,6 @@ function asignarEventos() {
         });
     });
 
-    // Eliminar Físico (Prospectos)
     document.querySelectorAll('.btn-delete-prospecto').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.currentTarget.dataset.id;
@@ -265,7 +261,6 @@ function asignarEventos() {
         });
     });
 
-    // NUEVO: Listener para ver credenciales (Integrado aquí)
     document.querySelectorAll('.btn-show-creds').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const user = e.currentTarget.dataset.user;
@@ -315,6 +310,12 @@ function abrirModalInscripcion(alumno) {
     document.getElementById('insInicio').valueAsDate = new Date();
     document.getElementById('insMontoInscripcion').value = ""; 
     document.getElementById('insCosto').value = ""; 
+    
+    // Asignar el valor actual al nuevo input de la vista si existe
+    if(document.getElementById('insInteres')) {
+        document.getElementById('insInteres').value = alumno.interes || '';
+    }
+
     modalInscripcion.classList.remove('hidden');
 }
 
@@ -347,6 +348,11 @@ formInscripcion.addEventListener('submit', async (e) => {
         fechaInicioClases: inicioClases,
         status: "inscrito"
     };
+
+    // Actualizar el instrumento/clase si el input existe
+    if(document.getElementById('insInteres')) {
+        datosAlumno.interes = document.getElementById('insInteres').value.trim();
+    }
 
     const datosPago = {
         studentId: id,
@@ -390,6 +396,12 @@ function abrirModalEditar(alumno) {
     document.getElementById('editFactura').checked = alumno.requiereFactura || false;
     document.getElementById('editCosto').value = alumno.costoMensual || 0;
     document.getElementById('editInicio').value = alumno.fechaInicioClases || '';
+
+    // Asignar el valor actual al nuevo input de la vista si existe
+    if(document.getElementById('editInteres')) {
+        document.getElementById('editInteres').value = alumno.interes || '';
+    }
+
     modalEditar.classList.remove('hidden');
 }
 
@@ -421,6 +433,11 @@ formEditar.addEventListener('submit', async (e) => {
         fechaInicioClases: inicioClases
     };
 
+    // Actualizar el instrumento/clase si el input existe
+    if(document.getElementById('editInteres')) {
+        datos.interes = document.getElementById('editInteres').value.trim();
+    }
+
     try {
         await updateDoc(doc(db, "students", id), datos);
         modalEditar.classList.add('hidden');
@@ -435,21 +452,15 @@ formEditar.addEventListener('submit', async (e) => {
 });
 
 // 8. LOGICA GAMER
-import { query as fQuery, where as fWhere } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
-
 window.abrirPerfilGamer = async function(alumno) {
     const modalPerfil = document.getElementById('modalPerfil');
     const pathImagenes = "src/assets/imagenes/"; 
     
-    // 1. Foto de Perfil (Avatar)
     const imgAvatar = document.getElementById('gamerAvatar');
-    // Si alumno.avatar es "alumno2", cargará "src/assets/imagenes/alumno2.png"
     imgAvatar.src = alumno.avatar ? `${pathImagenes}${alumno.avatar}.png` : `${pathImagenes}Logo.png`;
 
-    // 2. Información básica
     document.getElementById('gamerName').textContent = alumno.nombre;
     
-    // 3. XP y Nivel
     const xpTotal = alumno.expTotal || 0;
     const nivelActual = alumno.nivel || 1;
     const xpSiguienteNivel = 500;
@@ -461,11 +472,9 @@ window.abrirPerfilGamer = async function(alumno) {
     document.getElementById('barXP').style.width = `${porcentajeBarra}%`;
     document.getElementById('gamerRank').textContent = nivelActual > 10 ? "Maestro Musical 🎹" : "Novato Musical 🌱";
 
-    // 4. Racha y Clases
     document.getElementById('gamerStreak').textContent = alumno.racha || 0;
     document.getElementById('gamerClasses').textContent = alumno.totalClases || 0;
 
-    // 5. 🔥 CARGA DE INSIGNIAS (NOMBRE DIRECTO + NIVEL)
     const containerBadges = document.getElementById('gamerBadges');
     containerBadges.innerHTML = '';
 
@@ -475,12 +484,10 @@ window.abrirPerfilGamer = async function(alumno) {
                 const badgeDiv = document.createElement('div');
                 badgeDiv.className = 'badge-slot';
 
-                // 🔥 Construcción directa: nombre de la clave + nivel
-                // Ejemplo: "conocimientomusical" + "1" -> conocimientomusical1.png
                 const nombreArchivoFinal = `${nombreInsignia}${nivel}`; 
 
                 if (nivel === 3) {
-                    badgeDiv.style.borderColor = "#ffc107"; // Dorado para nivel 3
+                    badgeDiv.style.borderColor = "#ffc107";
                     badgeDiv.style.boxShadow = "0 0 8px rgba(255, 193, 7, 0.4)";
                 }
 
@@ -500,6 +507,7 @@ window.abrirPerfilGamer = async function(alumno) {
 
     modalPerfil.classList.remove('hidden');
 }
+
 // UI Listeners
 document.getElementById('btnOpenModal').addEventListener('click', () => modalContainer.classList.remove('hidden'));
 document.getElementById('btnCloseModal').addEventListener('click', () => modalContainer.classList.add('hidden'));
@@ -516,19 +524,16 @@ btnPrevPage.addEventListener('click', () => { if(currentPage>1) currentPage--; r
 btnNextPage.addEventListener('click', () => { currentPage++; renderTable(); });
 
 // --- LÓGICA DE CREDENCIALES ---
-
-// Función para abrir el modal
 function abrirModalCredenciales(user, pass) {
-    if(modalCredenciales) { // Check por si no se ha puesto el HTML aún
+    if(modalCredenciales) { 
         document.getElementById('viewUser').textContent = user;
         document.getElementById('viewPass').textContent = pass;
         modalCredenciales.classList.remove('hidden');
     } else {
-        alert(`Usuario: ${user}\nContraseña: ${pass}`); // Fallback
+        alert(`Usuario: ${user}\nContraseña: ${pass}`); 
     }
 }
 
-// Función global para copiar al portapapeles
 window.copiarTexto = (elementId) => {
     const texto = document.getElementById(elementId).textContent;
     navigator.clipboard.writeText(texto).then(() => {

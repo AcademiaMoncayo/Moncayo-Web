@@ -1,35 +1,90 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Acceso - Academia Moncayo</title>
-
-    <link rel="stylesheet" href="src/css/variables.css">
-    <link rel="stylesheet" href="src/css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Academia Moncayo</title>
+    <link rel="stylesheet" href="src/css/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 <body>
 
-    <div class="Carga">
-        <div>
-            <img class="img-Logo" src="src/assets/imagenes/Logo.png" alt="Logo de Academia Moncayo">
+    <div class="bg-glow left-glow"></div>
+    <div class="bg-glow right-glow"></div>
+    <div class="music-note-bg"><i class="fa-solid fa-music"></i></div>
+
+    <div class="login-layout">
+        
+        <div class="features-sidebar">
+            <div class="feature-item">
+                <div class="icon-box blue"><i class="fa-solid fa-user-astronaut"></i></div>
+                <div class="feature-text">
+                    <h4>Perfil Completo</h4>
+                    <p>Consulta horarios, tutor y más.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="icon-box gold"><i class="fa-solid fa-medal"></i></div>
+                <div class="feature-text">
+                    <h4>Insignias y XP</h4>
+                    <p>Reconoce cada logro alcanzado.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="icon-box green"><i class="fa-solid fa-clipboard-list"></i></div>
+                <div class="feature-text">
+                    <h4>Tareas Pendientes</h4>
+                    <p>Da seguimiento al progreso diario.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="icon-box purple"><i class="fa-solid fa-chart-column"></i></div>
+                <div class="feature-text">
+                    <h4>Reportes y Avance</h4>
+                    <p>Evalúa y celebra su crecimiento.</p>
+                </div>
+            </div>
         </div>
 
-        <div class="container">
-            <h2>Bienvenido</h2>
+        <div class="login-center">
+            <div class="brand-header">
+                <img src="src/assets/imagenes/logo.png" alt="Escudo Moncayo" class="logo">
+                <h2>Academia de</h2>
+                <h1>Música Moncayo</h1>
+                <div class="divider"><span>⚜️</span></div>
+            </div>
 
-                <input type="text" id="username" placeholder="Usuario" required>
-                <input type="password" id="password" placeholder="Contraseña" required>
+            <div class="login-card">
+                <h3>Bienvenido</h3>
+                <p class="subtitle">Ingresa tus credenciales para continuar</p>
 
-                <button type="button" id="btnLogin">Iniciar Sesión</button>
-                <button type="button" id="btnRegister">Registrarse</button>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <i class="fa-solid fa-user input-icon"></i>
+                        <input type="text" id="loginEmail" placeholder="Usuario" required autocomplete="username">
+                    </div>
 
-            <p id="message"></p>
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="loginPassword" placeholder="Contraseña" required autocomplete="current-password">
+                        <i class="fa-solid fa-eye toggle-password" id="togglePassword" title="Mostrar/Ocultar"></i>
+                    </div>
+
+                    <p id="messageDisplay" style="font-size: 13px; text-align: center; margin-bottom: 15px; min-height: 18px;"></p>
+
+                    <button type="submit" class="btn-login" id="btnLogin">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> Iniciar Sesión
+                    </button>
+                </form>
+            </div>
         </div>
+
+        <div class="right-sidebar">
+        </div>
+
     </div>
 
-    <script type="module" src="src/js/auth.js"></script>
-
+    <script type="module" src="src/js/login.js"></script>
 </body>
 </html>

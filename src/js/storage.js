@@ -38,6 +38,7 @@ const emptyCartMsg = document.getElementById('emptyCartMsg');
 const sumQty = document.getElementById('sumQty');
 const sumTotal = document.getElementById('sumTotal');
 const btnConfirmOutput = document.getElementById('btnConfirmOutput');
+const salidaAlumno = document.getElementById('salidaAlumno'); // NUEVO INPUT DE ALUMNO
 
 // Inputs Historial
 const histStart = document.getElementById('histStart');
@@ -64,6 +65,7 @@ let confirmCallback = null;
 // VARIABLES GLOBALES
 let allProducts = []; 
 let currentCart = []; 
+let allStudentsForStorage = []; // NUEVA VARIABLE PARA ALUMNOS
 let currentPage = 1;
 const rowsPerPage = 20;
 
@@ -109,8 +111,31 @@ function getLocalDateString(dateObj = new Date()) {
 // 1. SEGURIDAD
 onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = "index.html";
-    else loadInventory();
+    else {
+        loadInventory();
+        loadStudentsForStorage(); // CARGAMOS ALUMNOS AL INICIAR
+    }
 });
+
+// --- NUEVA FUNCIÓN PARA CARGAR ALUMNOS ---
+async function loadStudentsForStorage() {
+    try {
+        const q = query(collection(db, "students"), orderBy("nombre"));
+        const snap = await getDocs(q);
+        salidaAlumno.innerHTML = '<option value="">-- No vincular a ningún alumno --</option>';
+        allStudentsForStorage = [];
+        snap.forEach(doc => {
+            const data = doc.data();
+            allStudentsForStorage.push({ id: doc.id, ...data });
+            const opt = document.createElement('option');
+            opt.value = doc.id;
+            opt.textContent = data.nombre;
+            salidaAlumno.appendChild(opt);
+        });
+    } catch (error) { 
+        console.error("Error cargando alumnos:", error); 
+    }
+}
 
 // 2. CARGAR INVENTARIO
 async function loadInventory() {
@@ -188,6 +213,7 @@ function renderTable() {
         if (prod.cantidad <= 5) stockClass = 'stock-low';
         if (prod.cantidad === 0) stockClass = 'stock-out';
 
+        // VISUAL: Implementamos los botones modernos para editar y eliminar
         fila.innerHTML = `
             <td>
                 <strong>${prod.nombre}</strong><br>
@@ -203,9 +229,9 @@ function renderTable() {
             <td class="price-col">$${Number(prod.precio).toFixed(2)}</td>
             <td class="total-col">$${totalFila.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
             <td>
-                <div class="actions-cell">
-                    <button class="btn-edit" data-id="${prod.id}" title="Editar">✏️</button>
-                    <button class="btn-archive" data-id="${prod.id}" title="Eliminar">🗑️</button>
+                <div class="actions-cell" style="display:flex; gap:8px;">
+                    <button class="btn-edit btn-action-small btn-soft-blue" data-id="${prod.id}" title="Editar">✏️</button>
+                    <button class="btn-archive btn-action-small btn-soft-red" data-id="${prod.id}" title="Eliminar">🗑️</button>
                 </div>
             </td>
         `;
@@ -335,6 +361,16 @@ btnConfirmOutput.addEventListener('click', async () => {
 
     const motivo = document.getElementById('salidaMotivo').value;
     const referencia = document.getElementById('salidaRef').value;
+    const alumnoId = document.getElementById('salidaAlumno').value;
+
+    let alumnoNombre = "";
+    if (alumnoId) {
+        const st = allStudentsForStorage.find(a => a.id === alumnoId);
+        if (st) alumnoNombre = st.nombre;
+    }
+
+    let totalCartValue = 0;
+    let conceptNames = [];
 
     try {
         for (const item of currentCart) {
@@ -342,28 +378,60 @@ btnConfirmOutput.addEventListener('click', async () => {
             const productoActual = allProducts.find(p => p.id === item.id);
             const nuevoStock = productoActual.cantidad - item.qty;
 
+            // Actualizar inventario
             await updateDoc(prodRef, {
                 cantidad: nuevoStock,
                 fechaActualizacion: new Date()
             });
 
+            // Guardar en historial de almacén
             await addDoc(collection(db, "stock_movements"), {
                 productId: item.id,
                 productName: item.nombre,
                 type: 'salida',
                 quantity: item.qty,
                 reason: motivo,
-                reference: referencia,
+                reference: alumnoNombre ? `Alumno: ${alumnoNombre} ${referencia}` : referencia,
                 priceAtMoment: item.precio,
                 date: new Date()
             });
+
+            totalCartValue += item.subtotal;
+            conceptNames.push(`${item.qty}x ${item.nombre}`);
         }
-        showToast("Salida registrada correctamente", "success");
+
+        // --- NUEVA LÓGICA: VINCULAR CON FINANZAS ---
+        if (alumnoId && totalCartValue > 0) {
+            const conceptoDetallado = `Compra de Material: ${conceptNames.join(", ")}`;
+            
+            const dataPago = {
+                studentId: alumnoId,
+                nombreAlumno: alumnoNombre,
+                periodo: "Compra de Material",
+                monto: totalCartValue,
+                metodo: "Efectivo", // Por defecto
+                fechaPago: getLocalDateString(),
+                tipo: 'ingreso',
+                concepto: conceptoDetallado,
+                fechaRegistro: new Date()
+            };
+            
+            // Generamos el pago en la BD para que salga en el historial del alumno y reportes
+            await addDoc(collection(db, "payments"), dataPago);
+            await addDoc(collection(db, "finance"), { ...dataPago, concepto: `Material: ${dataPago.nombreAlumno}` });
+            showToast("Material descontado y Pago registrado al alumno", "success");
+        } else {
+            showToast("Salida registrada correctamente", "success");
+        }
+
+        // Limpiar
         modalSalida.classList.add('hidden');
         currentCart = [];
         renderCart();
         loadInventory();
         document.getElementById('salidaRef').value = "";
+        document.getElementById('salidaAlumno').value = ""; // Limpiar el select de alumno
+
     } catch (error) {
         console.error(error);
         showToast("Error al procesar salida", "error");
