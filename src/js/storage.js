@@ -38,7 +38,7 @@ const emptyCartMsg = document.getElementById('emptyCartMsg');
 const sumQty = document.getElementById('sumQty');
 const sumTotal = document.getElementById('sumTotal');
 const btnConfirmOutput = document.getElementById('btnConfirmOutput');
-const salidaAlumno = document.getElementById('salidaAlumno'); // NUEVO INPUT DE ALUMNO
+const salidaAlumno = document.getElementById('salidaAlumno'); 
 
 // Inputs Historial
 const histStart = document.getElementById('histStart');
@@ -65,7 +65,7 @@ let confirmCallback = null;
 // VARIABLES GLOBALES
 let allProducts = []; 
 let currentCart = []; 
-let allStudentsForStorage = []; // NUEVA VARIABLE PARA ALUMNOS
+let allStudentsForStorage = []; 
 let currentPage = 1;
 const rowsPerPage = 20;
 
@@ -113,11 +113,11 @@ onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = "index.html";
     else {
         loadInventory();
-        loadStudentsForStorage(); // CARGAMOS ALUMNOS AL INICIAR
+        loadStudentsForStorage(); 
     }
 });
 
-// --- NUEVA FUNCIÓN PARA CARGAR ALUMNOS ---
+// --- CARGAR ALUMNOS ---
 async function loadStudentsForStorage() {
     try {
         const q = query(collection(db, "students"), orderBy("nombre"));
@@ -213,7 +213,6 @@ function renderTable() {
         if (prod.cantidad <= 5) stockClass = 'stock-low';
         if (prod.cantidad === 0) stockClass = 'stock-out';
 
-        // VISUAL: Implementamos los botones modernos para editar y eliminar
         fila.innerHTML = `
             <td>
                 <strong>${prod.nombre}</strong><br>
@@ -259,7 +258,7 @@ function asignarEventos() {
         });
     });
     
-    // ELIMINAR (CON CONFIRMACIÓN)
+    // ELIMINAR 
     document.querySelectorAll('.btn-archive').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.id;
@@ -355,7 +354,6 @@ window.removeCartItem = (index) => {
 btnConfirmOutput.addEventListener('click', async () => {
     if (currentCart.length === 0) { showToast("Carrito vacío", "error"); return; }
     
-    // Feedback visual
     btnConfirmOutput.textContent = "Procesando...";
     btnConfirmOutput.classList.add('btn-loading');
 
@@ -373,18 +371,20 @@ btnConfirmOutput.addEventListener('click', async () => {
     let conceptNames = [];
 
     try {
+        // En lugar de guardar en store_receipts, registramos directo en stock_movements
+        // para mantener el historial del inventario alineado.
+        const batchComprasParaRecibo = [];
+
         for (const item of currentCart) {
             const prodRef = doc(db, "inventory", item.id);
             const productoActual = allProducts.find(p => p.id === item.id);
             const nuevoStock = productoActual.cantidad - item.qty;
 
-            // Actualizar inventario
             await updateDoc(prodRef, {
                 cantidad: nuevoStock,
                 fechaActualizacion: new Date()
             });
 
-            // Guardar en historial de almacén
             await addDoc(collection(db, "stock_movements"), {
                 productId: item.id,
                 productName: item.nombre,
@@ -400,37 +400,31 @@ btnConfirmOutput.addEventListener('click', async () => {
             conceptNames.push(`${item.qty}x ${item.nombre}`);
         }
 
-        // --- NUEVA LÓGICA: VINCULAR CON FINANZAS ---
-        if (alumnoId && totalCartValue > 0) {
-            const conceptoDetallado = `Compra de Material: ${conceptNames.join(", ")}`;
+        // Si se vincula a alumno, genera el recibo en FINANZAS y la TIENDA
+        if (alumnoId && totalCartValue > 0 && motivo === "Venta") {
+            const conceptoDetallado = `Material: ${conceptNames.join(", ")}`;
             
-            const dataPago = {
+            await addDoc(collection(db, "store_receipts"), {
                 studentId: alumnoId,
                 nombreAlumno: alumnoNombre,
-                periodo: "Compra de Material",
-                monto: totalCartValue,
-                metodo: "Efectivo", // Por defecto
-                fechaPago: getLocalDateString(),
-                tipo: 'ingreso',
-                concepto: conceptoDetallado,
-                fechaRegistro: new Date()
-            };
-            
-            // Generamos el pago en la BD para que salga en el historial del alumno y reportes
-            await addDoc(collection(db, "payments"), dataPago);
-            await addDoc(collection(db, "finance"), { ...dataPago, concepto: `Material: ${dataPago.nombreAlumno}` });
+                resumenProductos: conceptoDetallado,
+                total: totalCartValue,
+                metodoPago: "Efectivo",
+                fecha: getLocalDateString(),
+                timestamp: new Date()
+            });
+
             showToast("Material descontado y Pago registrado al alumno", "success");
         } else {
             showToast("Salida registrada correctamente", "success");
         }
 
-        // Limpiar
         modalSalida.classList.add('hidden');
         currentCart = [];
         renderCart();
         loadInventory();
         document.getElementById('salidaRef').value = "";
-        document.getElementById('salidaAlumno').value = ""; // Limpiar el select de alumno
+        document.getElementById('salidaAlumno').value = ""; 
 
     } catch (error) {
         console.error(error);
@@ -441,7 +435,7 @@ btnConfirmOutput.addEventListener('click', async () => {
     }
 });
 
-// 5. AGREGAR / EDITAR / REABASTECER
+// 5. AGREGAR STOCK (ENTRADA CON REGISTRO DE PRECIO)
 function abrirModalRestock(prod) {
     document.getElementById('restockId').value = prod.id;
     document.getElementById('restockName').textContent = `Reabastecer: ${prod.nombre}`;
@@ -467,12 +461,14 @@ formRestock.addEventListener('submit', async (e) => {
             fechaActualizacion: new Date()
         });
         
+        // AQUÍ ES DONDE AHORA SE GUARDA EL PRECIO AL SUMAR
         await addDoc(collection(db, "stock_movements"), {
             productId: id,
             productName: prodActual.nombre,
             type: 'entrada',
             quantity: agregar,
             reason: 'Reabastecimiento Rápido',
+            priceAtMoment: prodActual.precio, 
             date: new Date()
         });
 
@@ -487,6 +483,7 @@ formRestock.addEventListener('submit', async (e) => {
     }
 });
 
+// 5.1 CREAR O EDITAR PRODUCTO
 function calcularTotalModal() {
     const cant = Number(prodCantidad.value) || 0;
     const prec = Number(prodPrecio.value) || 0;
@@ -531,8 +528,24 @@ formProduct.addEventListener('submit', async (e) => {
     };
 
     try {
-        if (id) await updateDoc(doc(db, "inventory", id), data);
-        else await addDoc(collection(db, "inventory"), data);
+        if (id) {
+            await updateDoc(doc(db, "inventory", id), data);
+        } else {
+            const docRef = await addDoc(collection(db, "inventory"), data);
+            
+            // Si el producto nuevo arranca con inventario mayor a 0, guardarlo como entrada en el historial
+            if (data.cantidad > 0) {
+                await addDoc(collection(db, "stock_movements"), {
+                    productId: docRef.id,
+                    productName: data.nombre,
+                    type: 'entrada',
+                    quantity: data.cantidad,
+                    reason: 'Inventario Inicial',
+                    priceAtMoment: data.precio, 
+                    date: new Date()
+                });
+            }
+        }
         modalContainer.classList.add('hidden');
         loadInventory();
         showToast("Guardado correctamente", "success");
@@ -549,11 +562,9 @@ async function loadHistory() {
     historyBody.innerHTML = '<tr><td colspan="6" style="text-align:center">Cargando movimientos...</td></tr>';
     
     try {
-        // CORRECCIÓN: Fechas de filtro seguras
         let start = histStart.value ? new Date(histStart.value + 'T00:00:00') : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
         let end = histEnd.value ? new Date(histEnd.value + 'T23:59:59') : new Date();
         
-        // Si no se especificó hora en end, aseguramos final del día
         if(histEnd.value) end.setHours(23, 59, 59);
 
         const q = query(collection(db, "stock_movements"), orderBy("date", "desc"));
@@ -605,6 +616,8 @@ function renderHistoryTable(lista) {
             : '<span style="background:#ffccbc; color:#bf360c; padding:2px 6px; border-radius:4px; font-size:10px;">SALIDA</span>';
 
         const fechaStr = mov.jsDate.toLocaleDateString() + ' ' + mov.jsDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        // AQUÍ SE CALCULA Y SE MUESTRA EL VALOR DE LA ENTRADA/SALIDA AUTOMÁTICAMENTE
         const valorMov = mov.quantity * (mov.priceAtMoment || 0);
 
         tr.innerHTML = `
@@ -637,12 +650,11 @@ document.getElementById('btnOpenSalida').addEventListener('click', () => {
     modalSalida.classList.remove('hidden');
 });
 
-// BOTÓN HISTORIAL: Configurar fechas y abrir
+// BOTÓN HISTORIAL
 document.getElementById('btnOpenHistory').addEventListener('click', () => {
     const hoy = new Date();
     const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
     
-    // CORRECCIÓN: Usar la función de ajuste de zona horaria
     histStart.value = getLocalDateString(inicioMes);
     histEnd.value = getLocalDateString(hoy);
 
@@ -650,27 +662,19 @@ document.getElementById('btnOpenHistory').addEventListener('click', () => {
     loadHistory();
 });
 
-
-
 // GENERAR REPORTE (IMPRIMIR)
 const btnPrintReport = document.getElementById('btnPrintReport');
 if(btnPrintReport) {
     btnPrintReport.addEventListener('click', () => {
-        // 1. Validar que haya datos
         if (document.getElementById('historyBody').children.length === 0) {
             showToast("No hay datos para generar reporte", "error");
             return;
         }
 
-        // 2. Cambiar título temporalmente (para el nombre del archivo PDF)
         const originalTitle = document.title;
         const fechaHoy = new Date().toISOString().split('T')[0];
         document.title = `Reporte_Inventario_${fechaHoy}`;
-
-        // 3. Imprimir
         window.print();
-
-        // 4. Restaurar título
         document.title = originalTitle;
     });
 }
@@ -683,9 +687,7 @@ searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); })
 filterStock.addEventListener('change', () => { currentPage = 1; renderTable(); });
 if(filterCategory) filterCategory.addEventListener('change', () => { currentPage = 1; renderTable(); });
 
-// Botón Buscar en Historial
 if(btnFilterHistory) btnFilterHistory.addEventListener('click', loadHistory);
 
-// Paginación
 if(btnPrevPage) btnPrevPage.addEventListener('click', () => { if(currentPage>1) { currentPage--; renderTable(); } });
 if(btnNextPage) btnNextPage.addEventListener('click', () => { currentPage++; renderTable(); });

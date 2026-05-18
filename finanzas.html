@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finanzas - Academia Moncayo</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="logo.png" />
     <link rel="stylesheet" href="src/css/variables.css">
     <link rel="stylesheet" href="src/css/dashboard.css">
     <link rel="stylesheet" href="src/css/finance.css">
@@ -80,7 +80,8 @@
             </div>
             <form id="formPago">
                 <input type="hidden" id="pagoStudentId">
-                <input type="hidden" id="pagoNombreTexto"> <div class="form-row">
+                <input type="hidden" id="pagoNombreTexto"> 
+                <div class="form-row">
                     <div style="flex: 2;">
                         <label>Alumno:</label>
                         <input type="text" id="pagoAlumnoNombre" disabled style="background:#eee; font-weight:bold;">
@@ -130,7 +131,8 @@
     </div>
 
     <div id="modalHistorial" class="modal-overlay hidden">
-        <div class="modal-content" style="width: 700px;"> <div class="modal-header">
+        <div class="modal-content" style="width: 700px;"> 
+            <div class="modal-header">
                 <h3 id="historialTitulo">Historial de Pagos</h3>
                 <span id="btnCloseHistorial" class="close-btn">&times;</span>
             </div>
@@ -226,9 +228,28 @@
         </div>
     </div>
 
+    <div id="modalEditarPago" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 350px; text-align: center;">
+            <div class="modal-header" style="border-bottom:none; padding-bottom:0;">
+                <h3 style="color:#f57c00; margin:0;">✏️ Editar Monto</h3>
+                <span id="btnCloseEditarPago" class="close-btn">&times;</span>
+            </div>
+            <form id="formEditarPago" style="margin-top: 15px;">
+                <input type="hidden" id="editPagoId">
+                <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Ajusta el monto recibido para este pago.</p>
+                
+                <div style="background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffecb3;">
+                    <label style="color:#f57f17; font-weight:bold; font-size:14px; margin-bottom:10px; display:block;">Nuevo Monto ($):</label>
+                    <input type="number" id="editPagoMonto" required step="0.50" style="font-size: 24px; font-weight: bold; text-align: center; color: #2c3e50; border: 1px solid #ffe0b2; background: #fff; width: 80%; margin: 0 auto; display: block; padding: 10px; border-radius: 6px;">
+                </div>
+                
+                <button type="submit" class="btn-save" style="background-color: #f57c00; color: white; margin-top: 20px; font-size: 16px;">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
 
-<div id="modalConfirm" class="modal-overlay hidden">
-        <div class="modal-content">
+    <div id="modalConfirm" class="modal-overlay hidden">
+        <div class="modal-content" style="width: 400px; text-align: center;">
             <div style="font-size: 50px; margin-bottom: 15px; animation: bounce 1s infinite;">⚠️</div>
             <h3 id="confirmTitle" style="margin: 0; color: #333;">¿Estás seguro?</h3>
             <p id="confirmMessage" style="color: #666; margin: 10px 0 25px;">Esta acción es irreversible.</p>

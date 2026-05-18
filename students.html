@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alumnos - Academia Moncayo</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="logo.png" />
   <link rel="stylesheet" href="src/css/variables.css">
   <link rel="stylesheet" href="src/css/dashboard.css">
   <link rel="stylesheet" href="src/css/students.css">
@@ -24,9 +24,7 @@
         </p>
     </div>
 
-    <button id="btnOpenModal"
-            class="btn-primary"
-            style="height: fit-content;">
+    <button id="btnOpenModal" class="btn-primary" style="height: fit-content;">
         + Nuevo Prospecto
     </button>
 
@@ -43,13 +41,11 @@
           <label>Estado:</label>
           <select id="filterStatus">
             <option value="todos">📂 Ver Todos</option>
-
             <optgroup label="Ciclo Académico">
               <option value="inscrito">✅ Inscritos (Activos)</option>
               <option value="inactivo">⏸️ Inactivos (Suspendidos)</option>
               <option value="baja">❌ Bajas Definitivas</option>
             </optgroup>
-
             <optgroup label="Ciclo Ventas">
               <option value="prospecto">📞 Prospectos</option>
               <option value="sin_interes">💤 Sin Interés</option>
@@ -62,7 +58,7 @@
         <table>
           <thead>
             <tr>
-              <th>Nombre Alumno</th>
+              <th>Alumno y Edad</th>
               <th>Usuario App</th>
               <th style="min-width: 180px;">Datos Tutor / Contacto</th>
               <th style="text-align: center;">Factura</th>
@@ -125,6 +121,41 @@
     </div>
   </div>
 
+  <div id="modalEditarProspecto" class="modal-overlay hidden">
+    <div class="modal-content" style="width: 500px;">
+      <div class="modal-header">
+        <h3>Editar Prospecto</h3>
+        <span id="btnCloseEditarProspecto" class="close-btn">&times;</span>
+      </div>
+
+      <form id="formEditarProspecto">
+        <input type="hidden" id="editProsId">
+
+        <label>Nombre del Interesado:</label>
+        <input type="text" id="editProsNombre" required>
+
+        <div class="form-row">
+          <div style="flex:1">
+            <label>Nombre del Tutor:</label>
+            <input type="text" id="editProsTutor" required>
+          </div>
+          <div style="flex:1">
+            <label>Teléfono (WhatsApp):</label>
+            <input type="tel" id="editProsTel" required>
+          </div>
+        </div>
+
+        <label>Correo Electrónico:</label>
+        <input type="email" id="editProsEmail">
+
+        <label>Instrumento de Interés:</label>
+        <input type="text" id="editProsInteres" style="width:100%;">
+
+        <button type="submit" class="btn-save" style="background-color: #ffc107; color: #333;">Actualizar Prospecto</button>
+      </form>
+    </div>
+  </div>
+
   <div id="modalInscripcion" class="modal-overlay hidden">
     <div class="modal-content" style="width: 600px;">
       <div class="modal-header" style="background-color: #e8f5e9;">
@@ -138,18 +169,30 @@
         <div class="form-row" style="margin-bottom:15px;">
           <div style="flex:2">
             <label>Alumno:</label>
-            <input type="text" id="insNombre" disabled style="background:#f9f9f9; font-weight:bold;">
+            <input type="text" id="insNombre" disabled style="background:#f9f9f9; font-weight:bold; margin-bottom:0;">
           </div>
-          <div style="flex:1">
-            <label>Clase/Instrumento:</label>
-            <input type="text" id="insInteres" placeholder="Ej. Piano">
+          <div style="flex:1.5">
+            <label>Clase/Inst.:</label>
+            <input type="text" id="insInteres" placeholder="Ej. Piano" style="margin-bottom:0;">
           </div>
         </div>
 
-        <div style="background: #fff8e1; padding: 10px; border: 1px solid #ffecb3; border-radius: 6px; margin-bottom: 15px;">
-          <label style="color:#f57f17; font-weight:bold;">💰 Pago de Inscripción ($):</label>
-          <input type="number" id="insMontoInscripcion" required placeholder="Ej. 500.00" style="font-size: 16px; font-weight: bold;">
-          <small style="color:#888;">Este pago se registrará automáticamente en Finanzas.</small>
+        <div style="background: #fff8e1; padding: 15px; border: 1px solid #ffecb3; border-radius: 6px; margin-bottom: 15px;">
+          <div class="form-row" style="align-items: center;">
+            <div style="flex:1">
+                <label style="color:#f57f17; font-weight:bold;">💰 Monto Inscripción ($):</label>
+                <input type="number" id="insMontoInscripcion" required placeholder="Ej. 500.00" style="font-size: 16px; font-weight: bold; margin-bottom:0;">
+            </div>
+            <div style="flex:1">
+                <label style="color:#f57f17; font-weight:bold;">Método de Pago:</label>
+                <select id="insMetodoPago" required style="font-size: 14px; font-weight: bold; border-color: #ffcc80; margin-bottom:0;">
+                    <option value="Efectivo">💵 Efectivo</option>
+                    <option value="Transferencia">🏦 Transferencia</option>
+                    <option value="Tarjeta">💳 Tarjeta</option>
+                </select>
+            </div>
+          </div>
+          <small style="color:#888; display:block; margin-top:8px;">Este pago se registrará automáticamente en Finanzas.</small>
         </div>
 
         <div class="form-row" style="background: #e3f2fd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #bbdefb;">
@@ -204,11 +247,11 @@
         <div class="form-row" style="margin-bottom:15px;">
           <div style="flex:2">
             <label>Nombre Completo:</label>
-            <input type="text" id="editNombre" required>
+            <input type="text" id="editNombre" required style="margin-bottom:0;">
           </div>
-          <div style="flex:1">
-            <label>Clase/Instrumento:</label>
-            <input type="text" id="editInteres" placeholder="Ej. Piano">
+          <div style="flex:1.5">
+            <label>Clase/Inst.:</label>
+            <input type="text" id="editInteres" placeholder="Ej. Piano" style="margin-bottom:0;">
           </div>
         </div>
 

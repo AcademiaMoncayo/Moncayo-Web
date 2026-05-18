@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="nav-left">
           <div class="brand">
             <div class="brand-logo">
-              <img src="src/assets/imagenes/Logo.png" alt="Academia Moncayo" style="max-width: 100%; height: auto;" />
+              <img src="src/assets/imagenes/logo.png" alt="Academia Moncayo" style="max-width: 100%; height: auto;" />
             </div>
             <div class="brand-text">
               <div class="brand-title">Academia Moncayo</div>

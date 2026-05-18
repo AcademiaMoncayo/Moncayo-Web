@@ -171,14 +171,76 @@ p {
     to { opacity: 1; transform: translateX(0); }
 }
 @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(50px); }
+    from { opacity: 0; transform: translateX(-50px); }
     to { opacity: 1; transform: translateX(0); }
 }
 
+/* ==========================================================
+   MODIFICACIÓN EN RESPONSIVO (MÓVILES Y TABLETS)
+   ========================================================== */
 @media (max-width: 900px) {
-    .container { flex-direction: column; text-align: center; }
-    h1 { font-size: 2.5rem; }
-    .features { justify-content: center; }
-    .content { margin-bottom: 40px; }
-    .floating-phone { width: 240px; height: 500px; }
+    body {
+        overflow-y: auto; /* Permite scroll vertical cómodo si la pantalla es muy pequeña */
+    }
+
+    .container {
+        flex-direction: column; 
+        text-align: center;
+        padding: 30px 15px;
+        gap: 35px; /* Reduce espacio muerto entre elementos */
+    }
+
+    .content {
+        margin-bottom: 10px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Centra los bloques internos */
+    }
+
+    h1 { 
+        font-size: 2.3rem; /* Tamaño de letra adaptado a pantallas de celular */
+        line-height: 1.2;
+    }
+
+    p {
+        font-size: 1rem;
+        margin-bottom: 25px;
+    }
+
+    .features { 
+        justify-content: center; 
+        gap: 10px;
+        margin-bottom: 30px;
+    }
+
+    .feature-item {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+
+    .btn-download {
+        width: 100%; /* El botón abarca el ancho disponible para facilitar la pulsación táctil */
+        max-width: 320px;
+        justify-content: center;
+        padding: 14px 24px;
+    }
+
+    .install-note {
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .mockup-container {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .floating-phone { 
+        width: 200px;  /* Proporciones estilizadas para que luzca estético debajo del texto */
+        height: 420px; 
+        border-width: 8px; /* Ajuste del grosor del marco del celular */
+        border-radius: 30px;
+    }
 }

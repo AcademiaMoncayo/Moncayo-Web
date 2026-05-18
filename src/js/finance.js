@@ -17,9 +17,11 @@ const pageIndicator = document.getElementById('pageIndicator');
 const modalPago = document.getElementById('modalPago');
 const modalHistorial = document.getElementById('modalHistorial');
 const modalReporte = document.getElementById('modalReporte');
+const modalEditarPago = document.getElementById('modalEditarPago');
 
 // Forms y Botones
 const formPago = document.getElementById('formPago');
+const formEditarPago = document.getElementById('formEditarPago');
 const selectPeriodo = document.getElementById('pagoPeriodo');
 
 // CONFIRMACIÓN CUSTOM
@@ -33,6 +35,7 @@ let confirmCallback = null;
 // Estado Global
 let allStudents = []; 
 let allPayments = []; 
+let allStoreReceipts = []; 
 let currentPage = 1;
 const rowsPerPage = 20;
 
@@ -92,7 +95,29 @@ async function loadFinanceData() {
         const qPayments = query(collection(db, "payments"));
         const snapPayments = await getDocs(qPayments);
         allPayments = [];
-        snapPayments.forEach((doc) => allPayments.push({ id: doc.id, ...doc.data() }));
+        snapPayments.forEach((doc) => allPayments.push({ id: doc.id, ...doc.data(), origen: 'mensualidad' }));
+
+        try {
+            const qStore = query(collection(db, "store_receipts"));
+            const snapStore = await getDocs(qStore);
+            allStoreReceipts = [];
+            snapStore.forEach((doc) => {
+                const data = doc.data();
+                allStoreReceipts.push({ 
+                    id: doc.id, 
+                    studentId: data.alumnoId || data.studentId, 
+                    nombreAlumno: data.nombreAlumno || data.cliente,
+                    periodo: 'Compra en Tienda', 
+                    concepto: data.resumenProductos || 'Artículos de Almacén',
+                    monto: data.total || data.monto,
+                    metodo: data.metodoPago || 'Efectivo',
+                    fechaPago: data.fecha || new Date(data.timestamp?.seconds * 1000).toISOString().split('T')[0],
+                    origen: 'tienda'
+                });
+            });
+        } catch (e) {
+            allStoreReceipts = [];
+        }
 
         renderTable();
     } catch (error) {
@@ -112,7 +137,7 @@ function renderTable() {
 
     const listaProcesada = allStudents.map(alumno => {
         const periodoActualStr = calcularPeriodoActual(alumno.fechaInicioClases);
-        const estaPagado = allPayments.some(p => p.studentId === alumno.id && p.periodo === periodoActualStr);
+        const estaPagado = allPayments.some(p => p.studentId === alumno.id && p.periodo === periodoActualStr && p.origen === 'mensualidad');
         
         let estadoPago = 'pendiente';
         if (estaPagado) estadoPago = 'pagado';
@@ -224,7 +249,7 @@ function abrirModalPago(id, nombre, costo, fechaInicioStr) {
         const strInicio = `${inicio.getDate()} ${meses[inicio.getMonth()]} ${inicio.getFullYear()}`;
         const strFin = `${fin.getDate()} ${meses[fin.getMonth()]} ${fin.getFullYear()}`;
         const valorPeriodo = `${strInicio} - ${strFin}`;
-        const yaPagado = allPayments.some(p => p.studentId === id && p.periodo === valorPeriodo);
+        const yaPagado = allPayments.some(p => p.studentId === id && p.periodo === valorPeriodo && p.origen === 'mensualidad');
 
         const option = document.createElement('option');
         if (yaPagado) {
@@ -267,33 +292,44 @@ formPago.addEventListener('submit', async (e) => {
     finally { btnSubmit.classList.remove('btn-loading'); }
 });
 
-// 6. HISTORIAL Y RECIBO PROFESIONAL
+// 6. HISTORIAL MEZCLADO
 function abrirHistorial(alumno) {
     document.getElementById('historialAlumnoNombre').textContent = alumno.nombre;
     const emailT = alumno.emailTutor || 'Sin correo';
     document.getElementById('historialAlumnoEmail').textContent = alumno.status === 'inscrito' ? emailT : `${emailT} (BAJA)`;
     
     const pagosAlumno = allPayments.filter(p => p.studentId === alumno.id);
-    pagosAlumno.sort((a, b) => new Date(b.fechaPago) - new Date(a.fechaPago));
+    const comprasAlumno = allStoreReceipts.filter(s => s.studentId === alumno.id);
+    
+    const historialCompleto = [...pagosAlumno, ...comprasAlumno];
+    historialCompleto.sort((a, b) => new Date(b.fechaPago) - new Date(a.fechaPago));
 
     const tbody = document.getElementById('historialTableBody');
     tbody.innerHTML = '';
 
-    if (pagosAlumno.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888;">No hay pagos registrados.</td></tr>';
+    if (historialCompleto.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888;">No hay movimientos registrados.</td></tr>';
     } else {
-        pagosAlumno.forEach(pago => {
+        historialCompleto.forEach(pago => {
+            const isStore = pago.origen === 'tienda';
+            const iconType = isStore ? '🛍️' : '📅';
+            const bgColor = isStore ? 'background-color:#f8f9fa;' : '';
+            
             const row = document.createElement('tr');
-row.innerHTML = `
-                <td>${pago.periodo}</td>
+            row.style = bgColor;
+            row.innerHTML = `
+                <td>
+                    ${iconType} ${pago.periodo}
+                    ${isStore ? `<br><small style="color:#666;">${pago.concepto}</small>` : ''}
+                </td>
                 <td>${pago.fechaPago}</td>
                 <td style="font-weight:bold; color:#2c3e50;">$${pago.monto}</td>
                 <td>${pago.metodo}</td>
                 <td>
                     <div style="display:flex; gap:8px;">
-                        <button class="btn-action-small btn-email-pago" title="Generar Recibo" onclick="prepararRecibo('${pago.id}')">🧾</button>
-                        <button class="btn-action-small btn-edit-pago" title="Editar Monto" onclick="editarPago('${pago.id}', ${pago.monto})">✏️</button>
-                        <button class="btn-action-small btn-delete-pago" title="Eliminar Pago" onclick="eliminarPago('${pago.id}')">🗑️</button>
+                        <button class="btn-action-small btn-email-pago" title="Generar Recibo" onclick="prepararRecibo('${pago.id}', '${pago.origen}')">🧾</button>
+                        ${!isStore ? `<button class="btn-action-small btn-edit-pago" title="Editar Monto" onclick="editarPago('${pago.id}', ${pago.monto})">✏️</button>` : ''}
+                        ${!isStore ? `<button class="btn-action-small btn-delete-pago" title="Eliminar Pago" onclick="eliminarPago('${pago.id}')">🗑️</button>` : '<span style="font-size:10px; color:#aaa; margin-left:10px;">Fijo</span>'}
                     </div>
                 </td>
             `;
@@ -304,30 +340,20 @@ row.innerHTML = `
 }
 
 // === GENERADOR DE RECIBOS ===
-window.prepararRecibo = (idPago) => {
-    const pago = allPayments.find(p => p.id === idPago);
+window.prepararRecibo = (idPago, origen) => {
+    let pago = null;
+    if(origen === 'tienda') pago = allStoreReceipts.find(p => p.id === idPago);
+    else pago = allPayments.find(p => p.id === idPago);
+    
     if(!pago) return;
     
-    // Buscar datos del alumno (si necesitamos el correo)
     const alumno = allStudents.find(s => s.id === pago.studentId);
     const email = alumno ? alumno.emailTutor : '';
 
     showConfirm("Generar Recibo", "¿Qué deseas hacer con este recibo?", () => {
-        // Esta función se ejecuta si da "Sí" (que configuraremos como Imprimir)
         imprimirRecibo(pago, alumno);
     });
 
-    // Modificamos el modal al vuelo para ofrecer dos opciones
-    // Como el modal de confirmación solo tiene 2 botones, usaremos un truco:
-    // Cancelar -> Enviar Correo (Mailto)
-    // Aceptar -> Imprimir PDF
-    
-    // (O mejor, usamos botones directos en el toast si fuera más complejo, 
-    // pero aquí simplemente llamaremos a la función de imprimir y luego preguntaremos si quiere enviar mail).
-    
-    // Mejor flujo:
-    // 1. Abrir vista de impresión (PDF).
-    // 2. Ofrecer abrir correo.
     imprimirRecibo(pago, alumno);
     
     setTimeout(() => {
@@ -340,7 +366,6 @@ window.prepararRecibo = (idPago) => {
 function imprimirRecibo(pago, alumno) {
     const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     
-    // Diseño del Recibo HTML
     const reciboHTML = `
         <html>
         <head>
@@ -363,12 +388,11 @@ function imprimirRecibo(pago, alumno) {
         <body>
             <div class="header">
                 <div class="logo">Academia Moncayo</div>
-                <div class="sub-logo">Música & Arte • Recibo de Pago</div>
+                <div class="sub-logo">Música & Arte • Comprobante de Pago</div>
             </div>
-
             <div class="info-box">
                 <div class="info-group">
-                    <h4>Alumno</h4>
+                    <h4>Alumno / Cliente</h4>
                     <p>${pago.nombreAlumno}</p>
                 </div>
                 <div class="info-group" style="text-align:right;">
@@ -377,14 +401,13 @@ function imprimirRecibo(pago, alumno) {
                     <div style="font-size:12px; color:#999; margin-top:5px;">Folio: ${pago.id.slice(0,8).toUpperCase()}</div>
                 </div>
             </div>
-
             <div class="concept-box">
                 <div class="concept-row">
                     <span>Concepto</span>
                     <span>${pago.concepto || 'Mensualidad'}</span>
                 </div>
                 <div class="concept-row">
-                    <span>Periodo</span>
+                    <span>${pago.origen === 'tienda' ? 'Tipo' : 'Periodo'}</span>
                     <span>${pago.periodo}</span>
                 </div>
                 <div class="concept-row">
@@ -399,18 +422,15 @@ function imprimirRecibo(pago, alumno) {
                     <div class="stamp">PAGADO</div>
                 </div>
             </div>
-
             <div class="footer">
-                <p>Gracias por tu pago puntual. Este documento sirve como comprobante oficial.</p>
+                <p>Gracias por tu pago. Este documento sirve como comprobante oficial de la transacción.</p>
                 <p>Academia Moncayo | Guadalajara, Jalisco | Tel: 33 1234 5678</p>
             </div>
-            
             <script>window.print();</script>
         </body>
         </html>
     `;
 
-    // Abrir ventana popup
     const ventana = window.open('', '_blank', 'width=900,height=800');
     ventana.document.write(reciboHTML);
     ventana.document.close();
@@ -421,13 +441,14 @@ function abrirClienteCorreo(email, pago) {
         showToast("El alumno no tiene correo registrado", "info");
         return;
     }
-    const subject = `Recibo de Pago - Academia Moncayo (${pago.periodo})`;
-    const body = `Hola,\n\nAdjunto encontrarás el comprobante de pago correspondiente al periodo: ${pago.periodo}.\n\nMonto: $${pago.monto}\n\nGracias por tu preferencia.\n\nAtte.\nAdministración Academia Moncayo`;
+    const isStore = pago.origen === 'tienda';
+    const asnt = isStore ? `Recibo de Compra - Academia Moncayo` : `Recibo de Pago - Academia Moncayo (${pago.periodo})`;
+    const body = `Hola,\n\nAdjunto encontrarás el comprobante de tu pago por concepto de: ${pago.periodo || pago.concepto}.\n\nMonto: $${pago.monto}\n\nGracias por tu preferencia.\n\nAtte.\nAdministración Academia Moncayo`;
     
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(asnt)}&body=${encodeURIComponent(body)}`;
 }
 
-// GLOBALES
+// GLOBALES DE EDICIÓN Y ELIMINACIÓN
 window.eliminarPago = async (idPago) => {
     showConfirm("Eliminar Pago", "¿Seguro que deseas eliminar este registro de pago?", async () => {
         try {
@@ -439,23 +460,40 @@ window.eliminarPago = async (idPago) => {
     });
 };
 
-window.editarPago = async (idPago, montoActual) => {
-    const nuevoMonto = prompt("Nuevo monto:", montoActual);
-    if(nuevoMonto && !isNaN(nuevoMonto)) {
-        try {
-            await updateDoc(doc(db, "payments", idPago), { monto: Number(nuevoMonto) });
-            showToast("Monto actualizado", "success");
-            modalHistorial.classList.add('hidden');
-            loadFinanceData();
-        } catch(e) { showToast("Error al editar", "error"); }
-    }
+// --- NUEVA LÓGICA DE EDICIÓN DE PAGO (MODAL BONITO EN LUGAR DE PROMPT) ---
+window.editarPago = (idPago, montoActual) => {
+    document.getElementById('editPagoId').value = idPago;
+    document.getElementById('editPagoMonto').value = montoActual;
+    modalEditarPago.classList.remove('hidden');
 };
 
-window.enviarRecibo = (email, periodo, monto) => {
-    // Esta función se mantiene por compatibilidad, pero la lógica fuerte está en prepararRecibo
-    const pagoSimulado = { id: 'TEMP', periodo, monto };
-    abrirClienteCorreo(email, pagoSimulado);
-};
+formEditarPago.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btnSubmit = formEditarPago.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
+    const idPago = document.getElementById('editPagoId').value;
+    const nuevoMonto = document.getElementById('editPagoMonto').value;
+
+    try {
+        await updateDoc(doc(db, "payments", idPago), { monto: Number(nuevoMonto) });
+        showToast("Monto actualizado con éxito", "success");
+        modalEditarPago.classList.add('hidden');
+        modalHistorial.classList.add('hidden'); 
+        loadFinanceData();
+    } catch(err) {
+        console.error(err);
+        showToast("Error al actualizar el pago", "error");
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
+});
+
+// EVENTOS CIERRE DE MODALES
+document.getElementById('btnCloseEditarPago').addEventListener('click', () => modalEditarPago.classList.add('hidden'));
+document.getElementById('btnClosePago').addEventListener('click', () => modalPago.classList.add('hidden'));
+document.getElementById('btnCloseHistorial').addEventListener('click', () => modalHistorial.classList.add('hidden'));
+document.getElementById('btnCerrarHistorial').addEventListener('click', () => modalHistorial.classList.add('hidden'));
 
 // UTILIDADES: CALCULO DE PERIODO
 function calcularPeriodoActual(fechaInicioStr) {
@@ -492,15 +530,9 @@ function actualizarPaginacion(total) {
     if(btnNextPage) btnNextPage.disabled = currentPage === total;
 }
 
-// Listeners
-document.getElementById('btnClosePago').addEventListener('click', () => modalPago.classList.add('hidden'));
-document.getElementById('btnCloseHistorial').addEventListener('click', () => modalHistorial.classList.add('hidden'));
-document.getElementById('btnCerrarHistorial').addEventListener('click', () => modalHistorial.classList.add('hidden'));
-
 searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
 filterPayment.addEventListener('change', () => { currentPage = 1; renderTable(); });
 if(filterStatus) filterStatus.addEventListener('change', () => { currentPage = 1; renderTable(); });
-
 if(btnPrevPage) btnPrevPage.addEventListener('click', () => { if(currentPage>1) currentPage--; renderTable(); });
 if(btnNextPage) btnNextPage.addEventListener('click', () => { currentPage++; renderTable(); });
 
@@ -532,7 +564,10 @@ if(btnGenerarReporte) {
         const fechaInicio = inputInicio.value;
         const fechaFin = inputFin.value;
         if(!fechaInicio || !fechaFin) { showToast("Selecciona fechas", "error"); return; }
-        const pagosFiltrados = allPayments.filter(pago => pago.fechaPago >= fechaInicio && pago.fechaPago <= fechaFin);
+        
+        const todosLosIngresos = [...allPayments, ...allStoreReceipts];
+        
+        const pagosFiltrados = todosLosIngresos.filter(pago => pago.fechaPago >= fechaInicio && pago.fechaPago <= fechaFin);
         if (pagosFiltrados.length === 0) { showToast("No hay pagos en este rango", "info"); return; }
         procesarDatosReporte(pagosFiltrados);
     });
@@ -543,6 +578,8 @@ function procesarDatosReporte(pagos) {
     let mensualidades = {}; 
     let inscripciones = 0;
     let totalInscripciones = 0;
+    let totalTienda = 0;
+    let comprasTienda = 0;
     let metodos = { "Efectivo": 0, "Transferencia": 0, "Tarjeta": 0 };
 
     const tbody = document.getElementById('tablaDetalleReporte');
@@ -551,19 +588,28 @@ function procesarDatosReporte(pagos) {
     pagos.forEach(p => {
         const monto = Number(p.monto);
         granTotal += monto;
-        if (p.periodo && p.periodo.includes("Inscripción")) {
+        
+        // CORRECCIÓN PRINCIPAL PARA EL DESGLOSE: Validamos tanto las ventas nuevas (tienda) como las legacy en (Compra de Material)
+        const esCompraAlmacen = p.origen === 'tienda' || (p.periodo && p.periodo.includes("Compra de Material"));
+
+        if(esCompraAlmacen) {
+            comprasTienda++;
+            totalTienda += monto;
+        } else if (p.periodo && p.periodo.includes("Inscripción")) {
             inscripciones++;
             totalInscripciones += monto;
         } else {
             if (!mensualidades[monto]) mensualidades[monto] = 0;
             mensualidades[monto]++;
         }
+        
         const metodo = p.metodo || "Efectivo";
         if (!metodos[metodo]) metodos[metodo] = 0;
         metodos[metodo] += monto;
+        
         if(tbody) {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${p.fechaPago}</td><td>${p.nombreAlumno}</td><td>${p.periodo}</td><td>$${monto}</td>`;
+            tr.innerHTML = `<td>${p.fechaPago}</td><td>${p.nombreAlumno}</td><td>${esCompraAlmacen ? '🛍️ Venta Almacén' : p.periodo}</td><td>$${monto}</td>`;
             tbody.appendChild(tr);
         }
     });
@@ -573,6 +619,7 @@ function procesarDatosReporte(pagos) {
     if(ulDesglose) {
         ulDesglose.innerHTML = '';
         if (inscripciones > 0) ulDesglose.innerHTML += `<li><span>🎓 Inscripciones (${inscripciones})</span><strong>$${totalInscripciones}</strong></li>`;
+        if (comprasTienda > 0) ulDesglose.innerHTML += `<li><span>🛍️ Ventas Almacén (${comprasTienda})</span><strong>$${totalTienda}</strong></li>`;
         for (const [monto, cantidad] of Object.entries(mensualidades)) {
             ulDesglose.innerHTML += `<li><span>📅 Mensualidades $${monto} (${cantidad})</span><strong>$${monto * cantidad}</strong></li>`;
         }

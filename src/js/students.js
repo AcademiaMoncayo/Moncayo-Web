@@ -9,6 +9,7 @@ const filterStatus = document.getElementById('filterStatus');
 
 // Modales
 const modalContainer = document.getElementById('modalContainer'); 
+const modalEditarProspecto = document.getElementById('modalEditarProspecto');
 const modalInscripcion = document.getElementById('modalInscripcion');
 const modalEditar = document.getElementById('modalEditar');
 const modalPerfil = document.getElementById('modalPerfil');
@@ -16,6 +17,7 @@ const modalCredenciales = document.getElementById('modalCredenciales');
 
 // Forms
 const formStudent = document.getElementById('formStudent');
+const formEditarProspecto = document.getElementById('formEditarProspecto');
 const formInscripcion = document.getElementById('formInscripcion');
 const formEditar = document.getElementById('formEditar');
 
@@ -68,6 +70,21 @@ btnCancelConfirm.addEventListener('click', () => {
     confirmCallback = null;
 });
 
+// --- FUNCIÓN MATEMÁTICA PARA CALCULAR EDAD ---
+function calcularEdadExacta(fechaNacimientoISO) {
+    if (!fechaNacimientoISO) return null;
+    const [year, month, day] = fechaNacimientoISO.split('-');
+    const fechaNac = new Date(year, month - 1, day);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNac.getFullYear();
+    const difMeses = hoy.getMonth() - fechaNac.getMonth();
+    
+    if (difMeses < 0 || (difMeses === 0 && hoy.getDate() < fechaNac.getDate())) {
+        edad--;
+    }
+    return edad;
+}
+
 // 1. SEGURIDAD
 onAuthStateChanged(auth, (user) => {
     if (!user) window.location.href = "index.html";
@@ -76,7 +93,7 @@ onAuthStateChanged(auth, (user) => {
 
 // 2. CARGAR
 async function loadStudents() {
-    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">Cargando datos...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center">Cargando datos...</td></tr>';
     try {
         const q = query(collection(db, "students"), orderBy("nombre"));
         const snap = await getDocs(q);
@@ -86,7 +103,7 @@ async function loadStudents() {
     } catch (error) {
         console.error(error);
         showToast("Error cargando alumnos", "error");
-        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red">Error de conexión.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red">Error de conexión.</td></tr>';
     }
 }
 
@@ -117,7 +134,7 @@ function renderTable() {
 
     tableBody.innerHTML = '';
     if (itemsPagina.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#888;">No se encontraron resultados.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#888;">No se encontraron resultados.</td></tr>';
         return;
     }
 
@@ -132,7 +149,7 @@ function renderTable() {
             const usuario = alumno.usuario || '?';
             const password = alumno.password || '...';
             accessDisplay = `
-                <div style="font-size:11px; font-weight:bold; color:#0d47a1; margin-bottom:4px;">${usuario}</div>
+                <div style="font-size:12px; font-weight:bold; color:#0d47a1; margin-bottom:4px;">${usuario}</div>
                 <button class="btn-show-creds btn-action-small btn-soft-blue" 
                     data-user="${usuario}" 
                     data-pass="${password}" 
@@ -154,6 +171,7 @@ function renderTable() {
             botonesAccion = `
                 <button class="btn-cambiar-estado btn-action-small btn-soft-blue" data-id="${alumno.id}" data-nuevo="prospecto" title="Reactivar">⬆️</button>
                 <button class="btn-delete-prospecto btn-action-small btn-soft-red" data-id="${alumno.id}" title="Eliminar">🗑️</button>
+                <button class="btn-edit btn-action-small btn-soft-blue" data-id="${alumno.id}" title="Editar">✏️</button>
             `;
         } else if (st === 'inscrito') {
             botonesAccion = `
@@ -165,20 +183,30 @@ function renderTable() {
             botonesAccion = `
                 <button class="btn-cambiar-estado btn-action-small btn-soft-green" data-id="${alumno.id}" data-nuevo="inscrito" title="Reactivar">▶️</button>
                 <button class="btn-cambiar-estado btn-action-small btn-soft-red" data-id="${alumno.id}" data-nuevo="baja" title="Dar de Baja">❌</button>
+                <button class="btn-edit btn-action-small btn-soft-blue" data-id="${alumno.id}" title="Editar">✏️</button>
             `;
         } else if (st === 'baja') {
             botonesAccion = `
                 <button class="btn-cambiar-estado btn-action-small btn-soft-green" data-id="${alumno.id}" data-nuevo="inscrito" title="Re-Inscribir">♻️</button>
+                <button class="btn-edit btn-action-small btn-soft-blue" data-id="${alumno.id}" title="Editar">✏️</button>
             `;
         }
 
-        // Lógica visual: Si es prospecto dice "Int: Piano", si ya está inscrito dice "🎵 Piano"
         const etiquetaInteres = st === 'prospecto' || st === 'sin_interes' ? 'Int:' : '🎵';
+        
+        const edadDinamica = calcularEdadExacta(alumno.fechaNacimiento);
+        const edadMostrar = edadDinamica !== null ? edadDinamica : alumno.edad; 
 
+        let htmlEdad = '<span style="color:#aaa;">Edad no registrada</span>';
+        if (edadMostrar !== undefined && edadMostrar !== null) {
+            htmlEdad = `Edad: <span style="color:#0d47a1; font-weight:bold;">${edadMostrar} años</span>`;
+        }
+        
         fila.innerHTML = `
             <td>
-                <strong>${alumno.nombre}</strong>
-                ${alumno.interes ? `<br><small style="color:#666; font-weight:bold;">${etiquetaInteres} ${alumno.interes}</small>` : ''}
+                <div style="font-size:14px; font-weight:bold; color:#333;">${alumno.nombre}</div>
+                <div style="font-size:12px; color:#666; margin-top:2px;">${htmlEdad}</div>
+                ${alumno.interes ? `<div style="margin-top:4px;"><small style="color:#888; font-weight:bold;">${etiquetaInteres} ${alumno.interes}</small></div>` : ''}
             </td>
             <td>${accessDisplay}</td>
             <td>
@@ -237,7 +265,12 @@ function asignarEventos() {
     document.querySelectorAll('.btn-edit').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const alumno = allStudents.find(s => s.id === e.currentTarget.dataset.id);
-            abrirModalEditar(alumno);
+            
+            if (alumno.status === 'prospecto' || alumno.status === 'sin_interes') {
+                abrirModalEditarProspecto(alumno);
+            } else {
+                abrirModalEditar(alumno);
+            }
         });
     });
 
@@ -300,6 +333,45 @@ formStudent.addEventListener('submit', async (e) => {
     }
 });
 
+// 5.1 ACTUALIZAR PROSPECTO
+function abrirModalEditarProspecto(alumno) {
+    document.getElementById('editProsId').value = alumno.id;
+    document.getElementById('editProsNombre').value = alumno.nombre || '';
+    document.getElementById('editProsTutor').value = alumno.nombreTutor || '';
+    document.getElementById('editProsTel').value = alumno.telefono || '';
+    document.getElementById('editProsEmail').value = alumno.emailTutor || '';
+    document.getElementById('editProsInteres').value = alumno.interes || '';
+
+    modalEditarProspecto.classList.remove('hidden');
+}
+
+formEditarProspecto.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btnSubmit = formEditarProspecto.querySelector('button[type="submit"]');
+    btnSubmit.classList.add('btn-loading');
+
+    const id = document.getElementById('editProsId').value;
+    const datos = {
+        nombre: document.getElementById('editProsNombre').value.trim(),
+        nombreTutor: document.getElementById('editProsTutor').value.trim(),
+        telefono: document.getElementById('editProsTel').value.trim(),
+        emailTutor: document.getElementById('editProsEmail').value.trim(),
+        interes: document.getElementById('editProsInteres').value.trim()
+    };
+
+    try {
+        await updateDoc(doc(db, "students", id), datos);
+        modalEditarProspecto.classList.add('hidden');
+        loadStudents();
+        showToast("Prospecto actualizado", "success");
+    } catch (error) { 
+        console.error(error); 
+        showToast("Error al actualizar", "error"); 
+    } finally {
+        btnSubmit.classList.remove('btn-loading');
+    }
+});
+
 // 6. INSCRIPCIÓN + PAGO
 function abrirModalInscripcion(alumno) {
     document.getElementById('insId').value = alumno.id;
@@ -309,9 +381,10 @@ function abrirModalInscripcion(alumno) {
     document.getElementById('insPassword').value = "moncayo123"; 
     document.getElementById('insInicio').valueAsDate = new Date();
     document.getElementById('insMontoInscripcion').value = ""; 
+    document.getElementById('insMetodoPago').value = "Efectivo"; // Default a Efectivo
     document.getElementById('insCosto').value = ""; 
-    
-    // Asignar el valor actual al nuevo input de la vista si existe
+    document.getElementById('insFechaNac').value = ""; 
+
     if(document.getElementById('insInteres')) {
         document.getElementById('insInteres').value = alumno.interes || '';
     }
@@ -328,6 +401,7 @@ formInscripcion.addEventListener('submit', async (e) => {
     const nombreAlumno = document.getElementById('insNombre').value;
     const inicioClases = document.getElementById('insInicio').value;
     const montoInscripcion = Number(document.getElementById('insMontoInscripcion').value);
+    const metodoSeleccionado = document.getElementById('insMetodoPago').value;
     
     if(montoInscripcion <= 0) { 
         showToast("⚠️ Falta el pago de inscripción", "error");
@@ -349,17 +423,17 @@ formInscripcion.addEventListener('submit', async (e) => {
         status: "inscrito"
     };
 
-    // Actualizar el instrumento/clase si el input existe
     if(document.getElementById('insInteres')) {
         datosAlumno.interes = document.getElementById('insInteres').value.trim();
     }
 
+    // EL MÉTODO DE PAGO YA NO ESTÁ EN DURO, USA EL DEL SELECTOR
     const datosPago = {
         studentId: id,
         nombreAlumno: nombreAlumno,
         periodo: "Pago de Inscripción", 
         monto: montoInscripcion,
-        metodo: "Efectivo", 
+        metodo: metodoSeleccionado, 
         fechaPago: new Date().toISOString().split('T')[0], 
         tipo: "ingreso",
         concepto: `Inscripción: ${nombreAlumno}`,
@@ -383,7 +457,7 @@ formInscripcion.addEventListener('submit', async (e) => {
     }
 });
 
-// 7. EDITAR
+// 7. EDITAR ALUMNO
 function abrirModalEditar(alumno) {
     document.getElementById('editId').value = alumno.id;
     document.getElementById('editNombre').value = alumno.nombre;
@@ -397,7 +471,6 @@ function abrirModalEditar(alumno) {
     document.getElementById('editCosto').value = alumno.costoMensual || 0;
     document.getElementById('editInicio').value = alumno.fechaInicioClases || '';
 
-    // Asignar el valor actual al nuevo input de la vista si existe
     if(document.getElementById('editInteres')) {
         document.getElementById('editInteres').value = alumno.interes || '';
     }
@@ -433,7 +506,6 @@ formEditar.addEventListener('submit', async (e) => {
         fechaInicioClases: inicioClases
     };
 
-    // Actualizar el instrumento/clase si el input existe
     if(document.getElementById('editInteres')) {
         datos.interes = document.getElementById('editInteres').value.trim();
     }
@@ -508,11 +580,15 @@ window.abrirPerfilGamer = async function(alumno) {
     modalPerfil.classList.remove('hidden');
 }
 
-// UI Listeners
+// UI Listeners Generales
 document.getElementById('btnOpenModal').addEventListener('click', () => modalContainer.classList.remove('hidden'));
 document.getElementById('btnCloseModal').addEventListener('click', () => modalContainer.classList.add('hidden'));
 document.getElementById('btnCloseInscripcion').addEventListener('click', () => modalInscripcion.classList.add('hidden'));
 document.getElementById('btnCloseEditar').addEventListener('click', () => modalEditar.classList.add('hidden'));
+
+if(document.getElementById('btnCloseEditarProspecto')){
+    document.getElementById('btnCloseEditarProspecto').addEventListener('click', () => modalEditarProspecto.classList.add('hidden'));
+}
 
 if(document.getElementById('btnClosePerfil')) {
     document.getElementById('btnClosePerfil').addEventListener('click', () => modalPerfil.classList.add('hidden'));
