@@ -529,7 +529,7 @@ window.abrirPerfilGamer = async function(alumno) {
     const pathImagenes = "src/assets/imagenes/"; 
     
     const imgAvatar = document.getElementById('gamerAvatar');
-    imgAvatar.src = alumno.avatar ? `${pathImagenes}${alumno.avatar}.png` : `${pathImagenes}Logo.png`;
+    imgAvatar.src = alumno.avatar ? `${pathImagenes}${alumno.avatar}.png` : `${pathImagenes}logo.png`;
 
     document.getElementById('gamerName').textContent = alumno.nombre;
     
@@ -566,7 +566,7 @@ window.abrirPerfilGamer = async function(alumno) {
                 badgeDiv.innerHTML = `
                     <img src="${pathImagenes}${nombreArchivoFinal}.png" 
                          title="${nombreInsignia} - Nivel ${nivel}"
-                         onerror="this.src='${pathImagenes}Logo.png'"
+                         onerror="this.src='${pathImagenes}logo.png'"
                          style="width: 30px; height: 30px; object-fit: contain;">
                 `;
                 

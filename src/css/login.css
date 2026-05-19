@@ -9,7 +9,8 @@ body {
     background-color: #020813; /* Azul casi negro */
     color: #ffffff;
     min-height: 100vh;
-    overflow: hidden;
+    overflow-x: hidden; /* Evita el scroll horizontal indeseado */
+    overflow-y: auto;   /* Permite scroll vertical si la pantalla es muy bajita */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -21,21 +22,24 @@ body {
    ========================================= */
 .bg-glow {
     position: absolute;
-    width: 600px;
-    height: 600px;
+    width: 50vw; /* Usamos viewport width para que escale con la pantalla */
+    height: 50vw;
+    max-width: 600px;
+    max-height: 600px;
     background: radial-gradient(circle, rgba(13, 71, 161, 0.3) 0%, rgba(2, 8, 19, 0) 70%);
     z-index: -2;
     border-radius: 50%;
     filter: blur(50px);
 }
-.left-glow { top: -100px; left: -100px; }
-.right-glow { bottom: -200px; right: -100px; }
+.left-glow { top: -10%; left: -10%; }
+.right-glow { bottom: -20%; right: -10%; }
 
 .music-note-bg {
     position: absolute;
     right: 5%;
     top: 20%;
-    font-size: 400px;
+    font-size: 30vw; /* El tamaño de la nota escala con el ancho de la pantalla */
+    max-font-size: 400px;
     color: rgba(24, 119, 242, 0.15);
     z-index: -1;
     transform: rotate(15deg);
@@ -53,12 +57,13 @@ body {
    ========================================= */
 .login-layout {
     display: flex;
-    width: 100%;
+    width: 95%; /* Ocupa el 95% del ancho de la pantalla */
     max-width: 1200px;
     justify-content: space-between;
     align-items: center;
     padding: 20px;
     z-index: 10;
+    gap: 40px; /* Asegura espacio entre las columnas en pantallas medianas */
 }
 
 /* =========================================
@@ -69,7 +74,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 25px;
-    padding-left: 20px;
+    padding-left: 10px;
 }
 
 .feature-item {
@@ -81,6 +86,7 @@ body {
 .icon-box {
     width: 45px;
     height: 45px;
+    flex-shrink: 0; /* Evita que el icono se aplaste si el texto es muy largo */
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -95,16 +101,18 @@ body {
 .icon-box.purple { color: #da77f2; border-color: #da77f2; box-shadow: 0 0 10px rgba(218, 119, 242, 0.3); }
 
 .feature-text h4 { font-size: 14px; color: #4dabf7; margin-bottom: 2px; }
-.feature-text p { font-size: 12px; color: #8892b0; }
+.feature-text p { font-size: 12px; color: #8892b0; line-height: 1.3; }
 
 /* =========================================
    CENTRO (LOGIN Y LOGO)
    ========================================= */
 .login-center {
-    flex: 1.5;
+    flex: 1.2; /* Ligeramente más grande que las columnas laterales */
     display: flex;
     flex-direction: column;
     align-items: center;
+    max-width: 420px; /* Evita que la tarjeta se haga gigante en pantallas enormes */
+    margin: 0 auto;
 }
 
 .brand-header {
@@ -113,13 +121,13 @@ body {
 }
 
 .brand-header .logo {
-    width: 120px;
+    width: clamp(80px, 10vw, 120px); /* El logo se adapta al tamaño de la pantalla */
     margin-bottom: 15px;
     filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.5));
 }
 
-.brand-header h2 { font-size: 18px; font-weight: 300; color: #b0c4de; letter-spacing: 1px; }
-.brand-header h1 { font-size: 32px; font-weight: 600; letter-spacing: 2px; margin-bottom: 10px;}
+.brand-header h2 { font-size: clamp(14px, 2vw, 18px); font-weight: 300; color: #b0c4de; letter-spacing: 1px; }
+.brand-header h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; letter-spacing: 2px; margin-bottom: 10px;}
 
 .divider {
     display: flex; align-items: center; justify-content: center;
@@ -136,9 +144,8 @@ body {
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    padding: 40px;
+    padding: clamp(25px, 4vw, 40px); /* El padding interior escala para no robar espacio */
     width: 100%;
-    max-width: 420px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
     text-align: center;
 }
@@ -218,11 +225,65 @@ body {
 .btn-login:active { transform: translateY(0); }
 
 /* Espacio derecho vacío para balance */
-.right-sidebar { flex: 1; }
+.right-sidebar { flex: 1; display: block; }
 
-/* Responsivo para móviles */
-@media (max-width: 900px) {
-    .features-sidebar, .right-sidebar { display: none; }
-    .music-note-bg { font-size: 250px; right: -50px; opacity: 0.5; }
-    .login-center { width: 100%; padding: 0 20px; }
+/* =========================================
+   MEDIA QUERIES PARA RESPONSIVIDAD
+   ========================================= */
+
+/* Laptops pequeñas y Tablets horizontales (Ej. 1024x768 o 1280x720) */
+@media (max-width: 1100px) {
+    .login-layout {
+        gap: 20px;
+    }
+    /* Ocultamos el espacio derecho vacío para centrar mejor la tarjeta y la info */
+    .right-sidebar {
+        display: none;
+    }
+    .features-sidebar {
+        flex: 1;
+    }
+    .login-center {
+        flex: 1.5;
+    }
+}
+
+/* Tablets en vertical o celulares (Ocultamos las características) */
+@media (max-width: 850px) {
+    body {
+        padding: 20px 0; /* Da espacio arriba y abajo en celulares cortos */
+    }
+    .features-sidebar, .right-sidebar { 
+        display: none; 
+    }
+    .music-note-bg { 
+        font-size: 250px; 
+        right: -50px; 
+        opacity: 0.5; 
+    }
+    .login-layout {
+        justify-content: center;
+    }
+    .login-center { 
+        width: 100%; 
+        padding: 0 15px; 
+        max-width: 450px;
+    }
+}
+
+/* Celulares muy pequeños */
+@media (max-height: 700px) {
+    .brand-header {
+        margin-bottom: 15px;
+    }
+    .brand-header .logo {
+        margin-bottom: 5px;
+        width: 70px;
+    }
+    .login-card {
+        padding: 20px;
+    }
+    .input-group {
+        margin-bottom: 15px;
+    }
 }

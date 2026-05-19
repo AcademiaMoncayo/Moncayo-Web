@@ -9,6 +9,7 @@ body {
     background-color: #0d1b2a;
     color: #ffffff;
     overflow-x: hidden;
+    overflow-y: auto; /* Permite scroll si la pantalla es excesivamente pequeña */
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -33,10 +34,10 @@ body {
     align-items: center;
     justify-content: space-between;
     max-width: 1200px;
-    width: 90%;
+    width: 95%; /* Ampliado un poco para aprovechar mejor laptops de 1366px */
     margin: 0 auto;
-    gap: 50px;
-    padding: 40px 0;
+    gap: clamp(20px, 4vw, 50px); /* El espacio se encoge en pantallas medianas */
+    padding: clamp(20px, 5vh, 40px) 0; /* Padding vertical dinámico */
 }
 
 .content {
@@ -51,14 +52,14 @@ body {
     color: #ffc107;
     padding: 8px 16px;
     border-radius: 20px;
-    font-size: 14px;
+    font-size: clamp(12px, 1.5vw, 14px);
     font-weight: 700;
     margin-bottom: 20px;
     border: 1px solid rgba(255, 193, 7, 0.5);
 }
 
 h1 {
-    font-size: 3.5rem;
+    font-size: clamp(2.2rem, 4vw, 3.5rem); /* Texto fluido que no rompe la pantalla */
     line-height: 1.1;
     margin-bottom: 20px;
 }
@@ -69,7 +70,7 @@ h1 {
 }
 
 p {
-    font-size: 1.1rem;
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
     color: #b0c4de;
     margin-bottom: 30px;
     line-height: 1.6;
@@ -87,7 +88,7 @@ p {
     padding: 10px 20px;
     border-radius: 10px;
     border: 1px solid rgba(255,255,255,0.1);
-    font-size: 14px;
+    font-size: clamp(12px, 1.2vw, 14px);
     backdrop-filter: blur(5px);
 }
 
@@ -97,7 +98,7 @@ p {
     background: linear-gradient(45deg, #ffc107, #ff9800);
     color: #173548;
     text-decoration: none;
-    padding: 15px 30px;
+    padding: clamp(10px, 2vw, 15px) clamp(20px, 3vw, 30px);
     border-radius: 50px;
     box-shadow: 0 10px 30px rgba(255, 193, 7, 0.4);
     transition: all 0.3s ease;
@@ -109,9 +110,9 @@ p {
     box-shadow: 0 15px 40px rgba(255, 193, 7, 0.6);
 }
 
-.btn-download .icon { font-size: 28px; }
+.btn-download .icon { font-size: clamp(20px, 3vw, 28px); }
 .btn-download .btn-text { display: flex; flex-direction: column; }
-.btn-download .btn-text strong { font-size: 18px; }
+.btn-download .btn-text strong { font-size: clamp(14px, 2vw, 18px); }
 .btn-download .btn-text small { font-size: 12px; opacity: 0.8; }
 
 .install-note {
@@ -129,12 +130,13 @@ p {
     animation: slideInRight 1s ease-out;
 }
 
+/* El celular ahora es 100% responsivo a lo alto y ancho de la laptop */
 .floating-phone {
-    width: 280px;
-    height: 580px;
+    width: clamp(220px, 25vw, 280px);
+    height: clamp(450px, 65vh, 580px); /* Limitamos el alto basado en la pantalla */
     background: #ffffff;
     border-radius: 40px;
-    border: 12px solid #222;
+    border: clamp(8px, 1.5vw, 12px) solid #222;
     box-shadow: 0 25px 50px rgba(0,0,0,0.5);
     overflow: hidden;
     position: relative;
@@ -171,23 +173,32 @@ p {
     to { opacity: 1; transform: translateX(0); }
 }
 @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(-50px); }
+    from { opacity: 0; transform: translateX(50px); } /* Corregido para que entre desde la derecha */
     to { opacity: 1; transform: translateX(0); }
 }
 
 /* ==========================================================
-   MODIFICACIÓN EN RESPONSIVO (MÓVILES Y TABLETS)
+   MODIFICACIÓN EN RESPONSIVO (LAPTOPS PEQUEÑAS / TABLETS)
+   ========================================================== */
+@media (max-width: 1100px) {
+    .container {
+        gap: 20px;
+    }
+    .floating-phone {
+        width: 230px;
+        height: 480px;
+    }
+}
+
+/* ==========================================================
+   MODIFICACIÓN EN RESPONSIVO (MÓVILES Y TABLETS VERTICALES)
    ========================================================== */
 @media (max-width: 900px) {
-    body {
-        overflow-y: auto; /* Permite scroll vertical cómodo si la pantalla es muy pequeña */
-    }
-
     .container {
         flex-direction: column; 
         text-align: center;
         padding: 30px 15px;
-        gap: 35px; /* Reduce espacio muerto entre elementos */
+        gap: 35px;
     }
 
     .content {
@@ -195,11 +206,11 @@ p {
         width: 100%;
         display: flex;
         flex-direction: column;
-        align-items: center; /* Centra los bloques internos */
+        align-items: center;
     }
 
     h1 { 
-        font-size: 2.3rem; /* Tamaño de letra adaptado a pantallas de celular */
+        font-size: 2.3rem; 
         line-height: 1.2;
     }
 
@@ -220,7 +231,7 @@ p {
     }
 
     .btn-download {
-        width: 100%; /* El botón abarca el ancho disponible para facilitar la pulsación táctil */
+        width: 100%; 
         max-width: 320px;
         justify-content: center;
         padding: 14px 24px;
@@ -238,9 +249,9 @@ p {
     }
 
     .floating-phone { 
-        width: 200px;  /* Proporciones estilizadas para que luzca estético debajo del texto */
+        width: 200px;  
         height: 420px; 
-        border-width: 8px; /* Ajuste del grosor del marco del celular */
+        border-width: 8px; 
         border-radius: 30px;
     }
 }
